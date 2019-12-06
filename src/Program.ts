@@ -78,7 +78,7 @@ export class Program extends EventEmitter {
           });
       }
 
-      task._dependencies.forEach(dep => {
+      task.dependencies.forEach(dep => {
         if (typeof dep === 'undefined' || dep.name === task.name) {
           this.error(
             `one dependency of "${task.name}" is undefined or the same, you probably have a circular dependency`

@@ -7,14 +7,17 @@ type CallbackBefore = (
 ) => Promise<void | BeforeResponse> | BeforeResponse;
 
 export class Task {
-  public _dependencies: Set<Task> = new Set();
-
+  // task description
   readonly name: string;
-
   readonly description: string;
+  protected _private: boolean = false;
+  protected _repeatable: boolean = false;
 
-  protected _isPrivate: boolean = false;
+  // state
+  public executed: boolean = false;
+  protected _dependencies: Set<Task> = new Set();
 
+  // actual tasks
   protected _before?: CallbackBefore;
   protected _callback: Callback;
   protected _after?: Callback;
@@ -26,17 +29,28 @@ export class Task {
     this._callback = callback;
   }
 
-  dependencies(...dependencies: Task[]) {
+  dependsOn(...dependencies: Task[]) {
     this._dependencies = new Set(dependencies);
     return this;
   }
+  get dependencies() {
+    return this._dependencies;
+  }
 
   private(is: boolean) {
-    this._isPrivate = is;
+    this._private = is;
     return this;
   }
   get isPrivate() {
-    return this._isPrivate;
+    return this._private;
+  }
+
+  repeatable(is: boolean) {
+    this._repeatable = is;
+    return this;
+  }
+  get isRepeatable() {
+    return this._repeatable;
   }
 
   before(callback: CallbackBefore) {
@@ -58,8 +72,14 @@ export class Task {
     const entries = Array.from(this._dependencies);
     for (let index = 0; index < entries.length; index++) {
       const entry = entries[index];
+      if (entry.executed && !entry.repeatable) {
+        continue;
+      }
+
       await entry.run(prgm);
     }
+
+    this.executed = true;
 
     prgm.log('\r');
     prgm.debug(`Executing task: ${this.name}`);
