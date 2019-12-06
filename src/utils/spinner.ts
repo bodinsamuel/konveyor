@@ -30,7 +30,7 @@ export class Spinner {
     this.spinner.start();
   }
 
-  stop(persist: boolean) {
+  stop(persist: boolean = true) {
     if (this.lastMsg && persist !== false) {
       this.spinner.stopAndPersist({
         symbol: this.lastMsg.symbol,

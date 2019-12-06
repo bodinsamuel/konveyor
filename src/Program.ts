@@ -68,7 +68,7 @@ export class Program extends EventEmitter {
     let taskRequested: Task | null = null;
 
     this._tasks.forEach(task => {
-      if (task.global) {
+      if (task.isPrivate === false) {
         commands.push(task.name);
         commander
           .command(task.name)

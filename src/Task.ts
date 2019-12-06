@@ -13,7 +13,7 @@ export class Task {
 
   readonly description: string;
 
-  protected _global: boolean = true;
+  protected _isPrivate: boolean = false;
 
   protected _before?: CallbackBefore;
   protected _callback: Callback;
@@ -31,9 +31,12 @@ export class Task {
     return this;
   }
 
-  global(is: boolean) {
-    this._global = is;
+  private(is: boolean) {
+    this._isPrivate = is;
     return this;
+  }
+  get isPrivate() {
+    return this._isPrivate;
   }
 
   before(callback: CallbackBefore) {
