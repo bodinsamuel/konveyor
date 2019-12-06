@@ -1,6 +1,10 @@
 import { Program } from './Program';
 
 type Callback = (program: Program) => Promise<void> | void;
+type BeforeResponse = { skip: boolean };
+type CallbackBefore = (
+  program: Program
+) => Promise<void | BeforeResponse> | BeforeResponse;
 
 export class Task {
   public _dependencies: Set<Task> = new Set();
@@ -11,18 +15,15 @@ export class Task {
 
   protected _global: boolean = true;
 
-  readonly pipe: { [k: string]: Callback | null } = {
-    before: null,
-    after: null,
-    afterAll: null,
-  };
-
-  readonly callback: Callback;
+  protected _before?: CallbackBefore;
+  protected _callback: Callback;
+  protected _after?: Callback;
+  protected _afterAll?: Callback;
 
   constructor(name: string, description: string, callback: Callback) {
     this.name = name;
     this.description = description;
-    this.callback = callback;
+    this._callback = callback;
   }
 
   dependencies(...dependencies: Task[]) {
@@ -35,18 +36,18 @@ export class Task {
     return this;
   }
 
-  before(callback: Callback) {
-    this.pipe.before = callback;
+  before(callback: CallbackBefore) {
+    this._before = callback;
     return this;
   }
 
   after(callback: Callback) {
-    this.pipe.after = callback;
+    this._after = callback;
     return this;
   }
 
   afterAll(callback: Callback) {
-    this.pipe.afterAll = callback;
+    this._afterAll = callback;
     return this;
   }
 
@@ -57,14 +58,24 @@ export class Task {
       await entry.run(prgm);
     }
 
-    if (this.pipe.before) {
-      await this.pipe.before(prgm);
+    prgm.log('\r');
+    prgm.debug(`Executing task: ${this.name}`);
+    if (this._before) {
+      const answer = await this._before(prgm);
+      console.log(answer);
+      prgm.spinner.stop(true);
+      if (answer && answer.skip) {
+        prgm.debug('before() returned skip: true');
+        return;
+      }
     }
 
-    await this.callback(prgm);
+    await this._callback(prgm);
+    prgm.spinner.stop(true);
 
-    if (this.pipe.before) {
-      await this.pipe.before(prgm);
+    if (this._after) {
+      await this._after(prgm);
+      prgm.spinner.stop(true);
     }
   }
 }
