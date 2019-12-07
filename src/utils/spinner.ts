@@ -1,63 +1,44 @@
 // Stolen from vue-cli
 import ora from 'ora';
-import chalk from 'chalk';
 
 export class Spinner {
   private spinner: ora.Ora;
-  private lastMsg: { symbol: string; text: string } | null = null;
-  private isPaused = false;
+  private lastMsg: string | null = null;
 
   constructor() {
     this.spinner = ora();
   }
 
-  log(symbol: string, msg?: string) {
-    if (!msg) {
-      msg = symbol;
-      symbol = chalk.green('✔');
-    }
-    if (this.lastMsg) {
-      this.spinner.stopAndPersist({
-        symbol: this.lastMsg.symbol,
-        text: this.lastMsg.text,
-      });
-    }
-    this.spinner.text = ' ' + msg;
-    this.lastMsg = {
-      symbol: symbol + ' ',
-      text: msg,
-    };
-    this.spinner.start();
+  log(msg: string) {
+    this.lastMsg = msg;
+    this.spinner.start(msg);
   }
 
   stop(persist: boolean = true) {
     if (this.lastMsg && persist !== false) {
-      this.spinner.stopAndPersist({
-        symbol: this.lastMsg.symbol,
-        text: this.lastMsg.text,
-      });
+      this.spinner.stopAndPersist();
     } else {
       this.spinner.stop();
     }
     this.lastMsg = null;
   }
-
-  pause() {
-    if (this.spinner.isSpinning) {
-      this.spinner.stop();
-      this.isPaused = true;
-    }
+  clear() {
+    this.spinner.clear();
+    this.lastMsg = null;
   }
 
-  resume() {
-    if (this.isPaused) {
-      this.spinner.start();
-      this.isPaused = false;
-    }
+  info(text?: string) {
+    this.spinner.info(text);
+    this.lastMsg = null;
+  }
+
+  succeed(text?: string) {
+    this.spinner.succeed(text);
+    this.lastMsg = null;
   }
 
   fail(text?: string) {
-    this.spinner.fail(text || (this.lastMsg ? this.lastMsg.text : 'unknown'));
+    this.spinner.fail(text);
     this.lastMsg = null;
   }
 }

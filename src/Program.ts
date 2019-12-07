@@ -28,7 +28,9 @@ export class Program extends EventEmitter {
   private name: string;
   private version: string;
   private started: boolean = false;
+  private _task?: Task;
   private _tasks: Task[] = [];
+  private _commandsName: string[] = [];
 
   // services
   readonly logger: Logger;
@@ -60,21 +62,70 @@ export class Program extends EventEmitter {
     return this;
   }
 
+  /**
+   * Main entrypoint.
+   *
+   * @param argv process.argv
+   */
   async start(argv: any) {
     this.started = true;
-    const commander = this.commander;
-    const commands: string[] = [];
 
-    let taskRequested: Task | null = null;
+    await this.registerTasks();
+
+    // display intro
+    clearConsole();
+    console.log(intro(this.name, this.version));
+
+    this.commander.parse(argv);
+
+    await this.askForCommand();
+
+    if (!this._task) {
+      throw new Error('No task asked, should not happen');
+    }
+
+    // run the chosen task
+    try {
+      await this._task.run(this);
+    } catch (err) {
+      this.error(err.toString());
+      await this.exit(1);
+    }
+
+    this.started = false;
+  }
+
+  async exit(code: number = 1) {
+    this.spinner.stop();
+    await new Promise(resolve => {
+      this.logger.on('finish', () => {
+        resolve();
+      });
+      this.logger.end();
+    });
+
+    process.exit(code);
+  }
+
+  private async registerTasks() {
+    const commander = this.commander;
+
+    if (this._tasks.length <= 0) {
+      this.error(
+        'No tasks were registered, use program.tasks() to register your tasks'
+      );
+      await this.exit(1);
+      return;
+    }
 
     this._tasks.forEach(task => {
       if (task.isPrivate === false) {
-        commands.push(task.name);
+        this._commandsName.push(task.name);
         commander
           .command(task.name)
           .description(task.description)
           .action(() => {
-            taskRequested = task;
+            this._task = task;
           });
       }
 
@@ -83,54 +134,39 @@ export class Program extends EventEmitter {
           this.error(
             `one dependency of "${task.name}" is undefined or the same, you probably have a circular dependency`
           );
-          this.exit();
+          this.exit(1);
         }
       });
     });
 
-    clearConsole();
-
-    console.log(intro(this.name, this.version));
-
-    if (this._tasks.length <= 0) {
-      this.error(
-        'No tasks were registered, use program.tasks() to register your tasks'
-      );
-      this.exit();
-      return;
-    }
-
+    // Final catch all command
     commander.arguments('<command>').action(cmd => {
       commander.outputHelp();
       this.error(`  ` + chalk.red(`Unknown command ${chalk.yellow(cmd)}.`));
     });
+  }
 
-    commander.parse(argv);
-
-    if (!taskRequested) {
+  private async askForCommand() {
+    // @ts-ignore
+    if (typeof this._task === 'undefined') {
       const answers = await inquirer.prompt([
         {
           type: 'list',
           name: 'Command',
           message: 'What do you want to do?',
-          choices: commands,
+          choices: this._commandsName,
         },
       ]);
-      taskRequested = this._tasks.find(
+      this._task = this._tasks.find(
         task => task.name === answers.Command
       ) as Task;
+    } else {
+      this.log(
+        `${chalk.green('?')} ${chalk.bold(
+          'What do you want to do?'
+        )} ${chalk.cyan(this._task.name)}`
+      );
     }
-
-    try {
-      // @ts-ignore
-      await taskRequested.run(this);
-    } catch (err) {
-      this.error(err.toString());
-    }
-  }
-
-  exit() {
-    process.exit(1);
   }
 
   //---------------- Manual Extends
@@ -139,25 +175,31 @@ export class Program extends EventEmitter {
     this.logger.log('info', msg);
   }
   error(msg: string) {
-    this.spinner.stop(true);
+    this.spinner.stop();
+
     this.logger.error(msg);
+  }
+  warn(msg: string) {
+    this.logger.warn(msg);
   }
   debug(msg: string) {
     this.logger.debug(msg);
   }
-  async streamLog(process: ChildProcess, level: string = 'debug') {
+  async streamLog(subprocess: ChildProcess, level: string = 'debug') {
     return new Promise(resolve => {
       const stream = new StreamTransform({ level });
-      process.stdout!.pipe(stream).pipe(this.logger);
+      subprocess.stdout!.pipe(stream).pipe(this.logger, {
+        end: false,
+      });
 
-      process.stderr!.on('data', err => {
+      subprocess.stderr!.on('data', err => {
         this.spinner.fail();
         throw new Error(err);
       });
 
-      process.on('close', (code: number) => {
+      subprocess.on('close', (code: number) => {
         if (code <= 0) {
-          this.spinner.stop(true);
+          this.spinner.succeed();
           resolve();
         }
       });

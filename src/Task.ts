@@ -14,7 +14,7 @@ export class Task {
   protected _repeatable: boolean = false;
 
   // state
-  public executed: boolean = false;
+  protected _executed: boolean = false;
   protected _dependencies: Set<Task> = new Set();
 
   // actual tasks
@@ -53,6 +53,14 @@ export class Task {
     return this._repeatable;
   }
 
+  executed(is: boolean) {
+    this._executed = is;
+    return this;
+  }
+  get isExecuted() {
+    return this._executed;
+  }
+
   before(callback: CallbackBefore) {
     this._before = callback;
     return this;
@@ -72,21 +80,20 @@ export class Task {
     const entries = Array.from(this._dependencies);
     for (let index = 0; index < entries.length; index++) {
       const entry = entries[index];
-      if (entry.executed && !entry.repeatable) {
+      if (entry.isExecuted && !entry.isRepeatable) {
         continue;
       }
 
       await entry.run(prgm);
     }
 
-    this.executed = true;
+    this.executed(true);
 
-    prgm.log('\r');
     prgm.debug(`Executing task: ${this.name}`);
     if (this._before) {
       const answer = await this._before(prgm);
-      console.log(answer);
-      prgm.spinner.stop(true);
+      prgm.spinner.stop();
+
       if (answer && answer.skip) {
         prgm.debug('before() returned skip: true');
         return;
@@ -94,11 +101,11 @@ export class Task {
     }
 
     await this._callback(prgm);
-    prgm.spinner.stop(true);
+    prgm.spinner.stop();
 
     if (this._after) {
       await this._after(prgm);
-      prgm.spinner.stop(true);
+      prgm.spinner.stop();
     }
   }
 }
