@@ -15,6 +15,10 @@ export class Store<Keys, Env extends string> {
     this.env = env;
   }
 
+  switch(env: Env) {
+    this.env = env;
+  }
+
   set(key: keyof Keys, value: any) {
     this.kv[this.env][key] = value;
   }

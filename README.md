@@ -1,4 +1,8 @@
-### Todo
+# Konvoyer
+
+Tut tut les deploy
+
+## Todo
 
 - Logs File path
 - Initial cleanup for logs
@@ -8,3 +12,5 @@
 - parametrisable task
 - emphasis
 - [x] typed store
+- log execa
+- log inquirer

@@ -8,7 +8,7 @@ import figures from 'figures';
 import { Logger } from 'winston';
 
 import { Task } from './Task';
-import { Store, StoreGeneric } from './Store';
+import { Store } from './Store';
 
 import { clearConsole } from './utils/clearConsole';
 import { intro } from './utils/intro';

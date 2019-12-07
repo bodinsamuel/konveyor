@@ -1,27 +1,32 @@
 import { createLogger, transports, format } from 'winston';
 
-const myFormat = format.printf(({ level, message }) => {
+const formatConsole = format.printf(({ level, message }) => {
   if (level.indexOf('info') < 0) {
+    return `${level} ${message}`;
+  }
+  return message;
+});
+const formatFile = format.printf(({ level, message }) => {
+  if (level.indexOf('error') >= 0) {
     return `${level} ${message}`;
   }
   return message;
 });
 
 export const logger = createLogger({
-  // format: format.combine(format.colorize(), myFormat),
   transports: [
     new transports.Console({
-      format: format.combine(format.colorize(), myFormat),
+      format: format.combine(format.colorize(), formatConsole),
     }),
     new transports.File({
       filename: 'error.log',
       level: 'error',
-      format: format.simple(),
+      format: formatFile,
     }),
     new transports.File({
       filename: 'index.log',
       level: 'debug',
-      format: format.simple(),
+      format: formatFile,
     }),
   ],
 });
