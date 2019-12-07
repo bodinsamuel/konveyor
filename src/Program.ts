@@ -94,7 +94,7 @@ export class Program extends EventEmitter {
     try {
       await this._task.run(this);
     } catch (err) {
-      this.error(err.toString());
+      this.error(err);
       await this.exit(1);
     }
 
@@ -186,10 +186,15 @@ export class Program extends EventEmitter {
   log(msg: string) {
     this.logger.log('info', msg);
   }
-  error(msg: string) {
+  error(msg: string | Error) {
     this.spinner.stop();
 
-    this.logger.error(msg);
+    if (typeof msg === 'object') {
+      this.logger.debug(msg.stack as string);
+      this.logger.error(msg.message);
+    } else {
+      this.logger.error(msg);
+    }
   }
   warn(msg: string) {
     this.logger.warn(msg);
