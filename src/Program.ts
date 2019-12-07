@@ -4,10 +4,11 @@ import EventEmitter from 'events';
 import chalk from 'chalk';
 import { Command } from 'commander';
 import inquirer from 'inquirer';
+import figures from 'figures';
 import { Logger } from 'winston';
 
 import { Task } from './Task';
-import { Storage } from './Storage';
+import { Store, StoreGeneric } from './Store';
 
 import { clearConsole } from './utils/clearConsole';
 import { intro } from './utils/intro';
@@ -19,7 +20,7 @@ interface Args {
   name: string;
   version: string;
   logger?: Logger;
-  storage?: Storage;
+  store?: Store<{ [k: string]: any }, string>;
   spinner?: Spinner;
 }
 
@@ -36,9 +37,9 @@ export class Program extends EventEmitter {
   readonly logger: Logger;
   readonly spinner: Spinner;
   private commander: Command;
-  private storage: Storage;
+  public store: Store<{}, string>;
 
-  constructor({ name, version, logger, storage, spinner }: Args) {
+  constructor({ name, version, logger, store, spinner }: Args) {
     super();
 
     this.name = name;
@@ -51,7 +52,7 @@ export class Program extends EventEmitter {
       .version(this.version)
       .usage('<command> [options]');
 
-    this.storage = storage || new Storage();
+    this.store = store || new Store<{}, 'test'>('test', { test: {} });
   }
 
   tasks(...tasks: Task[]): this {
@@ -118,7 +119,13 @@ export class Program extends EventEmitter {
       return;
     }
 
+    const names: string[] = [];
     this._tasks.forEach(task => {
+      if (names.includes(task.name)) {
+        throw new Error(`Task "${task.name}" is already registered`);
+      }
+      names.push(task.name);
+
       if (task.isPrivate === false) {
         this._commandsName.push(task.name);
         commander
@@ -185,6 +192,14 @@ export class Program extends EventEmitter {
   debug(msg: string) {
     this.logger.debug(msg);
   }
+  help(msg: string, command?: string) {
+    this.log('\r');
+
+    this.log(
+      `${chalk.blue(figures.info)} ${msg} ${command && chalk.dim(command)}`
+    );
+    this.log('\r');
+  }
   async streamLog(subprocess: ChildProcess, level: string = 'debug') {
     return new Promise(resolve => {
       const stream = new StreamTransform({ level });
@@ -207,10 +222,10 @@ export class Program extends EventEmitter {
   }
 
   // Storage
-  get(key: string) {
-    return this.storage.get(key);
-  }
-  set(key: string, value: any) {
-    return this.storage.set(key, value);
-  }
+  // get(key: any) {
+  //   return this.store.get(key);
+  // }
+  // set(key: any, value: any) {
+  //   return this.store.set(key, value);
+  // }
 }

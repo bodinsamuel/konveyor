@@ -7,3 +7,4 @@
 - Timings
 - parametrisable task
 - emphasis
+- [x] typed store

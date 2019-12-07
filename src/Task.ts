@@ -10,8 +10,8 @@ export class Task {
   // task description
   readonly name: string;
   readonly description: string;
-  protected _private: boolean = false;
-  protected _repeatable: boolean = false;
+  readonly isPrivate: boolean = false;
+  readonly isRepeatable: boolean = false;
 
   // state
   protected _executed: boolean = false;
@@ -19,43 +19,36 @@ export class Task {
 
   // actual tasks
   protected _before?: CallbackBefore;
-  protected _callback: Callback;
+  protected _callback?: Callback;
   protected _after?: Callback;
   protected _afterAll?: Callback;
 
-  constructor(name: string, description: string, callback: Callback) {
+  constructor({
+    name,
+    description,
+    dependencies = [],
+    isPrivate = false,
+    isRepeatable = false,
+  }: {
+    name: string;
+    description: string;
+    dependencies?: Task[];
+    isPrivate?: boolean;
+    isRepeatable?: boolean;
+  }) {
     this.name = name;
     this.description = description;
-    this._callback = callback;
+    this._dependencies = new Set(dependencies);
+    this.isPrivate = isPrivate;
+    this.isRepeatable = isRepeatable;
   }
 
-  dependsOn(...dependencies: Task[]) {
-    this._dependencies = new Set(dependencies);
-    return this;
-  }
   get dependencies() {
     return this._dependencies;
   }
 
-  private(is: boolean) {
-    this._private = is;
-    return this;
-  }
-  get isPrivate() {
-    return this._private;
-  }
-
-  repeatable(is: boolean) {
-    this._repeatable = is;
-    return this;
-  }
-  get isRepeatable() {
-    return this._repeatable;
-  }
-
   executed(is: boolean) {
     this._executed = is;
-    return this;
   }
   get isExecuted() {
     return this._executed;
@@ -63,20 +56,24 @@ export class Task {
 
   before(callback: CallbackBefore) {
     this._before = callback;
-    return this;
+  }
+
+  exec(callback: Callback) {
+    this._callback = callback;
   }
 
   after(callback: Callback) {
     this._after = callback;
-    return this;
   }
 
   afterAll(callback: Callback) {
     this._afterAll = callback;
-    return this;
   }
 
   async run(prgm: Program) {
+    if (!this._callback) {
+      throw new Error(`Task "${this.name}" does not have a main exec()`);
+    }
     const entries = Array.from(this._dependencies);
     for (let index = 0; index < entries.length; index++) {
       const entry = entries[index];
