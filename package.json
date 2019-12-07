@@ -6,13 +6,16 @@
   "license": "MIT",
   "devDependencies": {
     "@types/inquirer": "6.5.0",
+    "@types/mustache": "0.8.32",
     "@types/node": "12.12.14",
     "@types/node-fetch": "2.5.4",
+    "mustache": "3.1.0",
     "node-fetch": "2.6.0",
     "ts-node": "8.5.4",
     "typescript": "3.7.3"
   },
   "dependencies": {
+    "@types/rimraf": "2.0.3",
     "boxen": "4.2.0",
     "chalk": "3.0.0",
     "commander": "4.0.1",
@@ -20,6 +23,7 @@
     "figures": "3.1.0",
     "inquirer": "7.0.0",
     "ora": "4.0.3",
+    "rimraf": "3.0.0",
     "winston": "3.2.1"
   }
 }

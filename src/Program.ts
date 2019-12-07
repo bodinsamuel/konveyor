@@ -1,5 +1,6 @@
 import { ChildProcess } from 'child_process';
 import EventEmitter from 'events';
+import path from 'path';
 
 import chalk from 'chalk';
 import { Command } from 'commander';
@@ -12,7 +13,7 @@ import { Store } from './Store';
 
 import { clearConsole } from './utils/clearConsole';
 import { intro } from './utils/intro';
-import { logger as defaultLogger } from './utils/logger';
+import { createLogger } from './utils/createLogger';
 import { StreamTransform } from './utils/streamTransform';
 import { Spinner } from './utils/spinner';
 
@@ -45,7 +46,11 @@ export class Program extends EventEmitter {
     this.name = name;
     this.version = version;
 
-    this.logger = logger || defaultLogger;
+    this.logger =
+      logger ||
+      createLogger({
+        folder: path.dirname(require!.main!.filename),
+      });
     this.spinner = spinner || new Spinner();
 
     this.commander = new Command()

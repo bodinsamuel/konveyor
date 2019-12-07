@@ -23,11 +23,15 @@ export class Store<Keys, Env extends string> {
     this.kv[this.env][key] = value;
   }
 
-  get(key: keyof Keys) {
+  get<A extends keyof Keys>(key: A): Keys[A] {
     if (typeof this.kv[this.env][key] === 'undefined') {
       throw new Error(`Store: key ${key} does not exists`);
     }
 
     return this.kv[this.env][key];
+  }
+
+  toJson() {
+    return this.kv[this.env];
   }
 }

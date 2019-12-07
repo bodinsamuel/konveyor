@@ -4,8 +4,8 @@ Tut tut les deploy
 
 ## Todo
 
-- Logs File path
-- Initial cleanup for logs
+- [x] Logs File path
+- Initial cleanup for logs || date formated log
 - Trap cleanup + after all
 - Progress event
 - Timings
