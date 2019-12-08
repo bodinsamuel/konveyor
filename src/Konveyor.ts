@@ -20,18 +20,18 @@ import { Spinner } from './utils/spinner';
 interface Args {
   name: string;
   version: string;
+  tasks: Task[];
   logger?: Logger;
   store?: Store<{ [k: string]: any }, string>;
   spinner?: Spinner;
 }
 
-export class Program extends EventEmitter {
+export class Konveyor extends EventEmitter {
   // state
   private name: string;
   private version: string;
-  private started: boolean = false;
-  private _task?: Task;
-  private _tasks: Task[] = [];
+  private task?: Task;
+  private tasks: Task[] = [];
   private _commandsName: string[] = [];
 
   // services
@@ -40,11 +40,12 @@ export class Program extends EventEmitter {
   private commander: Command;
   public store: Store<{}, string>;
 
-  constructor({ name, version, logger, store, spinner }: Args) {
+  constructor({ name, version, logger, store, spinner, tasks }: Args) {
     super();
 
     this.name = name;
     this.version = version;
+    this.tasks = tasks;
 
     this.logger =
       logger ||
@@ -60,22 +61,12 @@ export class Program extends EventEmitter {
     this.store = store || new Store<{}, 'test'>('test', { test: {} });
   }
 
-  tasks(...tasks: Task[]): this {
-    if (this.started) {
-      throw new Error('can not call this method after start() has been called');
-    }
-    this._tasks = tasks;
-    return this;
-  }
-
   /**
    * Main entrypoint.
    *
    * @param argv process.argv
    */
   async start(argv: any) {
-    this.started = true;
-
     await this.registerTasks();
 
     // display intro
@@ -86,19 +77,17 @@ export class Program extends EventEmitter {
 
     await this.askForCommand();
 
-    if (!this._task) {
+    if (!this.task) {
       throw new Error('No task asked, should not happen');
     }
 
     // run the chosen task
     try {
-      await this._task.run(this);
+      await this.task.run(this);
     } catch (err) {
       this.error(err);
       await this.exit(1);
     }
-
-    this.started = false;
   }
 
   async exit(code: number = 1) {
@@ -116,7 +105,7 @@ export class Program extends EventEmitter {
   private async registerTasks() {
     const commander = this.commander;
 
-    if (this._tasks.length <= 0) {
+    if (this.tasks.length <= 0) {
       this.error(
         'No tasks were registered, use program.tasks() to register your tasks'
       );
@@ -125,7 +114,7 @@ export class Program extends EventEmitter {
     }
 
     const names: string[] = [];
-    this._tasks.forEach(task => {
+    this.tasks.forEach(task => {
       if (names.includes(task.name)) {
         throw new Error(`Task "${task.name}" is already registered`);
       }
@@ -137,7 +126,7 @@ export class Program extends EventEmitter {
           .command(task.name)
           .description(task.description)
           .action(() => {
-            this._task = task;
+            this.task = task;
           });
       }
 
@@ -160,7 +149,7 @@ export class Program extends EventEmitter {
 
   private async askForCommand() {
     // @ts-ignore
-    if (typeof this._task === 'undefined') {
+    if (typeof this.task === 'undefined') {
       const answers = await inquirer.prompt([
         {
           type: 'list',
@@ -169,14 +158,14 @@ export class Program extends EventEmitter {
           choices: this._commandsName,
         },
       ]);
-      this._task = this._tasks.find(
+      this.task = this.tasks.find(
         task => task.name === answers.Command
       ) as Task;
     } else {
       this.log(
         `${chalk.green('?')} ${chalk.bold(
           'What do you want to do?'
-        )} ${chalk.cyan(this._task.name)}`
+        )} ${chalk.cyan(this.task.name)}`
       );
     }
   }

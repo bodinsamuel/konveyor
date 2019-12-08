@@ -1,9 +1,9 @@
-import { Program } from './Program';
+import { Konveyor } from './Konveyor';
 
-type Callback = (program: Program) => Promise<void> | void;
+type Callback = (program: Konveyor) => Promise<void> | void;
 type BeforeResponse = { skip: boolean };
 type CallbackBefore = (
-  program: Program
+  program: Konveyor
 ) => Promise<void | BeforeResponse> | BeforeResponse;
 
 export class Task {
@@ -70,7 +70,7 @@ export class Task {
     this._afterAll = callback;
   }
 
-  async run(prgm: Program) {
+  async run(prgm: Konveyor) {
     if (!this._callback) {
       throw new Error(`Task "${this.name}" does not have a main exec()`);
     }

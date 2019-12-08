@@ -1,7 +1,7 @@
 import rimraf from 'rimraf';
-import { Program } from '../Program';
+import { Konveyor } from '../Konveyor';
 
-export async function clearFolder(prgm: Program, path: string) {
+export async function clearFolder(prgm: Konveyor, path: string) {
   await new Promise((resolve, reject) => {
     rimraf(path, error => {
       if (error) {
