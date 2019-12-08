@@ -6,7 +6,6 @@ import { Command } from 'commander';
 import inquirer from 'inquirer';
 
 import { Task } from './Task';
-import { Store } from './Store';
 import { Logger } from './Logger';
 import { Program } from './Program';
 import { intro, clearConsole, Spinner } from './utils/';
@@ -16,7 +15,6 @@ interface Args {
   version: string;
   tasks: Task[];
   logger?: Logger;
-  store?: Store<{ [k: string]: any }, string>;
   spinner?: Spinner;
 }
 
@@ -32,9 +30,8 @@ export class Konveyor extends EventEmitter {
   readonly logger: Logger;
   private program: Program;
   private commander: Command;
-  public store: Store<{}, string>;
 
-  constructor({ name, version, logger, store, tasks }: Args) {
+  constructor({ name, version, logger, tasks }: Args) {
     super();
 
     this.name = name;
@@ -50,8 +47,6 @@ export class Konveyor extends EventEmitter {
     this.commander = new Command()
       .version(this.version)
       .usage('<command> [options]');
-
-    this.store = store || new Store<{}, 'test'>('test', { test: {} });
 
     this.program = new Program({
       logger: this.logger,

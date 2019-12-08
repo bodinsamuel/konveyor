@@ -23,10 +23,6 @@ export class Program {
     return this._logger;
   }
 
-  // get store() {
-  //   return this.store;
-  // }
-
   get spinner() {
     return this._spinner;
   }
