@@ -6,3 +6,4 @@ export * from './findInDir';
 export * from './intro';
 export * from './spinner';
 export * from './streamTransform';
+export * from './tryUntil';

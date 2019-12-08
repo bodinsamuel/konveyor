@@ -7,6 +7,7 @@ import {
   createFindInDir,
   Spinner,
   StreamTransform,
+  tryUntil,
 } from './utils';
 import { Logger } from './Logger';
 
@@ -43,7 +44,14 @@ export class Program {
     return execa;
   }
 
-  async streamSubProcess(subprocess: ChildProcess, level: string = 'debug') {
+  get tryUntil() {
+    return tryUntil;
+  }
+
+  streamSubProcess = async (
+    subprocess: ChildProcess,
+    level: string = 'debug'
+  ) => {
     return new Promise(resolve => {
       const stream = new StreamTransform({ level });
       subprocess.stdout!.pipe(stream).pipe(this.log.winston, {
@@ -62,9 +70,9 @@ export class Program {
         }
       });
     });
-  }
+  };
 
-  async exit(code: number = 1) {
+  exit = async (code: number = 1) => {
     this.spinner.fail();
 
     await new Promise(resolve => {
@@ -75,5 +83,5 @@ export class Program {
     });
 
     process.exit(code);
-  }
+  };
 }
