@@ -1,16 +1,18 @@
 import rimraf from 'rimraf';
-import { Konveyor } from '../Konveyor';
+import { Logger } from '../Logger';
 
-export async function clearFolder(prgm: Konveyor, path: string) {
-  await new Promise((resolve, reject) => {
-    rimraf(path, error => {
-      if (error) {
-        reject(error);
-        return;
-      }
-      resolve();
+export function createClearFolder(logger: Logger) {
+  return async function clearFolder(path: string) {
+    await new Promise((resolve, reject) => {
+      rimraf(path, error => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve();
+      });
     });
-  });
 
-  prgm.debug(`rimraf: ${path}`);
+    logger.debug(`rimraf: ${path}`);
+  };
 }

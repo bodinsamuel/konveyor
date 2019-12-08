@@ -1,9 +1,9 @@
-import { Konveyor } from './Konveyor';
+import { Program } from './Program';
 
-type Callback = (program: Konveyor) => Promise<void> | void;
+type Callback = (program: Program) => Promise<void> | void;
 type BeforeResponse = { skip: boolean };
 type CallbackBefore = (
-  program: Konveyor
+  program: Program
 ) => Promise<void | BeforeResponse> | BeforeResponse;
 
 export class Task {
@@ -70,7 +70,7 @@ export class Task {
     this._afterAll = callback;
   }
 
-  async run(prgm: Konveyor) {
+  async run(prgm: Program) {
     if (!this._callback) {
       throw new Error(`Task "${this.name}" does not have a main exec()`);
     }
@@ -86,13 +86,13 @@ export class Task {
 
     this.executed(true);
 
-    prgm.debug(`Executing task: ${this.name}`);
+    prgm.log.debug(`Executing task: ${this.name}`);
     if (this._before) {
       const answer = await this._before(prgm);
       prgm.spinner.stop();
 
       if (answer && answer.skip) {
-        prgm.debug('before() returned skip: true');
+        prgm.log.debug('before() returned skip: true');
         return;
       }
     }

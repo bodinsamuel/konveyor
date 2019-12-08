@@ -9,7 +9,7 @@ export class Spinner {
     this.spinner = ora();
   }
 
-  log(msg: string) {
+  spin(msg: string) {
     this.lastMsg = msg;
     this.spinner.start(msg);
   }
@@ -22,6 +22,7 @@ export class Spinner {
     }
     this.lastMsg = null;
   }
+
   clear() {
     this.spinner.clear();
     this.lastMsg = null;
