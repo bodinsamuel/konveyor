@@ -1,8 +1,14 @@
+import { ChildProcess } from 'child_process';
 import execa = require('execa');
 
-import { createChoices } from './utils/choices';
-import { Spinner } from './utils/spinner';
-import { Logger, createClearFolder, createFindInDir } from './utils';
+import {
+  createChoices,
+  createClearFolder,
+  createFindInDir,
+  Spinner,
+  StreamTransform,
+} from './utils';
+import { Logger } from './Logger';
 
 export class Program {
   readonly _spinner: Spinner;
@@ -39,6 +45,27 @@ export class Program {
 
   get exec() {
     return execa;
+  }
+
+  async streamSubProcess(subprocess: ChildProcess, level: string = 'debug') {
+    return new Promise(resolve => {
+      const stream = new StreamTransform({ level });
+      subprocess.stdout!.pipe(stream).pipe(this.log.winston, {
+        end: false,
+      });
+
+      subprocess.stderr!.on('data', err => {
+        this.spinner.fail();
+        throw new Error(err);
+      });
+
+      subprocess.on('close', (code: number) => {
+        if (code <= 0) {
+          this.spinner.succeed();
+          resolve();
+        }
+      });
+    });
   }
 
   async exit(code: number = 1) {

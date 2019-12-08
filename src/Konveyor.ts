@@ -1,21 +1,15 @@
-import { ChildProcess } from 'child_process';
 import EventEmitter from 'events';
 import path from 'path';
 
 import chalk from 'chalk';
 import { Command } from 'commander';
 import inquirer from 'inquirer';
-import figures from 'figures';
 
 import { Task } from './Task';
 import { Store } from './Store';
-
-import { clearConsole } from './utils/clearConsole';
-import { intro } from './utils/intro';
 import { Logger } from './Logger';
-import { StreamTransform } from './utils/streamTransform';
-import { Spinner } from './utils/spinner';
 import { Program } from './Program';
+import { intro, clearConsole, Spinner } from './utils/';
 
 interface Args {
   name: string;
@@ -156,43 +150,11 @@ export class Konveyor extends EventEmitter {
         task => task.name === answers.Command
       ) as Task;
     } else {
-      this.logger.log(
+      this.logger.info(
         `${chalk.green('?')} ${chalk.bold(
           'What do you want to do?'
         )} ${chalk.cyan(this.task.name)}`
       );
     }
   }
-
-  //---------------- Manual Extends
-  // Logger
-
-  async streamLog(subprocess: ChildProcess, level: string = 'debug') {
-    return new Promise(resolve => {
-      const stream = new StreamTransform({ level });
-      subprocess.stdout!.pipe(stream).pipe(this.logger.winston, {
-        end: false,
-      });
-
-      subprocess.stderr!.on('data', err => {
-        this.program.spinner.fail();
-        throw new Error(err);
-      });
-
-      subprocess.on('close', (code: number) => {
-        if (code <= 0) {
-          this.program.spinner.succeed();
-          resolve();
-        }
-      });
-    });
-  }
-
-  // Storage
-  // get(key: any) {
-  //   return this.store.get(key);
-  // }
-  // set(key: any, value: any) {
-  //   return this.store.set(key, value);
-  // }
 }
