@@ -30,11 +30,6 @@ export class Logger {
           format: format.combine(format.colorize(), formatConsole),
         }),
         new transports.File({
-          filename: `${folder}/error.log`,
-          level: 'error',
-          format: formatFile,
-        }),
-        new transports.File({
           filename: `${folder}/debug.log`,
           level: 'debug',
           format: formatFile,
