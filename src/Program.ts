@@ -59,13 +59,11 @@ export class Program {
       });
 
       subprocess.stderr!.on('data', err => {
-        this.spinner.fail();
         throw new Error(err);
       });
 
       subprocess.on('close', (code: number) => {
         if (code <= 0) {
-          this.spinner.succeed();
           resolve();
         }
       });

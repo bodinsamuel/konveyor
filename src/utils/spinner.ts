@@ -39,6 +39,7 @@ export class Spinner {
   }
 
   fail(text?: string) {
+    if (!this.lastMsg) return;
     this.spinner.fail(text);
     this.lastMsg = null;
   }
