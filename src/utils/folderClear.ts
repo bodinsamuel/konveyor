@@ -1,8 +1,8 @@
 import rimraf from 'rimraf';
 import { Logger } from '../Logger';
 
-export function createClearFolder(logger: Logger) {
-  return async function clearFolder(path: string) {
+export function createFolderClear(logger: Logger) {
+  return async function folderClear(path: string) {
     await new Promise((resolve, reject) => {
       rimraf(path, error => {
         if (error) {

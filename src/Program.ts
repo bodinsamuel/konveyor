@@ -3,11 +3,11 @@ import execa = require('execa');
 
 import {
   createChoices,
-  createClearFolder,
-  createFindInDir,
   Spinner,
   StreamTransform,
   tryUntil,
+  createFolderList,
+  createFolderClear,
 } from './utils';
 import { Logger } from './Logger';
 
@@ -32,12 +32,12 @@ export class Program {
     return createChoices(this._logger);
   }
 
-  get clearFolder() {
-    return createClearFolder(this._logger);
+  get folderClear() {
+    return createFolderClear(this._logger);
   }
 
-  get findInDir() {
-    return createFindInDir(this._logger);
+  get folderList() {
+    return createFolderList(this._logger);
   }
 
   get exec() {
