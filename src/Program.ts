@@ -8,6 +8,9 @@ import {
   tryUntil,
   createFolderList,
   createFolderClear,
+  createFileRead,
+  createFileWrite,
+  creatYesNo,
 } from './utils';
 import { Logger } from './Logger';
 
@@ -32,6 +35,10 @@ export class Program {
     return createChoices(this._logger);
   }
 
+  get yesno() {
+    return creatYesNo(this._logger);
+  }
+
   get folderClear() {
     return createFolderClear(this._logger);
   }
@@ -40,8 +47,19 @@ export class Program {
     return createFolderList(this._logger);
   }
 
+  get fileRead() {
+    return createFileRead(this._logger);
+  }
+
+  get fileWrite() {
+    return createFileWrite(this._logger);
+  }
+
   get exec() {
-    return execa;
+    return (command: string) => {
+      this.log.debug(`Exec ${command}`);
+      return execa.command(command);
+    };
   }
 
   get tryUntil() {
@@ -72,6 +90,8 @@ export class Program {
 
   exit = async (code: number = 1) => {
     this.spinner.fail();
+
+    this.log.debug('---- Konveyor Exit');
 
     await new Promise(resolve => {
       this.log.winston.on('finish', () => {

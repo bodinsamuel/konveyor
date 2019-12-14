@@ -33,6 +33,7 @@ export class Logger {
           filename: `${folder}/debug.log`,
           level: 'debug',
           format: formatFile,
+          options: { flags: 'w' },
         }),
       ],
     });

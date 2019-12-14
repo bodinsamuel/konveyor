@@ -6,7 +6,7 @@ export function createChoices(logger: Logger) {
     question: string,
     choices: T[]
   ): Promise<T> {
-    logger.debug(`asking ${question}`);
+    logger.debug(`Asking question: ${question}`);
 
     const answers = await inquirer.prompt([
       {
@@ -17,7 +17,7 @@ export function createChoices(logger: Logger) {
       },
     ]);
 
-    logger.debug(`got answer ${answers.question}`);
+    logger.debug(`Got answer: ${answers.question}`);
     return answers.question;
   };
 }

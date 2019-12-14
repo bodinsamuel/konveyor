@@ -3,7 +3,6 @@ import path from 'path';
 
 import chalk from 'chalk';
 import { Command } from 'commander';
-import inquirer from 'inquirer';
 
 import { Task } from './Task';
 import { Logger } from './Logger';
@@ -59,7 +58,13 @@ export class Konveyor extends EventEmitter {
    * @param argv process.argv
    */
   async start(argv: any) {
-    await this.registerTasks();
+    this.logger.debug(`---- Konveyor Start [${new Date().toISOString()}]`);
+    try {
+      await this.registerTasks();
+    } catch (err) {
+      this.logger.error(err);
+      await this.program.exit(1);
+    }
 
     // display intro
     clearConsole();
@@ -81,17 +86,17 @@ export class Konveyor extends EventEmitter {
       this.logger.error(err);
       await this.program.exit(1);
     }
+
+    this.logger.debug('---- Konveyor Stop');
   }
 
   private async registerTasks() {
     const commander = this.commander;
 
     if (this.tasks.length <= 0) {
-      this.logger.error(
-        'No tasks were registered, use program.tasks() to register your tasks'
+      throw new Error(
+        `No tasks were registered, use program.tasks() to register your tasks`
       );
-      await this.program.exit(1);
-      return;
     }
 
     const names: string[] = [];
@@ -113,13 +118,14 @@ export class Konveyor extends EventEmitter {
 
       task.dependencies.forEach(dep => {
         if (typeof dep === 'undefined' || dep.name === task.name) {
-          this.logger.error(
+          throw new Error(
             `one dependency of "${task.name}" is undefined or the same, you probably have a circular dependency`
           );
-          this.program.exit(1);
         }
       });
     });
+
+    this.logger.debug(`Registered ${this.tasks.length} tasks`);
 
     // Final catch all command
     commander.arguments('<command>').action(cmd => {
@@ -133,17 +139,11 @@ export class Konveyor extends EventEmitter {
   private async askForCommand() {
     // @ts-ignore
     if (typeof this.task === 'undefined') {
-      const answers = await inquirer.prompt([
-        {
-          type: 'list',
-          name: 'Command',
-          message: 'What do you want to do?',
-          choices: this._commandsName,
-        },
-      ]);
-      this.task = this.tasks.find(
-        task => task.name === answers.Command
-      ) as Task;
+      const answer = await this.program.choices(
+        'What do you want to do?',
+        this._commandsName
+      );
+      this.task = this.tasks.find(task => task.name === answer) as Task;
     } else {
       this.logger.info(
         `${chalk.green('?')} ${chalk.bold(
