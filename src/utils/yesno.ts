@@ -3,7 +3,7 @@ import { Logger } from '../Logger';
 
 export function creatYesNo(logger: Logger) {
   return async function yesno<T extends string>(question: string): Promise<T> {
-    logger.debug(`Asking yes or no: ${question}`);
+    logger.debug(`Asking yes or no: "${question}"`);
 
     const answers = await inquirer.prompt([
       {
@@ -13,7 +13,7 @@ export function creatYesNo(logger: Logger) {
       },
     ]);
 
-    logger.debug(`Got answer: ${answers.answer}`);
+    logger.debug(`Got answer: "${answers.answer}"`);
     return answers.answer;
   };
 }

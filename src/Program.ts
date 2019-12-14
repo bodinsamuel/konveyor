@@ -57,7 +57,7 @@ export class Program {
 
   get exec() {
     return (command: string) => {
-      this.log.debug(`Exec ${command}`);
+      this.log.debug(`Exec: "${command}"`);
       return execa.command(command);
     };
   }
@@ -92,13 +92,7 @@ export class Program {
     this.spinner.fail();
 
     this.log.debug('---- Konveyor Exit');
-
-    await new Promise(resolve => {
-      this.log.winston.on('finish', () => {
-        resolve();
-      });
-      this.log.winston.end();
-    });
+    await this.log.close();
 
     process.exit(code);
   };

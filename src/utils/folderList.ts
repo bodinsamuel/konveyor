@@ -6,9 +6,12 @@ export function createFolderList(logger: Logger) {
   return function folderList(
     dir: string,
     filter?: RegExp,
-    fileList: string[] = []
+    fileList: string[] = [],
+    initial: boolean = true
   ) {
-    logger.debug(`finding in dir ${dir}`);
+    if (initial) {
+      logger.debug(`Listing dir: "${dir}"`);
+    }
     const files = fs.readdirSync(dir);
 
     files.forEach(file => {
@@ -16,7 +19,7 @@ export function createFolderList(logger: Logger) {
       const fileStat = fs.lstatSync(filePath);
 
       if (fileStat.isDirectory()) {
-        folderList(filePath, filter, fileList);
+        folderList(filePath, filter, fileList, false);
       } else if (filter && filter.test(filePath)) {
         fileList.push(filePath);
       } else {
@@ -24,7 +27,9 @@ export function createFolderList(logger: Logger) {
       }
     });
 
-    logger.debug(`found ${files.length} files`);
+    if (initial) {
+      logger.debug(`Found: ${fileList.length} files`);
+    }
 
     return fileList;
   };

@@ -68,4 +68,19 @@ export class Logger {
     );
     this.info('\r');
   }
+
+  async close() {
+    await Promise.all([
+      new Promise(resolve => {
+        this.winston.on('finish', () => {
+          resolve();
+        });
+        this.winston.end();
+      }),
+      // Wait at least 1s anyway
+      new Promise(resolve => {
+        setTimeout(resolve, 1000);
+      }),
+    ]);
+  }
 }

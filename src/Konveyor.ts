@@ -1,4 +1,3 @@
-import EventEmitter from 'events';
 import path from 'path';
 
 import chalk from 'chalk';
@@ -8,6 +7,7 @@ import { Task } from './Task';
 import { Logger } from './Logger';
 import { Program } from './Program';
 import { intro, clearConsole, Spinner } from './utils/';
+import { Event } from './Event';
 
 interface Args {
   name: string;
@@ -17,7 +17,7 @@ interface Args {
   spinner?: Spinner;
 }
 
-export class Konveyor extends EventEmitter {
+export class Konveyor extends Event {
   // state
   private name: string;
   private version: string;
@@ -63,7 +63,7 @@ export class Konveyor extends EventEmitter {
       await this.registerTasks();
     } catch (err) {
       this.logger.error(err);
-      await this.program.exit(1);
+      await this.exit(1);
     }
 
     // display intro
@@ -84,10 +84,11 @@ export class Konveyor extends EventEmitter {
     } catch (err) {
       this.program.spinner.fail();
       this.logger.error(err);
-      await this.program.exit(1);
+      await this.exit(1);
     }
 
-    this.logger.debug('---- Konveyor Stop');
+    this.logger.info('✅ Done');
+    await this.exit(0);
   }
 
   private async registerTasks() {
@@ -151,5 +152,25 @@ export class Konveyor extends EventEmitter {
         )} ${chalk.cyan(this.task.name)}`
       );
     }
+  }
+
+  async exit(code: number) {
+    await this.onExit();
+    await this.program.exit(code);
+  }
+
+  private async onExit() {
+    await Promise.all(
+      this.tasks.map(task => {
+        if (!task.isExecuted) {
+          return null;
+        }
+
+        if (task.hasAfterAll()) {
+          return task.hasAfterAll()!(this.program);
+        }
+        return null;
+      })
+    );
   }
 }

@@ -1,4 +1,5 @@
 import { Program } from './Program';
+import { Event } from './Event';
 
 type Callback = (program: Program) => Promise<void> | void;
 type BeforeResponse = { skip: boolean };
@@ -6,7 +7,7 @@ type CallbackBefore = (
   program: Program
 ) => Promise<void | BeforeResponse> | BeforeResponse;
 
-export class Task {
+export class Task extends Event {
   // task description
   readonly name: string;
   readonly description: string;
@@ -36,6 +37,8 @@ export class Task {
     isPrivate?: boolean;
     isRepeatable?: boolean;
   }) {
+    super();
+
     this.name = name;
     this.description = description;
     this._dependencies = new Set(dependencies);
@@ -70,10 +73,15 @@ export class Task {
     this._afterAll = callback;
   }
 
+  hasAfterAll() {
+    return this._afterAll;
+  }
+
   async run(prgm: Program) {
     if (!this._callback) {
       throw new Error(`Task "${this.name}" does not have a main exec()`);
     }
+
     const entries = Array.from(this._dependencies);
     for (let index = 0; index < entries.length; index++) {
       const entry = entries[index];
@@ -86,6 +94,9 @@ export class Task {
 
     this.executed(true);
 
+    this.emit('task:start', { task: this });
+    this.emit(`task:start:${this.name}`, { task: this });
+
     prgm.log.debug(`Executing task: ${this.name}`);
     if (this._before) {
       const answer = await this._before(prgm);
@@ -93,6 +104,7 @@ export class Task {
 
       if (answer && answer.skip) {
         prgm.log.debug('before() returned skip: true');
+        this.emit(`task:skipped:${this.name}`, { task: this });
         return;
       }
     }
@@ -104,5 +116,7 @@ export class Task {
       await this._after(prgm);
       prgm.spinner.stop();
     }
+
+    this.emit(`task:stop:${this.name}`, { task: this });
   }
 }
