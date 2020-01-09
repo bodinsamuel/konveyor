@@ -1,10 +1,10 @@
 !> Very alpha
 
-# Konvoyer
+# Konveyor
 
 Script pipeline manager.
 
-## Philosophy
+## Concepts
 
 Building script and CLI is always a pain. It usually start with a simple bash script and in no time it end up in spagetthi code that copy pasted from stackoverflow.
 Konveyor helps you split, reuse and make your scripts clean. It comes bundled with the most common tool you will need.
