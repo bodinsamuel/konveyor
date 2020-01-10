@@ -46,6 +46,7 @@ See [documentation folder](./documentation/).
 - Timings
 - parametrisable task
 - default run
+- log spinner spin/fail/succeed
 - Examples
   - Simple
   - Test with mock

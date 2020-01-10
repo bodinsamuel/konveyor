@@ -10,6 +10,6 @@ export const chooseEnv = new Task({
 });
 
 chooseEnv.exec(async ({ choices }) => {
-  const env = await choices<string>('Which env?', Object.keys(Env));
+  const env = await choices<string>('Which env?', Object.values(Env));
   store.switch(env as keyof typeof Env);
 });

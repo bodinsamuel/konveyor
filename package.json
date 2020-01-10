@@ -67,8 +67,8 @@
   },
   "scripts": {
     "build": "rm -rf dist/ && tsc -b ./",
-    "lint": "eslint  --ext=jsx,ts,tsx,js .",
-    "test": "jest"
+    "lint": "eslint --ext=jsx,ts,tsx,js .",
+    "test": "jest --coverage"
   },
   "jest": {
     "testEnvironment": "node",

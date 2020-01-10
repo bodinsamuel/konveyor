@@ -9,8 +9,8 @@ type Keys = {
 // List our possible environement
 // We are using an Enum here to use the values elsewhere but a simple type could suffise
 export enum Env {
-  'prod',
-  'dev',
+  'prod' = 'prod',
+  'dev' = 'dev',
 }
 
 // Declare our store that we will use in our scripts
