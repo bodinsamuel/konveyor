@@ -68,15 +68,7 @@
   "scripts": {
     "build": "rm -rf dist/ && tsc -b ./",
     "lint": "eslint --ext=jsx,ts,tsx,js .",
-    "test": "jest --coverage"
-  },
-  "jest": {
-    "testEnvironment": "node",
-    "preset": "ts-jest",
-    "globals": {
-      "ts-jest": {
-        "diagnostics": false
-      }
-    }
+    "test": "jest",
+    "test:coverage": "test --coverage"
   }
 }
