@@ -1,17 +1,16 @@
-import { ChildProcess } from 'child_process';
-import execa = require('execa');
-
 import {
   createChoices,
-  Spinner,
-  StreamTransform,
-  tryUntil,
-  createFolderList,
-  createFolderClear,
+  createExec,
   createFileRead,
   createFileWrite,
+  createFolderClear,
+  createFolderList,
+  createStreamSubProcess,
   creatYesNo,
+  Spinner,
+  tryUntil,
 } from './utils';
+
 import { Logger } from './Logger';
 
 export class Program {
@@ -56,37 +55,16 @@ export class Program {
   }
 
   get exec() {
-    return (command: string) => {
-      this.log.debug(`Exec: "${command}"`);
-      return execa.command(command);
-    };
+    return createExec(this._logger);
   }
 
   get tryUntil() {
     return tryUntil;
   }
 
-  streamSubProcess = async (
-    subprocess: ChildProcess,
-    level: string = 'debug'
-  ) => {
-    return new Promise(resolve => {
-      const stream = new StreamTransform({ level });
-      subprocess.stdout!.pipe(stream).pipe(this.log.winston, {
-        end: false,
-      });
-
-      subprocess.stderr!.on('data', err => {
-        throw new Error(err);
-      });
-
-      subprocess.on('close', (code: number) => {
-        if (code <= 0) {
-          resolve();
-        }
-      });
-    });
-  };
+  get streamSubProcess() {
+    return createStreamSubProcess(this._logger);
+  }
 
   exit = async (code: number = 1) => {
     this.spinner.fail();

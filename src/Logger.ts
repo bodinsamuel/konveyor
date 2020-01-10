@@ -4,8 +4,8 @@ import {
   format,
   Logger as WinstonLogger,
 } from 'winston';
-import chalk = require('chalk');
-import figures = require('figures');
+import chalk from 'chalk';
+import figures from 'figures';
 
 const formatConsole = format.printf(({ level, message }) => {
   if (level.indexOf('info') < 0) {
@@ -13,6 +13,7 @@ const formatConsole = format.printf(({ level, message }) => {
   }
   return message;
 });
+
 const formatFile = format.printf(({ level, message }) => {
   if (level.indexOf('error') >= 0) {
     return `${level} ${message}`;

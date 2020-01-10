@@ -1,4 +1,4 @@
-export async function execParallel<T>(
+export async function runParallel<T>(
   promises: Promise<T>[],
   report: () => any,
   reportEvery: number = 1000

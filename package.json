@@ -4,12 +4,34 @@
   "main": "src/index.ts",
   "author": "Samuel Bodin <bodin.samuel@gmail.com>",
   "license": "MIT",
+  "description": "Create and manage scripts at scale in a breeze.",
+  "keywords": [
+    "workflow",
+    "conveyor",
+    "pipeline",
+    "cli",
+    "task",
+    "runner",
+    "sequence",
+    "build",
+    "tool",
+    "orchestrator"
+  ],
+  "homepage": "https://github.com/bodinsamuel/konveyor",
+  "bugs": {
+    "url": "https://github.com/bodinsamuel/konveyor/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bodinsamuel/konveyor"
+  },
   "devDependencies": {
     "@types/inquirer": "6.5.0",
     "@types/node": "12.12.14",
     "@types/node-fetch": "2.5.4",
     "@types/rimraf": "2.0.3",
     "handlebars": "4.5.3",
+    "konveyor": "0.0.1",
     "node-fetch": "2.6.0",
     "ts-node": "8.5.4",
     "typescript": "3.7.3"
@@ -24,5 +46,9 @@
     "ora": "4.0.3",
     "rimraf": "3.0.0",
     "winston": "3.2.1"
+  },
+  "engines": {
+    "node": "12.14.0",
+    "yarn": "^1.19.0"
   }
 }

@@ -1,4 +1,6 @@
 import { Transform } from 'stream';
+import { ChildProcess } from 'child_process';
+import { Logger } from '../Logger';
 
 export class StreamTransform extends Transform {
   private level: string;
@@ -19,4 +21,25 @@ export class StreamTransform extends Transform {
 
     callback();
   }
+}
+
+export function createStreamSubProcess(logger: Logger) {
+  return async (subprocess: ChildProcess, level: string = 'debug') => {
+    return new Promise(resolve => {
+      const stream = new StreamTransform({ level });
+      subprocess.stdout!.pipe(stream).pipe(logger.winston, {
+        end: false,
+      });
+
+      subprocess.stderr!.on('data', err => {
+        throw new Error(err);
+      });
+
+      subprocess.on('close', (code: number) => {
+        if (code <= 0) {
+          resolve();
+        }
+      });
+    });
+  };
 }

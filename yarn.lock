@@ -516,6 +516,21 @@ isexe@^2.0.0:
   resolved "https://registry.yarnpkg.com/isexe/-/isexe-2.0.0.tgz#e8fbf374dc556ff8947a10dcb0572d633f2cfa10"
   integrity sha1-6PvzdNxVb/iUehDcsFctYz8s+hA=
 
+konveyor@0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/konveyor/-/konveyor-0.0.1.tgz#123f6b29ac014359a9a1d7d2404cf4d72de8b856"
+  integrity sha512-7g2IBqllRIxzdx53Ks2CArKAfC3xHImBQLSKkLV9mp2h/SqpYYXIVo+7I/7JiXWS5gCFbDfl2MLb4YOUbA1MGw==
+  dependencies:
+    boxen "4.2.0"
+    chalk "3.0.0"
+    commander "4.0.1"
+    execa "3.4.0"
+    figures "3.1.0"
+    inquirer "7.0.0"
+    ora "4.0.3"
+    rimraf "3.0.0"
+    winston "3.2.1"
+
 kuler@1.0.x:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/kuler/-/kuler-1.0.1.tgz#ef7c784f36c9fb6e16dd3150d152677b2b0228a6"

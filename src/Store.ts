@@ -1,6 +1,4 @@
-export type StoreGeneric<Keys, Env extends string> = {
-  [key in Env]: { [key in keyof Keys]: any };
-};
+import { StoreGeneric } from './types';
 
 export class Store<Keys, Env extends string> {
   // @ts-ignore
