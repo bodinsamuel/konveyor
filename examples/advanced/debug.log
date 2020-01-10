@@ -1,0 +1,10 @@
+---- Konveyor Start [2020-01-10T15:40:06.752Z]
+Registered 3 tasks
+Asking question: "What do you want to do?"
+Got answer: "deploy"
+Executing task: check_repo_state
+Exec: "git status --porcelain"
+
+[34mℹ[39m Your repo is not clean, please commit or stash everything [2mgit stash -u[22m
+
+---- Konveyor Exit
