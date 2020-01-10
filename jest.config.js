@@ -13,4 +13,5 @@ module.exports = {
       diagnostics: false,
     },
   },
+  collectCoverageFrom: ['src/**/*.{js,ts}', '!src/**/*.test.{js,ts}'],
 };
