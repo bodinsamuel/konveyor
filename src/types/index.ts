@@ -9,8 +9,11 @@ export type CallbackBefore = (
 ) => Promise<void | BeforeResponse> | BeforeResponse;
 
 // Store
-export type StoreGeneric<Keys, Env extends string> = {
-  [key in Env]: { [key in keyof Keys]: any };
+export type StoreGeneric<
+  Env extends string,
+  Keys extends { [key: string]: any }
+> = {
+  [key in Env]: Keys;
 };
 
 // Program

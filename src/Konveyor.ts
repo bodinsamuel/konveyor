@@ -60,7 +60,7 @@ export class Konveyor extends Event {
   public async start(argv: any) {
     this.logger.debug(`---- Konveyor Start [${new Date().toISOString()}]`);
     try {
-      await this.registerTasks();
+      this.registerTasks();
     } catch (err) {
       this.logger.error(err);
       await this.exit(1);
@@ -170,6 +170,7 @@ export class Konveyor extends Event {
         if (task.hasAfterAll()) {
           return task.hasAfterAll()!(this.program);
         }
+
         return null;
       })
     );

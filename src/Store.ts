@@ -1,16 +1,20 @@
 import { StoreGeneric } from './types';
 
-export class Store<Keys, Env extends string> {
+export class Store<Env extends string, Keys extends { [key: string]: any }> {
   // @ts-ignore
-  private kv: StoreGeneric<Keys, Env> = {};
+  private kv: StoreGeneric<Env, Keys> = {};
   private env: Env;
 
-  public constructor(env: Env, keyValues?: StoreGeneric<Keys, Env>) {
+  public constructor(env: Env, keyValues?: StoreGeneric<Env, Keys>) {
     if (keyValues) {
       this.kv = keyValues;
     }
 
     this.env = env;
+  }
+
+  public is(env: Env) {
+    return this.env === env;
   }
 
   public switch(env: Env) {
@@ -23,7 +27,7 @@ export class Store<Keys, Env extends string> {
 
   public get<A extends keyof Keys>(key: A): Keys[A] {
     if (typeof this.kv[this.env][key] === 'undefined') {
-      throw new Error(`Store: key ${key} does not exists`);
+      throw new Error(`Store: key "${key}" does not exists`);
     }
 
     return this.kv[this.env][key];

@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "@types/inquirer": "6.5.0",
+    "@types/jest": "^24.0.25",
     "@types/node": "12.12.14",
     "@types/node-fetch": "2.5.4",
     "@types/rimraf": "2.0.3",
@@ -40,9 +41,11 @@
     "eslint-plugin-jest": "^23.4.0",
     "eslint-plugin-prettier": "^3.1.2",
     "handlebars": "4.5.3",
+    "jest": "^24.9.0",
     "konveyor": "0.0.1",
     "node-fetch": "2.6.0",
     "prettier": "^1.19.1",
+    "ts-jest": "^24.3.0",
     "ts-node": "8.5.4",
     "typescript": "^3.7.4"
   },
@@ -64,6 +67,16 @@
   },
   "scripts": {
     "build": "rm -rf dist/ && tsc -b ./",
-    "lint": "eslint  --ext=jsx,ts,tsx,js ."
+    "lint": "eslint  --ext=jsx,ts,tsx,js .",
+    "test": "jest"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "preset": "ts-jest",
+    "globals": {
+      "ts-jest": {
+        "diagnostics": false
+      }
+    }
   }
 }
