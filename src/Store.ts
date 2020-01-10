@@ -5,7 +5,7 @@ export class Store<Keys, Env extends string> {
   private kv: StoreGeneric<Keys, Env> = {};
   private env: Env;
 
-  constructor(env: Env, keyValues?: StoreGeneric<Keys, Env>) {
+  public constructor(env: Env, keyValues?: StoreGeneric<Keys, Env>) {
     if (keyValues) {
       this.kv = keyValues;
     }
@@ -13,15 +13,15 @@ export class Store<Keys, Env extends string> {
     this.env = env;
   }
 
-  switch(env: Env) {
+  public switch(env: Env) {
     this.env = env;
   }
 
-  set(key: keyof Keys, value: any) {
+  public set(key: keyof Keys, value: any) {
     this.kv[this.env][key] = value;
   }
 
-  get<A extends keyof Keys>(key: A): Keys[A] {
+  public get<A extends keyof Keys>(key: A): Keys[A] {
     if (typeof this.kv[this.env][key] === 'undefined') {
       throw new Error(`Store: key ${key} does not exists`);
     }
@@ -29,7 +29,7 @@ export class Store<Keys, Env extends string> {
     return this.kv[this.env][key];
   }
 
-  toJson() {
+  public toJson() {
     return this.kv[this.env];
   }
 }

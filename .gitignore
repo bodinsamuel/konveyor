@@ -3,3 +3,7 @@ node_modules
 error.log
 index.log
 demo
+
+dist
+
+tsconfig.tsbuildinfo

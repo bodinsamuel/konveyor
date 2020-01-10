@@ -5,16 +5,16 @@ export class Spinner {
   private spinner: ora.Ora;
   private lastMsg: string | null = null;
 
-  constructor() {
+  public constructor() {
     this.spinner = ora();
   }
 
-  spin(msg: string) {
+  public spin(msg: string) {
     this.lastMsg = msg;
     this.spinner.start(msg);
   }
 
-  stop(persist: boolean = true) {
+  public stop(persist: boolean = true) {
     if (this.lastMsg && persist !== false) {
       this.spinner.stopAndPersist();
     } else {
@@ -23,22 +23,22 @@ export class Spinner {
     this.lastMsg = null;
   }
 
-  clear() {
+  public clear() {
     this.spinner.clear();
     this.lastMsg = null;
   }
 
-  info(text?: string) {
+  public info(text?: string) {
     this.spinner.info(text);
     this.lastMsg = null;
   }
 
-  succeed(text?: string) {
+  public succeed(text?: string) {
     this.spinner.succeed(text);
     this.lastMsg = null;
   }
 
-  fail(text?: string) {
+  public fail(text?: string) {
     if (!this.lastMsg) return;
     this.spinner.fail(text);
     this.lastMsg = null;

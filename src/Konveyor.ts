@@ -26,11 +26,11 @@ export class Konveyor extends Event {
   private _commandsName: string[] = [];
 
   // services
-  readonly logger: Logger;
+  public readonly logger: Logger;
   private program: Program;
   private commander: Command;
 
-  constructor({ name, version, logger, tasks }: Args) {
+  public constructor({ name, version, logger, tasks }: Args) {
     super();
 
     this.name = name;
@@ -55,9 +55,9 @@ export class Konveyor extends Event {
   /**
    * Main entrypoint.
    *
-   * @param argv process.argv
+   * @param argv - process.argv
    */
-  async start(argv: any) {
+  public async start(argv: any) {
     this.logger.debug(`---- Konveyor Start [${new Date().toISOString()}]`);
     try {
       await this.registerTasks();
@@ -68,6 +68,7 @@ export class Konveyor extends Event {
 
     // display intro
     clearConsole();
+    // eslint-disable-next-line no-console
     console.log(intro(this.name, this.version));
 
     this.commander.parse(argv);
@@ -91,7 +92,7 @@ export class Konveyor extends Event {
     await this.exit(0);
   }
 
-  private async registerTasks() {
+  private registerTasks() {
     const commander = this.commander;
 
     if (this.tasks.length <= 0) {
@@ -132,7 +133,7 @@ export class Konveyor extends Event {
     commander.arguments('<command>').action(cmd => {
       commander.outputHelp();
       this.logger.error(
-        `  ` + chalk.red(`Unknown command ${chalk.yellow(cmd)}.`)
+        `  ${chalk.red(`Unknown command ${chalk.yellow(cmd)}.`)}`
       );
     });
   }
@@ -154,7 +155,7 @@ export class Konveyor extends Event {
     }
   }
 
-  async exit(code: number) {
+  public async exit(code: number) {
     await this.onExit();
     await this.program.exit(code);
   }

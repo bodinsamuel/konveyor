@@ -2,7 +2,7 @@ import inquirer = require('inquirer');
 import { Logger } from '../Logger';
 
 export function createChoices(logger: Logger) {
-  return async function choices<T extends string>(
+  return async function list<T extends string>(
     question: string,
     choices: T[]
   ): Promise<T> {
@@ -13,7 +13,7 @@ export function createChoices(logger: Logger) {
         type: 'list',
         name: 'question',
         message: question,
-        choices: choices,
+        choices,
       },
     ]);
 

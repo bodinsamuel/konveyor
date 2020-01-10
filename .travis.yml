@@ -1,0 +1,28 @@
+language: node_js
+
+node_js:
+  - '10'
+  - '12'
+
+sudo: false
+
+branches:
+  only:
+    - master
+
+cache:
+  directories:
+    - 'node_modules'
+
+script:
+  - 'yarn lint'
+  # - 'yarn test'
+
+jobs:
+  include:
+    - stage: Produce Coverage
+      node_js: node
+      script: yarn coveralls
+    - stage: codechecks
+      node_js: node
+      script: yarn codechecks

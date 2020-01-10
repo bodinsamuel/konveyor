@@ -14,64 +14,65 @@ import {
 import { Logger } from './Logger';
 
 export class Program {
-  readonly _spinner: Spinner;
-  readonly _logger: Logger;
+  public readonly _spinner: Spinner;
+  public readonly _logger: Logger;
 
-  constructor({ logger }: { logger: Logger }) {
+  public constructor({ logger }: { logger: Logger }) {
     this._spinner = new Spinner();
     this._logger = logger;
   }
 
-  get log() {
+  public get log() {
     return this._logger;
   }
 
-  get spinner() {
+  public get spinner() {
     return this._spinner;
   }
 
-  get choices() {
+  public get choices() {
     return createChoices(this._logger);
   }
 
-  get yesno() {
+  public get yesno() {
     return creatYesNo(this._logger);
   }
 
-  get folderClear() {
+  public get folderClear() {
     return createFolderClear(this._logger);
   }
 
-  get folderList() {
+  public get folderList() {
     return createFolderList(this._logger);
   }
 
-  get fileRead() {
+  public get fileRead() {
     return createFileRead(this._logger);
   }
 
-  get fileWrite() {
+  public get fileWrite() {
     return createFileWrite(this._logger);
   }
 
-  get exec() {
+  public get exec() {
     return createExec(this._logger);
   }
 
-  get tryUntil() {
+  public get tryUntil() {
     return tryUntil;
   }
 
-  get streamSubProcess() {
+  public get streamSubProcess() {
     return createStreamSubProcess(this._logger);
   }
 
-  exit = async (code: number = 1) => {
+  public exit = async (code: number = 1) => {
     this.spinner.fail();
 
     this.log.debug('---- Konveyor Exit');
     await this.log.close();
 
+    // eslint-disable-next-line no-process-exit
     process.exit(code);
   };
 }

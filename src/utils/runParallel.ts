@@ -1,12 +1,12 @@
-export async function runParallel<T>(
-  promises: Promise<T>[],
+export async function runParallel<TReturn>(
+  promises: Promise<TReturn>[],
   report: () => any,
   reportEvery: number = 1000
-): Promise<T[]> {
+): Promise<TReturn[]> {
   const interval = setInterval(report, reportEvery);
 
   try {
-    return await Promise.all<T>(promises);
+    return await Promise.all<TReturn>(promises);
   } catch (err) {
     clearInterval(interval);
     throw err;

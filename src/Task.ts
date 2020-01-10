@@ -4,9 +4,9 @@ import { CallbackBefore, Callback } from './types';
 
 export class Task extends Event {
   // task description
-  readonly name: string;
-  readonly description: string;
-  readonly isPrivate: boolean = false;
+  public readonly name: string;
+  public readonly description: string;
+  public readonly isPrivate: boolean = false;
 
   // state
   protected _executed: boolean = false;
@@ -18,7 +18,7 @@ export class Task extends Event {
   protected _after?: Callback;
   protected _afterAll?: Callback;
 
-  constructor({
+  public constructor({
     name,
     description,
     dependencies = [],
@@ -37,38 +37,38 @@ export class Task extends Event {
     this.isPrivate = isPrivate;
   }
 
-  get dependencies() {
+  public get dependencies() {
     return this._dependencies;
   }
 
-  executed(is: boolean) {
+  public executed(is: boolean) {
     this._executed = is;
   }
-  get isExecuted() {
+  public get isExecuted() {
     return this._executed;
   }
 
-  before(callback: CallbackBefore) {
+  public before(callback: CallbackBefore) {
     this._before = callback;
   }
 
-  exec(callback: Callback) {
+  public exec(callback: Callback) {
     this._callback = callback;
   }
 
-  after(callback: Callback) {
+  public after(callback: Callback) {
     this._after = callback;
   }
 
-  afterAll(callback: Callback) {
+  public afterAll(callback: Callback) {
     this._afterAll = callback;
   }
 
-  hasAfterAll() {
+  public hasAfterAll() {
     return this._afterAll;
   }
 
-  async run(prgm: Program) {
+  public async run(prgm: Program) {
     if (!this._callback) {
       throw new Error(`Task "${this.name}" does not have a main exec()`);
     }

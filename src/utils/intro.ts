@@ -2,7 +2,7 @@ import chalk from 'chalk';
 import boxen from 'boxen';
 
 export function intro(name: string, version: string): string {
-  let title = chalk.bold.greenBright(`${name} v${version}`);
+  const title = chalk.bold.greenBright(`${name} v${version}`);
   return boxen(title, {
     align: 'center',
     borderColor: 'green',

@@ -22,9 +22,9 @@ const formatFile = format.printf(({ level, message }) => {
 });
 
 export class Logger {
-  readonly winston: WinstonLogger;
+  public readonly winston: WinstonLogger;
 
-  constructor({ folder }: { folder: string }) {
+  public constructor({ folder }: { folder: string }) {
     this.winston = createWinston({
       transports: [
         new transports.Console({
@@ -40,11 +40,11 @@ export class Logger {
     });
   }
 
-  info(msg: string) {
+  public info(msg: string) {
     this.winston.info(msg);
   }
 
-  error(msg: string | Error) {
+  public error(msg: string | Error) {
     if (typeof msg === 'object') {
       this.winston.debug(msg.stack as string);
       this.winston.error(msg.message);
@@ -53,15 +53,15 @@ export class Logger {
     }
   }
 
-  warn(msg: string) {
+  public warn(msg: string) {
     this.winston.warn(msg);
   }
 
-  debug(msg: string) {
+  public debug(msg: string) {
     this.winston.debug(msg);
   }
 
-  help(msg: string, command?: string) {
+  public help(msg: string, command?: string) {
     this.info('\r');
 
     this.info(
@@ -70,7 +70,7 @@ export class Logger {
     this.info('\r');
   }
 
-  async close() {
+  public async close() {
     await Promise.all([
       new Promise(resolve => {
         this.winston.on('finish', () => {

@@ -2,7 +2,7 @@ import { Konveyor } from 'konveyor';
 import * as tasks from './tasks';
 
 /**
- * tsc index.ts
+ * ts-node index.ts
  */
 
 // Create the main Program and register all our tasks

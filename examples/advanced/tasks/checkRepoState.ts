@@ -9,7 +9,7 @@ export const checkRepoState = new Task({
 
 checkRepoState.exec(async ({ spinner, exec, log, exit }) => {
   spinner.spin('Checking repository...');
-  if (isRepoClean(exec)) {
+  if (await isRepoClean(exec)) {
     spinner.succeed('Repository is clean');
   } else {
     spinner.fail();
@@ -22,7 +22,7 @@ checkRepoState.exec(async ({ spinner, exec, log, exit }) => {
   }
 
   spinner.spin('Checking origin...');
-  if (isUptodateWithOrigin(exec)) {
+  if (await isUptodateWithOrigin(exec)) {
     spinner.succeed('You are up to date with origin');
   } else {
     spinner.fail();
