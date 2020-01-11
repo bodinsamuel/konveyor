@@ -7,6 +7,5 @@ export const deploy = new Task({
   description: 'Deploy your project',
   isPrivate: false,
   dependencies: [checkRepoState, chooseEnv],
+  exec: () => {},
 });
-
-deploy.exec(() => {});

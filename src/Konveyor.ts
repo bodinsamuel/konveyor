@@ -170,7 +170,7 @@ export class Konveyor extends Event<'konveyor:start'> {
         }
 
         if (task.hasAfterAll()) {
-          return task.getAfterAll()!(this.program);
+          return task.afterAll!(this.program);
         }
 
         return null;

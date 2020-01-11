@@ -21,15 +21,18 @@ Because each projects comes with its own requirements and specifity you know bet
 - 🚀 Typed, use the power of Typescript to add safety to your scripts.
 
 ```javascript
+const sayHello = new Task({
+  name: 'say_hello',
+  description: 'Say hello to Github User',
+  exec: ({ log }) => {
+    log.info('Oh hi Mark !');
+  },
+});
+
 const prgm = new Konveyor({
-  name: 'My Awesome Script',
+  name: 'My Script',
   version: '1.0.0',
-  tasks: [
-    new Task({
-      name: 'auth',
-      description: 'Auth to Github',
-    }),
-  ],
+  tasks: [sayHello],
 });
 
 prgm.start(process.argv);

@@ -7,9 +7,8 @@ export const chooseEnv = new Task({
   name: 'choose_env',
   description: 'Check repo state',
   isPrivate: true,
-});
-
-chooseEnv.exec(async ({ choices }) => {
-  const env = await choices<string>('Which env?', Object.values(Env));
-  store.switch(env as keyof typeof Env);
+  exec: async ({ choices }) => {
+    const env = await choices<string>('Which env?', Object.values(Env));
+    store.switch(env as keyof typeof Env);
+  })
 });

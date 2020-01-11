@@ -22,11 +22,19 @@ export class Task extends Event<'task:start' | 'task:skipped' | 'task:stop'> {
     name,
     description,
     dependencies = [],
+    before,
+    exec,
+    after,
+    afterAll,
     isPrivate = false,
   }: {
     name: string;
     description: string;
     dependencies?: Task[];
+    before?: CallbackBefore;
+    exec?: Callback;
+    after?: Callback;
+    afterAll?: Callback;
     isPrivate?: boolean;
   }) {
     super();
@@ -34,6 +42,10 @@ export class Task extends Event<'task:start' | 'task:skipped' | 'task:stop'> {
     this.name = name;
     this.description = description;
     this._dependencies = new Set(dependencies);
+    this._before = before;
+    this._exec = exec;
+    this._after = after;
+    this._afterAll = afterAll;
     this.isPrivate = isPrivate;
   }
 
@@ -49,40 +61,36 @@ export class Task extends Event<'task:start' | 'task:skipped' | 'task:stop'> {
     return this._executed;
   }
 
-  public before(callback: CallbackBefore) {
-    this._before = callback;
+  public get before() {
+    return this._before;
   }
 
   public hasBefore() {
     return Boolean(this._before);
   }
 
-  public exec(callback: Callback) {
-    this._exec = callback;
+  public get exec() {
+    return this._exec;
   }
 
   public hasExec() {
     return Boolean(this._exec);
   }
 
-  public after(callback: Callback) {
-    this._after = callback;
+  public get after() {
+    return this._after;
   }
 
   public hasAfter() {
     return Boolean(this._after);
   }
 
-  public afterAll(callback: Callback) {
-    this._afterAll = callback;
+  public get afterAll() {
+    return this._afterAll;
   }
 
   public hasAfterAll() {
     return Boolean(this._afterAll);
-  }
-
-  public getAfterAll() {
-    return this._afterAll;
   }
 
   public async run(prgm: Program) {

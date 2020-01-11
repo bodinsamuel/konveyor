@@ -30,8 +30,8 @@ describe('register', () => {
     const task = new Task({
       name: 'my task',
       description: 'my description',
+      before: () => {},
     });
-    task.before(() => {});
 
     expect(task.hasBefore()).toBe(true);
     expect(task.hasExec()).toBe(false);
@@ -43,8 +43,8 @@ describe('register', () => {
     const task = new Task({
       name: 'my task',
       description: 'my description',
+      exec: () => {},
     });
-    task.exec(() => {});
 
     expect(task.hasBefore()).toBe(false);
     expect(task.hasExec()).toBe(true);
@@ -56,8 +56,8 @@ describe('register', () => {
     const task = new Task({
       name: 'my task',
       description: 'my description',
+      after: () => {},
     });
-    task.after(() => {});
 
     expect(task.hasBefore()).toBe(false);
     expect(task.hasExec()).toBe(false);
@@ -69,8 +69,8 @@ describe('register', () => {
     const task = new Task({
       name: 'my task',
       description: 'my description',
+      afterAll: () => {},
     });
-    task.afterAll(() => {});
 
     expect(task.hasBefore()).toBe(false);
     expect(task.hasExec()).toBe(false);
@@ -88,10 +88,10 @@ describe('run()', () => {
     const task = new Task({
       name: 'my task',
       description: 'my description',
+      before,
+      exec,
+      after,
     });
-    task.before(before);
-    task.exec(exec);
-    task.after(after);
 
     await task.run(new Program({ logger: new Logger({ folder: './' }) }));
 
@@ -109,11 +109,11 @@ describe('run()', () => {
     const task = new Task({
       name: 'my task',
       description: 'my description',
+      exec,
     });
     task.once('task:start', start);
     task.once('task:skipped', skipped);
     task.once('task:stop', stop);
-    task.exec(exec);
 
     await task.run(new Program({ logger: new Logger({ folder: './' }) }));
 
@@ -131,14 +131,13 @@ describe('run()', () => {
     const task = new Task({
       name: 'my task',
       description: 'my description',
+      before: () => {
+        return { skip: true };
+      },
+      exec,
     });
     task.once('task:skipped', skipped);
     task.once('task:stop', stop);
-
-    task.before(() => {
-      return { skip: true };
-    });
-    task.exec(exec);
 
     await task.run(new Program({ logger: new Logger({ folder: './' }) }));
 
