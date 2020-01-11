@@ -1,14 +1,14 @@
 // Stolen from vue-cli
-import ora from 'ora';
+import oraFactory, { Ora } from 'ora';
 import { Logger } from '../Logger';
 
 export class Spinner {
-  private spinner: ora.Ora;
+  private spinner: Ora;
   private lastMsg: string | null = null;
   private logger: Logger;
 
-  public constructor(logger: Logger) {
-    this.spinner = ora();
+  public constructor({ logger, ora }: { logger: Logger; ora?: Ora }) {
+    this.spinner = ora || oraFactory();
     this.logger = logger;
   }
 
@@ -58,5 +58,5 @@ export class Spinner {
 }
 
 export function createSpinner(logger: Logger) {
-  return new Spinner(logger);
+  return new Spinner({ logger });
 }
