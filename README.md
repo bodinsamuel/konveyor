@@ -29,13 +29,13 @@ const sayHello = new Task({
   },
 });
 
-const prgm = new Konveyor({
+const knv = new Konveyor({
   name: 'My Script',
   version: '1.0.0',
   tasks: [sayHello],
 });
 
-prgm.start(process.argv);
+knv.start(process.argv);
 ```
 
 ## Examples

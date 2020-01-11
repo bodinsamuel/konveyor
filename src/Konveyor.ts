@@ -1,5 +1,4 @@
 import path from 'path';
-
 import chalk from 'chalk';
 import { Command } from 'commander';
 import figures from 'figures';
@@ -7,9 +6,9 @@ import figures from 'figures';
 import { Task } from './Task';
 import { Logger } from './Logger';
 import { Program } from './Program';
-import { intro, clearConsole, Spinner } from './utils/';
 import { Event } from './Event';
 import { Runner } from './Runner';
+import { intro, clearConsole, Spinner, exit } from './utils/';
 import { DuplicateTaskError, NoTasksError, ExitError } from './errors';
 
 interface Args {
@@ -68,30 +67,25 @@ export class Konveyor extends Event<'konveyor:start'> {
 
     try {
       this.registerTasks();
-    } catch (err) {
-      this.logger.error(err);
-      await this.exit(1);
-    }
 
-    // display intro
-    clearConsole();
-    // eslint-disable-next-line no-console
-    console.log(intro(this.name, this.version));
+      // display intro
+      clearConsole();
+      this.logger.info(intro(this.name, this.version));
 
-    this.commander.parse(argv);
+      this.commander.parse(argv);
 
-    await this.askForCommand();
+      await this.askForCommand();
 
-    if (!this.task) {
-      throw new Error('No task asked, should not happen');
-    }
+      if (!this.task) {
+        // A throw to make Typescript happy
+        throw new Error();
+      }
 
-    // run the chosen task
-    try {
+      // run the chosen task
       this.runner = new Runner(this.program, this.task);
       await this.runner.run();
     } catch (err) {
-      if (err instanceof ExitError) {
+      if (!(err instanceof ExitError)) {
         this.logger.error(err);
       }
       await this.exit(1);
@@ -100,9 +94,8 @@ export class Konveyor extends Event<'konveyor:start'> {
     await this.exit(0);
   }
 
-  private registerTasks() {
+  public registerTasks() {
     const commander = this.commander;
-
     if (this.tasks.length <= 0) {
       throw new NoTasksError();
     }
@@ -156,7 +149,9 @@ export class Konveyor extends Event<'konveyor:start'> {
     const prgm = this.program;
     prgm.spinner.fail();
 
-    this.runner!.afterAll();
+    if (this.runner) {
+      this.runner.afterAll();
+    }
 
     // Display final message
     if (code > 0) {
@@ -174,7 +169,6 @@ export class Konveyor extends Event<'konveyor:start'> {
     // Write final log to file
     await prgm.log.close();
 
-    // eslint-disable-next-line no-process-exit
-    process.exit(code);
+    exit(code);
   }
 }

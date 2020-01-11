@@ -1,6 +1,7 @@
 jest.mock('./Logger');
 
 import { Task } from './Task';
+import { TaskUndefinedError } from './errors';
 
 describe('constructor', () => {
   it('should create a new instance correctly', () => {
@@ -111,5 +112,17 @@ describe('dependencies', () => {
     });
     expect(task1.dependencies).toEqual(new Set());
     expect(task2.dependencies).toEqual(new Set([task1]));
+  });
+
+  it('should throw on undefined deps', () => {
+    expect(() => {
+      // eslint-disable-next-line no-new
+      new Task({
+        name: 'my task',
+        description: 'my description',
+        // @ts-ignore
+        dependencies: [undefined],
+      });
+    }).toThrowError(new TaskUndefinedError('my task'));
   });
 });

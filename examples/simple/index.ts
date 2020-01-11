@@ -29,11 +29,11 @@ const checkRepo = new Task({
 });
 
 // Create the main Program and register our task
-const prgm = new Konveyor({
+const knv = new Konveyor({
   name: 'My script',
   version: '1.0.0',
   tasks: [checkRepo],
 });
 
 // Launch the program with process arguments
-prgm.start(process.argv);
+knv.start(process.argv);
