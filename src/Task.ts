@@ -1,5 +1,5 @@
 import { CallbackBefore, Callback } from './types';
-import { TaskUndefinedError, TaskDuplicateNameError } from './errors';
+import { TaskUndefinedError } from './errors';
 
 export class Task {
   // task description
