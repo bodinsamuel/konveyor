@@ -10,6 +10,14 @@ export class NoTasksError extends Error {
 
 export class DuplicateTaskError extends Error {
   public constructor(name: string) {
-    super(`Task "${name}" is already registered`);
+    super(`Task: "${name}" is already registered`);
+  }
+}
+
+export class TaskUndefinedError extends Error {
+  public constructor(name: string) {
+    super(
+      `Task: one dependency of "${name}" is undefined, you probably have a circular dependency`
+    );
   }
 }

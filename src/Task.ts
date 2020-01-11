@@ -1,4 +1,5 @@
 import { CallbackBefore, Callback } from './types';
+import { TaskUndefinedError, TaskDuplicateNameError } from './errors';
 
 export class Task {
   // task description
@@ -45,6 +46,13 @@ export class Task {
     this._exec = exec;
     this._after = after;
     this._afterAll = afterAll;
+
+    // Check dependencies
+    this._dependencies.forEach(dep => {
+      if (typeof dep === 'undefined') {
+        throw new TaskUndefinedError(this.name);
+      }
+    });
   }
 
   public get dependencies() {

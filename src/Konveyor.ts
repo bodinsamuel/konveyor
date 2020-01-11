@@ -27,7 +27,7 @@ export class Konveyor extends Event<'konveyor:start'> {
   private version: string;
   private task?: Task;
   private tasks: Task[] = [];
-  private _commandsName: string[] = [];
+  private commandsName: string[] = [];
 
   // services
   public readonly logger: Logger;
@@ -97,7 +97,6 @@ export class Konveyor extends Event<'konveyor:start'> {
       await this.exit(1);
     }
 
-    this.logger.info(`${figures.heart} ${this.name} done.`);
     await this.exit(0);
   }
 
@@ -116,7 +115,7 @@ export class Konveyor extends Event<'konveyor:start'> {
       names.push(task.name);
 
       if (task.isPrivate === false) {
-        this._commandsName.push(task.name);
+        this.commandsName.push(task.name);
         commander
           .command(task.name)
           .description(task.description)
@@ -124,14 +123,6 @@ export class Konveyor extends Event<'konveyor:start'> {
             this.task = task;
           });
       }
-
-      task.dependencies.forEach(dep => {
-        if (typeof dep === 'undefined' || dep.name === task.name) {
-          throw new Error(
-            `one dependency of "${task.name}" is undefined or the same, you probably have a circular dependency`
-          );
-        }
-      });
     });
 
     this.logger.debug(`Registered ${this.tasks.length} tasks`);
@@ -146,11 +137,10 @@ export class Konveyor extends Event<'konveyor:start'> {
   }
 
   private async askForCommand() {
-    // @ts-ignore
     if (typeof this.task === 'undefined') {
       const answer = await this.program.choices(
         'What do you want to do?',
-        this._commandsName
+        this.commandsName
       );
       this.task = this.tasks.find(task => task.name === answer) as Task;
     } else {
@@ -168,8 +158,20 @@ export class Konveyor extends Event<'konveyor:start'> {
 
     this.runner!.afterAll();
 
-    this.logger.info(`${chalk.red(figures.squareSmallFilled)} failed.`);
+    // Display final message
+    if (code > 0) {
+      this.logger.info(
+        `${chalk.red(
+          figures.squareSmallFilled
+        )} Failed. Check "debug.log" to know more`
+      );
+    } else {
+      this.logger.info(`${chalk.magenta(figures.heart)} ${this.name} done.`);
+    }
+
     prgm.log.debug(`---- Konveyor Exit (${code})`);
+
+    // Write final log to file
     await prgm.log.close();
 
     // eslint-disable-next-line no-process-exit
