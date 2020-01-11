@@ -1,6 +1,6 @@
 export class Logger {
   public info() {}
-  public error(err) {
+  public error(err: Error) {
     throw err;
   }
   public warn() {}

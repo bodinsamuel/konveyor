@@ -14,4 +14,7 @@ export class Command {
   public action() {
     return this;
   }
+  public arguments() {
+    return this;
+  }
 }

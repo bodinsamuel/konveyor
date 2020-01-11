@@ -18,6 +18,7 @@ interface Args {
   logger?: Logger;
   spinner?: Spinner;
   command?: Command;
+  program?: Program;
 }
 
 export class Konveyor extends Event<'konveyor:start'> {
@@ -26,7 +27,7 @@ export class Konveyor extends Event<'konveyor:start'> {
   private version: string;
   private task?: Task;
   private tasks: Task[] = [];
-  private commandsName: string[] = [];
+  public readonly commandsName: string[] = [];
 
   // services
   public readonly logger: Logger;
@@ -34,7 +35,7 @@ export class Konveyor extends Event<'konveyor:start'> {
   private commander: Command;
   private runner?: Runner;
 
-  public constructor({ name, version, logger, tasks, command }: Args) {
+  public constructor({ name, version, logger, tasks, command, program }: Args) {
     super();
 
     this.name = name;
@@ -51,9 +52,15 @@ export class Konveyor extends Event<'konveyor:start'> {
       command ||
       new Command().version(this.version).usage('<command> [options]');
 
-    this.program = new Program({
-      logger: this.logger,
-    });
+    this.program =
+      program ||
+      new Program({
+        logger: this.logger,
+      });
+  }
+
+  public get pickedTask() {
+    return this.task;
   }
 
   /**
@@ -129,7 +136,7 @@ export class Konveyor extends Event<'konveyor:start'> {
     });
   }
 
-  private async askForCommand() {
+  public async askForCommand() {
     if (typeof this.task === 'undefined') {
       const answer = await this.program.choices(
         'What do you want to do?',
