@@ -52,7 +52,7 @@ export class Spinner {
     }
 
     this.spinner.fail(text);
-    this.logger.debug(`[Spinner] fail: ${text}`);
+    this.logger.debug(`[Spinner] fail: ${text || ''}`);
     this.lastMsg = null;
   }
 }

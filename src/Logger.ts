@@ -33,7 +33,7 @@ export class Logger {
         new transports.File({
           filename: `${folder}/debug.log`,
           level: 'debug',
-          format: formatFile,
+          format: format.combine(formatFile, format.uncolorize()),
           options: { flags: 'w' },
         }),
       ],
@@ -62,11 +62,8 @@ export class Logger {
   }
 
   public help(msg: string, command?: string) {
-    this.info('\r');
-
-    this.info(
-      `${chalk.blue(figures.info)} ${msg} ${command && chalk.dim(command)}`
-    );
+    this.info(`${chalk.blue(figures.info)} ${msg}:`);
+    this.info(`   ${figures.pointerSmall} ${command && chalk.dim(command)}`);
     this.info('\r');
   }
 

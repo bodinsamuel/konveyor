@@ -11,8 +11,8 @@ import {
   tryUntil,
   createSpinner,
 } from './utils';
-
 import { Logger } from './Logger';
+import { ExitError } from './errors';
 
 export class Program {
   private _spinner?: Spinner;
@@ -70,13 +70,9 @@ export class Program {
     return createStreamSubProcess(this._logger);
   }
 
-  public exit = async (code: number = 1) => {
-    this.spinner.fail();
-
-    this.log.debug('---- Konveyor Exit');
-    await this.log.close();
-
-    // eslint-disable-next-line no-process-exit
-    process.exit(code);
-  };
+  public get exit() {
+    return () => {
+      throw new ExitError();
+    };
+  }
 }

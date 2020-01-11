@@ -1,4 +1,5 @@
-import { Task } from 'konveyor';
+// import { Task } from 'konveyor';
+import { Task } from '../../../src';
 import { checkRepoState } from './checkRepoState';
 import { chooseEnv } from './chooseEnv';
 
@@ -7,5 +8,4 @@ export const deploy = new Task({
   description: 'Deploy your project',
   isPrivate: false,
   dependencies: [checkRepoState, chooseEnv],
-  exec: () => {},
 });

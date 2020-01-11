@@ -1,8 +1,6 @@
 jest.mock('./Logger');
 
 import { Task } from './Task';
-import { Program } from './Program';
-import { Logger } from './Logger';
 
 describe('constructor', () => {
   it('should create a new instance correctly', () => {
@@ -77,13 +75,12 @@ describe('register', () => {
     expect(task.hasAfter()).toBe(false);
     expect(task.hasAfterAll()).toBe(true);
   });
-});
 
-describe('run()', () => {
-  it('should run everything correctly', async () => {
+  it('should get all method correctly', () => {
     const before = jest.fn();
     const exec = jest.fn();
     const after = jest.fn();
+    const afterAll = jest.fn();
 
     const task = new Task({
       name: 'my task',
@@ -91,58 +88,28 @@ describe('run()', () => {
       before,
       exec,
       after,
+      afterAll,
     });
 
-    await task.run(new Program({ logger: new Logger({ folder: './' }) }));
-
-    expect(before).toHaveBeenCalled();
-    expect(exec).toHaveBeenCalled();
-    expect(after).toHaveBeenCalled();
+    expect(task.before).toBe(before);
+    expect(task.exec).toBe(exec);
+    expect(task.after).toBe(after);
+    expect(task.afterAll).toBe(afterAll);
   });
+});
 
-  it('should receive event', async () => {
-    const exec = jest.fn();
-    const start = jest.fn();
-    const skipped = jest.fn();
-    const stop = jest.fn();
-
-    const task = new Task({
+describe('dependencies', () => {
+  it('should register deps correctly', () => {
+    const task1 = new Task({
       name: 'my task',
       description: 'my description',
-      exec,
     });
-    task.once('task:start', start);
-    task.once('task:skipped', skipped);
-    task.once('task:stop', stop);
-
-    await task.run(new Program({ logger: new Logger({ folder: './' }) }));
-
-    expect(exec).toHaveBeenCalled();
-    expect(start).toHaveBeenCalled();
-    expect(skipped).not.toHaveBeenCalled();
-    expect(stop).toHaveBeenCalled();
-  });
-
-  it('should skip correctly', async () => {
-    const exec = jest.fn();
-    const skipped = jest.fn();
-    const stop = jest.fn();
-
-    const task = new Task({
+    const task2 = new Task({
       name: 'my task',
       description: 'my description',
-      before: () => {
-        return { skip: true };
-      },
-      exec,
+      dependencies: [task1],
     });
-    task.once('task:skipped', skipped);
-    task.once('task:stop', stop);
-
-    await task.run(new Program({ logger: new Logger({ folder: './' }) }));
-
-    expect(exec).not.toHaveBeenCalled();
-    expect(skipped).toHaveBeenCalled();
-    expect(stop).not.toHaveBeenCalled();
+    expect(task1.dependencies).toEqual(new Set());
+    expect(task2.dependencies).toEqual(new Set([task1]));
   });
 });

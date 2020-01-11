@@ -2,12 +2,15 @@ import path from 'path';
 
 import chalk from 'chalk';
 import { Command } from 'commander';
+import figures from 'figures';
 
 import { Task } from './Task';
 import { Logger } from './Logger';
 import { Program } from './Program';
 import { intro, clearConsole, Spinner } from './utils/';
 import { Event } from './Event';
+import { Runner } from './Runner';
+import { DuplicateTaskError, NoTasksError, ExitError } from './errors';
 
 interface Args {
   name: string;
@@ -15,6 +18,7 @@ interface Args {
   tasks: Task[];
   logger?: Logger;
   spinner?: Spinner;
+  command?: Command;
 }
 
 export class Konveyor extends Event<'konveyor:start'> {
@@ -29,8 +33,9 @@ export class Konveyor extends Event<'konveyor:start'> {
   public readonly logger: Logger;
   private program: Program;
   private commander: Command;
+  private runner?: Runner;
 
-  public constructor({ name, version, logger, tasks }: Args) {
+  public constructor({ name, version, logger, tasks, command }: Args) {
     super();
 
     this.name = name;
@@ -43,9 +48,9 @@ export class Konveyor extends Event<'konveyor:start'> {
         folder: path.dirname(require!.main!.filename),
       });
 
-    this.commander = new Command()
-      .version(this.version)
-      .usage('<command> [options]');
+    this.commander =
+      command ||
+      new Command().version(this.version).usage('<command> [options]');
 
     this.program = new Program({
       logger: this.logger,
@@ -83,14 +88,16 @@ export class Konveyor extends Event<'konveyor:start'> {
 
     // run the chosen task
     try {
-      await this.task.run(this.program);
+      this.runner = new Runner(this.program, this.task);
+      await this.runner.run();
     } catch (err) {
-      this.program.spinner.fail();
-      this.logger.error(err);
+      if (err instanceof ExitError) {
+        this.logger.error(err);
+      }
       await this.exit(1);
     }
 
-    this.logger.info('✅ Done');
+    this.logger.info(`${figures.heart} ${this.name} done.`);
     await this.exit(0);
   }
 
@@ -98,15 +105,13 @@ export class Konveyor extends Event<'konveyor:start'> {
     const commander = this.commander;
 
     if (this.tasks.length <= 0) {
-      throw new Error(
-        `No tasks were registered, use program.tasks() to register your tasks`
-      );
+      throw new NoTasksError();
     }
 
     const names: string[] = [];
     this.tasks.forEach(task => {
       if (names.includes(task.name)) {
-        throw new Error(`Task "${task.name}" is already registered`);
+        throw new DuplicateTaskError(task.name);
       }
       names.push(task.name);
 
@@ -158,23 +163,16 @@ export class Konveyor extends Event<'konveyor:start'> {
   }
 
   public async exit(code: number) {
-    await this.onExit();
-    await this.program.exit(code);
-  }
+    const prgm = this.program;
+    prgm.spinner.fail();
 
-  private async onExit() {
-    await Promise.all(
-      this.tasks.map(task => {
-        if (!task.isExecuted) {
-          return null;
-        }
+    this.runner!.afterAll();
 
-        if (task.hasAfterAll()) {
-          return task.afterAll!(this.program);
-        }
+    this.logger.info(`${chalk.red(figures.squareSmallFilled)} failed.`);
+    prgm.log.debug(`---- Konveyor Exit (${code})`);
+    await prgm.log.close();
 
-        return null;
-      })
-    );
+    // eslint-disable-next-line no-process-exit
+    process.exit(code);
   }
 }

@@ -1,4 +1,5 @@
-import { Konveyor } from 'konveyor';
+// import { Konveyor } from 'konveyor';
+import { Konveyor } from '../../src';
 import * as tasks from './tasks';
 
 /**

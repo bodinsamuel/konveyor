@@ -23,14 +23,14 @@ const checkRepo = new Task({
         'Your repo is not clean, please commit or stash everything',
         'git stash -u'
       );
-      exit(1);
+      exit();
     }
   },
 });
 
 // Create the main Program and register our task
 const prgm = new Konveyor({
-  name: 'My awesome script',
+  name: 'My script',
   version: '1.0.0',
   tasks: [checkRepo],
 });

@@ -1,8 +1,6 @@
-import { Program } from './Program';
-import { Event } from './Event';
 import { CallbackBefore, Callback } from './types';
 
-export class Task extends Event<'task:start' | 'task:skipped' | 'task:stop'> {
+export class Task {
   // task description
   public readonly name: string;
   public readonly description: string;
@@ -31,22 +29,22 @@ export class Task extends Event<'task:start' | 'task:skipped' | 'task:stop'> {
     name: string;
     description: string;
     dependencies?: Task[];
+    isPrivate?: boolean;
+
     before?: CallbackBefore;
     exec?: Callback;
     after?: Callback;
     afterAll?: Callback;
-    isPrivate?: boolean;
   }) {
-    super();
-
     this.name = name;
     this.description = description;
     this._dependencies = new Set(dependencies);
+    this.isPrivate = isPrivate;
+
     this._before = before;
     this._exec = exec;
     this._after = after;
     this._afterAll = afterAll;
-    this.isPrivate = isPrivate;
   }
 
   public get dependencies() {
@@ -91,53 +89,5 @@ export class Task extends Event<'task:start' | 'task:skipped' | 'task:stop'> {
 
   public hasAfterAll() {
     return Boolean(this._afterAll);
-  }
-
-  public async run(prgm: Program) {
-    if (!this._exec) {
-      throw new Error(`Task "${this.name}" does not have a main exec()`);
-    }
-
-    // Run dependencies first
-    const entries = Array.from(this._dependencies);
-    for (let index = 0; index < entries.length; index++) {
-      const entry = entries[index];
-      if (entry.isExecuted) {
-        continue;
-      }
-
-      await entry.run(prgm);
-    }
-
-    // Mark as executed before executing
-    this.executed(true);
-
-    this.emit('task:start', { task: this });
-
-    prgm.log.debug(`Executing task: ${this.name}`);
-
-    // Execute before()
-    if (this._before) {
-      const answer = await this._before(prgm);
-      prgm.spinner.stop();
-
-      if (answer && answer.skip) {
-        prgm.log.debug('before() returned skip: true');
-        this.emit(`task:skipped`, { task: this });
-        return;
-      }
-    }
-
-    // Main callback
-    await this._exec(prgm);
-    prgm.spinner.stop();
-
-    // After
-    if (this._after) {
-      await this._after(prgm);
-      prgm.spinner.stop();
-    }
-
-    this.emit(`task:stop`, { task: this });
   }
 }
