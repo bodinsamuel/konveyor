@@ -39,6 +39,7 @@ export class Runner extends Event<'task:start' | 'task:skipped' | 'task:stop'> {
 
     // Register afterAll
     if (task.afterAll) {
+      prgm.log.debug('afterAll() registered');
       this.afterAlls.push(task.afterAll);
     }
 
@@ -71,6 +72,7 @@ export class Runner extends Event<'task:start' | 'task:skipped' | 'task:stop'> {
 
   public async afterAll() {
     try {
+      this.program.log.debug('Running afterAll()');
       await Promise.all(
         this.afterAlls.map(callback => {
           return callback(this.program);

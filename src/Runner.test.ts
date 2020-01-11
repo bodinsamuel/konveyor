@@ -99,6 +99,27 @@ describe('hooks', () => {
     expect(exec).toHaveBeenCalled();
     expect(after).toHaveBeenCalled();
   });
+
+  it('should register afterAll and run it', async () => {
+    const exec = jest.fn();
+    const afterAll = jest.fn();
+
+    const task = new Task({
+      name: 'task',
+      description: 'my description',
+      exec,
+      afterAll,
+    });
+
+    const runner = new Runner(prgm, task);
+    await runner.run();
+
+    expect(exec).toHaveBeenCalled();
+    expect(afterAll).not.toHaveBeenCalled();
+
+    await runner.afterAll();
+    expect(afterAll).toHaveBeenCalled();
+  });
 });
 
 describe('dependencies', () => {
@@ -125,5 +146,33 @@ describe('dependencies', () => {
     expect(stop).toHaveBeenCalledTimes(2);
     expect(start).toHaveBeenNthCalledWith(1, [{ task: task1 }]);
     expect(start).toHaveBeenNthCalledWith(2, [{ task: task2 }]);
+  });
+
+  it('should run 1 deps correctly and ignore it the second time', async () => {
+    const task1 = new Task({
+      name: 'task1',
+      description: 'my description',
+    });
+    const task2 = new Task({
+      name: 'task2',
+      description: 'my description',
+      dependencies: [task1],
+    });
+    const task3 = new Task({
+      name: 'task3',
+      description: 'my description',
+      dependencies: [task1, task2],
+    });
+
+    const start = jest.fn();
+    const stop = jest.fn();
+
+    const runner = new Runner(prgm, task3);
+    runner.on('task:start', start);
+    runner.on('task:stop', stop);
+    await runner.run();
+
+    expect(start).toHaveBeenCalledTimes(3);
+    expect(stop).toHaveBeenCalledTimes(3);
   });
 });
