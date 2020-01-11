@@ -45,7 +45,6 @@ See [documentation folder](./documentation/).
 
 ## Todo
 
-- eslint
 - tests
 - Timings
 - parametrisable task
@@ -54,4 +53,5 @@ See [documentation folder](./documentation/).
 - Examples
   - Simple
   - Test with mock
-- Compile bin + def
+- Documentation
+- Release script

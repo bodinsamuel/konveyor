@@ -168,7 +168,7 @@ export class Konveyor extends Event {
         }
 
         if (task.hasAfterAll()) {
-          return task.hasAfterAll()!(this.program);
+          return task.getAfterAll()!(this.program);
         }
 
         return null;

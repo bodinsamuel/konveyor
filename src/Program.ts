@@ -9,16 +9,16 @@ import {
   creatYesNo,
   Spinner,
   tryUntil,
+  createSpinner,
 } from './utils';
 
 import { Logger } from './Logger';
 
 export class Program {
-  public readonly _spinner: Spinner;
-  public readonly _logger: Logger;
+  private _spinner?: Spinner;
+  private _logger: Logger;
 
   public constructor({ logger }: { logger: Logger }) {
-    this._spinner = new Spinner();
     this._logger = logger;
   }
 
@@ -27,6 +27,10 @@ export class Program {
   }
 
   public get spinner() {
+    if (!this._spinner) {
+      this._spinner = createSpinner(this._logger);
+    }
+
     return this._spinner;
   }
 

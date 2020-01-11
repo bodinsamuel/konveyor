@@ -2,7 +2,7 @@ import { Program } from './Program';
 import { Event } from './Event';
 import { CallbackBefore, Callback } from './types';
 
-export class Task extends Event {
+export class Task extends Event<'task:start' | 'task:skipped' | 'task:stop'> {
   // task description
   public readonly name: string;
   public readonly description: string;
@@ -14,7 +14,7 @@ export class Task extends Event {
 
   // actual tasks
   protected _before?: CallbackBefore;
-  protected _callback?: Callback;
+  protected _exec?: Callback;
   protected _after?: Callback;
   protected _afterAll?: Callback;
 
@@ -44,6 +44,7 @@ export class Task extends Event {
   public executed(is: boolean) {
     this._executed = is;
   }
+
   public get isExecuted() {
     return this._executed;
   }
@@ -52,12 +53,24 @@ export class Task extends Event {
     this._before = callback;
   }
 
+  public hasBefore() {
+    return Boolean(this._before);
+  }
+
   public exec(callback: Callback) {
-    this._callback = callback;
+    this._exec = callback;
+  }
+
+  public hasExec() {
+    return Boolean(this._exec);
   }
 
   public after(callback: Callback) {
     this._after = callback;
+  }
+
+  public hasAfter() {
+    return Boolean(this._after);
   }
 
   public afterAll(callback: Callback) {
@@ -65,11 +78,15 @@ export class Task extends Event {
   }
 
   public hasAfterAll() {
+    return Boolean(this._afterAll);
+  }
+
+  public getAfterAll() {
     return this._afterAll;
   }
 
   public async run(prgm: Program) {
-    if (!this._callback) {
+    if (!this._exec) {
       throw new Error(`Task "${this.name}" does not have a main exec()`);
     }
 
@@ -88,7 +105,6 @@ export class Task extends Event {
     this.executed(true);
 
     this.emit('task:start', { task: this });
-    this.emit(`task:start:${this.name}`, { task: this });
 
     prgm.log.debug(`Executing task: ${this.name}`);
 
@@ -99,13 +115,13 @@ export class Task extends Event {
 
       if (answer && answer.skip) {
         prgm.log.debug('before() returned skip: true');
-        this.emit(`task:skipped:${this.name}`, { task: this });
+        this.emit(`task:skipped`, { task: this });
         return;
       }
     }
 
     // Main callback
-    await this._callback(prgm);
+    await this._exec(prgm);
     prgm.spinner.stop();
 
     // After
@@ -114,6 +130,6 @@ export class Task extends Event {
       prgm.spinner.stop();
     }
 
-    this.emit(`task:stop:${this.name}`, { task: this });
+    this.emit(`task:stop`, { task: this });
   }
 }
