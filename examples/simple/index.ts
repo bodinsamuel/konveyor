@@ -1,4 +1,5 @@
-import { Konveyor, Task } from 'konveyor';
+// import { Konveyor, Task } from 'konveyor';
+import { Konveyor, Task } from '../../src';
 
 /**
  * ts-node index.ts
@@ -24,9 +25,8 @@ const checkRepo = new Task({
       );
       exit(1);
     }
-  })
+  },
 });
-
 
 // Create the main Program and register our task
 const prgm = new Konveyor({

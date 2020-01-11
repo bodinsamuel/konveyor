@@ -1,4 +1,5 @@
-import { Task } from 'konveyor';
+// import { Task } from 'konveyor';
+import { Task } from '../../../src';
 import { Env, store } from '../store';
 
 // Create a simple task
@@ -10,5 +11,5 @@ export const chooseEnv = new Task({
   exec: async ({ choices }) => {
     const env = await choices<string>('Which env?', Object.values(Env));
     store.switch(env as keyof typeof Env);
-  })
+  },
 });
