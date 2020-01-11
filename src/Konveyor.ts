@@ -17,7 +17,7 @@ interface Args {
   spinner?: Spinner;
 }
 
-export class Konveyor extends Event {
+export class Konveyor extends Event<'konveyor:start'> {
   // state
   private name: string;
   private version: string;
@@ -59,6 +59,8 @@ export class Konveyor extends Event {
    */
   public async start(argv: any) {
     this.logger.debug(`---- Konveyor Start [${new Date().toISOString()}]`);
+    this.emit('konveyor:start');
+
     try {
       this.registerTasks();
     } catch (err) {
