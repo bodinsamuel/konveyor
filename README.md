@@ -44,17 +44,14 @@ See [examples folder](./examples/).
 
 ## Documentation
 
-See [documentation folder](./documentation/).
+See [documentation folder](./docs/).
 
 ## Todo
 
-- tests
 - Timings
 - parametrisable task
 - default run
-- log spinner spin/fail/succeed
 - Examples
-  - Simple
   - Test with mock
 - Documentation
 - Release script
