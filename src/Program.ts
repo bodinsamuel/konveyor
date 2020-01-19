@@ -6,10 +6,11 @@ import {
   createFolderClear,
   createFolderList,
   createStreamSubProcess,
-  creatYesNo,
+  createYesNo,
   Spinner,
-  tryUntil,
+  createRetryUntil,
   createSpinner,
+  createParallelRun,
 } from './utils';
 import { Logger } from './Logger';
 import { ExitError } from './errors';
@@ -39,7 +40,7 @@ export class Program {
   }
 
   public get yesno() {
-    return creatYesNo(this._logger);
+    return createYesNo(this._logger);
   }
 
   public get folderClear() {
@@ -62,8 +63,12 @@ export class Program {
     return createExec(this._logger);
   }
 
-  public get tryUntil() {
-    return tryUntil;
+  public get retryUntil() {
+    return createRetryUntil(this._logger);
+  }
+
+  public get parallelRun() {
+    return createParallelRun(this._logger);
   }
 
   public get streamSubProcess() {

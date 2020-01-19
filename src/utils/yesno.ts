@@ -1,7 +1,7 @@
 import inquirer = require('inquirer');
 import { Logger } from '../Logger';
 
-export function creatYesNo(logger: Logger) {
+export function createYesNo(logger: Logger) {
   return async function yesno<T extends string>(question: string): Promise<T> {
     logger.debug(`Asking yes or no: "${question}"`);
 
