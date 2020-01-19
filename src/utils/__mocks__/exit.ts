@@ -1,1 +1,1 @@
-export function exit() {}
+export const exit = jest.fn();
