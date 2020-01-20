@@ -1,19 +1,17 @@
-import inquirer = require('inquirer');
+import { prompt } from 'enquirer';
 import { Logger } from '../Logger';
 
 export function createYesNo(logger: Logger) {
-  return async function yesno<T extends string>(question: string): Promise<T> {
+  return async function yesno(question: string): Promise<boolean> {
     logger.debug(`Asking yes or no: "${question}"`);
 
-    const answers = await inquirer.prompt([
-      {
-        type: 'confirm',
-        name: 'answer',
-        message: question,
-      },
-    ]);
+    const answer = await prompt<{ question: boolean }>({
+      type: 'toggle',
+      message: question,
+      name: 'question',
+    });
 
-    logger.debug(`Got answer: "${answers.answer}"`);
-    return answers.answer;
+    logger.debug(`Got answer: "${answer.question}"`);
+    return answer.question;
   };
 }

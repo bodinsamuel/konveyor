@@ -1,4 +1,9 @@
-export class ExitError extends Error {}
+export class ExitError extends Error {
+  public isExit = true;
+  public constructor() {
+    super(`Exited with error.`);
+  }
+}
 
 export class NoTasksError extends Error {
   public constructor() {

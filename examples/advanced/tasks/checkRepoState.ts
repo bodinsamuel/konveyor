@@ -5,7 +5,7 @@ import { Task, Exec } from '../../../src';
 // This task will check if the repo is clean from any changes
 export const checkRepoState = new Task({
   name: 'check_repo_state',
-  description: 'Check repo state',
+  description: 'Check if your repository is clean.',
   isPrivate: true,
 
   exec: async ({ spinner, exec, log, exit }) => {
@@ -19,7 +19,7 @@ export const checkRepoState = new Task({
         'Your repo is not clean, please commit or stash everything',
         'git stash -u'
       );
-      await exit(1);
+      exit();
     }
 
     spinner.spin('Checking origin...');
@@ -29,7 +29,7 @@ export const checkRepoState = new Task({
       spinner.fail();
 
       log.help('Your repo is up to date with origin', 'git pull');
-      await exit(1);
+      exit();
     }
   },
 });

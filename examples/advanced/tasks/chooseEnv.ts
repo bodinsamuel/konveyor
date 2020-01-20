@@ -6,10 +6,22 @@ import { Env, store } from '../store';
 // This task will check if the repo is clean from any changes
 export const chooseEnv = new Task({
   name: 'choose_env',
-  description: 'Check repo state',
+  description: 'Select the working environement.',
   isPrivate: true,
-  exec: async ({ choices }) => {
-    const env = await choices<string>('Which env?', Object.values(Env));
-    store.switch(env as keyof typeof Env);
+  exec: async ({ choices, yesno, exit }) => {
+    const env = await choices<keyof typeof Env>(
+      'Select an environement:',
+      Object.values(Env).map(name => {
+        return {
+          name,
+        };
+      })
+    );
+    store.switch(env);
+
+    const answer = await yesno(`Do you want to deploy "${env}"?`);
+    if (!answer) {
+      exit();
+    }
   },
 });

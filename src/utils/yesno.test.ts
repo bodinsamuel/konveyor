@@ -1,4 +1,4 @@
-jest.mock('inquirer');
+jest.mock('enquirer');
 jest.mock('../Logger');
 import { Logger } from '../Logger';
 import { createYesNo } from './yesno';

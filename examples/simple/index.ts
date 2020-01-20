@@ -9,7 +9,7 @@ import { Konveyor, Task } from '../../src';
 // This task will check if the repo is clean from any changes
 const checkRepo = new Task({
   name: 'check_repo_state',
-  description: 'Check repo state',
+  description: 'Check if your repository is clean.',
   exec: async ({ spinner, exec, log, exit }) => {
     spinner.spin('Checking repository...');
     const { stdout } = await exec(`git status --short`);

@@ -71,7 +71,7 @@ describe('registerTasks()', () => {
     });
 
     knv.registerTasks();
-    expect(knv.commandsName).toEqual(['task1', 'task2']);
+    expect(knv.tasksPublic).toEqual([task1, task2]);
   });
 });
 

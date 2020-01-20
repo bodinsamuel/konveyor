@@ -9,7 +9,7 @@ import { Program } from './Program';
 import { Event } from './Event';
 import { Runner } from './Runner';
 import { intro, clearConsole, Spinner, exit } from './utils/';
-import { DuplicateTaskError, NoTasksError, ExitError } from './errors';
+import { DuplicateTaskError, NoTasksError } from './errors';
 
 interface Args {
   name: string;
@@ -27,7 +27,7 @@ export class Konveyor extends Event<'konveyor:start'> {
   private version: string;
   private task?: Task;
   private tasks: Task[] = [];
-  public readonly commandsName: string[] = [];
+  public readonly tasksPublic: Task[] = [];
 
   // services
   public readonly logger: Logger;
@@ -92,7 +92,7 @@ export class Konveyor extends Event<'konveyor:start'> {
       this.runner = new Runner(this.program, this.task);
       await this.runner.run();
     } catch (err) {
-      if (!(err instanceof ExitError)) {
+      if (!err.isExit) {
         this.logger.error(err);
       }
       await this.exit(1);
@@ -115,7 +115,7 @@ export class Konveyor extends Event<'konveyor:start'> {
       names.push(task.name);
 
       if (task.isPrivate === false) {
-        this.commandsName.push(task.name);
+        this.tasksPublic.push(task);
         commander
           .command(task.name)
           .description(task.description)
@@ -137,19 +137,24 @@ export class Konveyor extends Event<'konveyor:start'> {
   }
 
   public async askForCommand() {
-    if (typeof this.task === 'undefined') {
-      const answer = await this.program.choices(
-        'What do you want to do?',
-        this.commandsName
-      );
-      this.task = this.tasks.find(task => task.name === answer) as Task;
-    } else {
+    if (this.task) {
       this.logger.info(
         `${chalk.green('?')} ${chalk.bold(
           'What do you want to do?'
         )} ${chalk.cyan(this.task.name)}`
       );
+      return;
     }
+
+    const list = this.tasksPublic.map(task => {
+      return {
+        name: task.name,
+        hint: task.description,
+      };
+    });
+    const answer = await this.program.choices('What do you want to do?', list);
+
+    this.task = this.tasks.find(task => task.name === answer);
   }
 
   public async exit(code: number) {
