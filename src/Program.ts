@@ -1,5 +1,6 @@
 import type { Logger } from './Logger';
 import { ExitError } from './errors';
+import type { Exec } from './types';
 import type { Spinner } from './utils';
 import {
   createChoices,
@@ -23,11 +24,11 @@ export class Program {
     this._logger = logger;
   }
 
-  get log() {
+  get log(): Logger {
     return this._logger;
   }
 
-  get spinner() {
+  get spinner(): Spinner {
     if (!this._spinner) {
       this._spinner = createSpinner(this._logger);
     }
@@ -59,7 +60,7 @@ export class Program {
     return createFileWrite(this._logger);
   }
 
-  get exec() {
+  get exec(): Exec {
     return createExec(this._logger);
   }
 

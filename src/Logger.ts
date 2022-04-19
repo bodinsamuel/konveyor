@@ -36,11 +36,11 @@ export class Logger {
     });
   }
 
-  info(msg: string) {
+  info(msg: string): void {
     this.winston.info(msg);
   }
 
-  error(msg: Error | string) {
+  error(msg: Error | any): void {
     if (typeof msg === 'object') {
       this.winston.debug(msg.stack as string);
       this.winston.error(msg.message);
@@ -49,25 +49,25 @@ export class Logger {
     }
   }
 
-  warn(msg: string) {
+  warn(msg: string): void {
     this.winston.warn(msg);
   }
 
-  debug(msg: string) {
+  debug(msg: string): void {
     this.winston.debug(msg);
   }
 
-  help(msg: string, command?: string) {
+  help(msg: string, command?: string): void {
     this.info(`${chalk.blue(figures.info)} ${msg}:`);
     this.info(`   ${figures.pointerSmall} ${command && chalk.dim(command)}`);
     this.info('\r');
   }
 
-  async close() {
+  async close(): Promise<void> {
     await Promise.all([
       new Promise((resolve) => {
         this.winston.on('finish', () => {
-          resolve();
+          resolve(true);
         });
         this.winston.end();
       }),

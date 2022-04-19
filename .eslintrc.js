@@ -19,14 +19,12 @@ module.exports = {
   parserOptions: {
     ecmaFeatures: {
       legacyDecorators: true,
+      impliedStrict: true,
+      jsx: true,
     },
     experimentalObjectRestSpread: true,
     ecmaVersion: 2018,
     sourceType: 'module',
-    ecmaFeatures: {
-      impliedStrict: true,
-      jsx: true,
-    },
   },
 
   settings: {

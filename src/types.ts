@@ -11,10 +11,10 @@ export type CallbackBefore = (
 
 // Store
 export type StoreGeneric<
-  Env extends string,
-  Keys extends { [key: string]: any }
+  TEnv extends string,
+  TKeys extends { [key: string]: any }
 > = {
-  [key in Env]: Keys;
+  [key in TEnv]: TKeys;
 };
 
 // Program

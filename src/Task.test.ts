@@ -29,7 +29,7 @@ describe('register', () => {
     const task = new Task({
       name: 'my task',
       description: 'my description',
-      before: () => {},
+      before: (): void => {},
     });
 
     expect(task.hasBefore()).toBe(true);
@@ -42,7 +42,7 @@ describe('register', () => {
     const task = new Task({
       name: 'my task',
       description: 'my description',
-      exec: () => {},
+      exec: (): void => {},
     });
 
     expect(task.hasBefore()).toBe(false);
@@ -55,7 +55,7 @@ describe('register', () => {
     const task = new Task({
       name: 'my task',
       description: 'my description',
-      after: () => {},
+      after: (): void => {},
     });
 
     expect(task.hasBefore()).toBe(false);
@@ -68,7 +68,7 @@ describe('register', () => {
     const task = new Task({
       name: 'my task',
       description: 'my description',
-      afterAll: () => {},
+      afterAll: (): void => {},
     });
 
     expect(task.hasBefore()).toBe(false);

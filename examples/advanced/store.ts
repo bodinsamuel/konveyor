@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import { Store } from 'konveyor';
 
 // Types our keys that will set in the store

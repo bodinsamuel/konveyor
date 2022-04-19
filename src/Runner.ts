@@ -15,7 +15,7 @@ export class Runner extends Event<'task:skipped' | 'task:start' | 'task:stop'> {
     this.task = task;
   }
 
-  async run(chainedTask?: Task) {
+  async run(chainedTask?: Task): Promise<void> {
     const prgm = this.program;
     const task = chainedTask || this.task;
 
@@ -48,7 +48,7 @@ export class Runner extends Event<'task:skipped' | 'task:start' | 'task:stop'> {
       const answer = await task.before(prgm);
       prgm.spinner.stop();
 
-      if (answer && answer.skip) {
+      if (answer?.skip) {
         prgm.log.debug('before() returned skip: true');
         this.emit(`task:skipped`, { task: this });
         return;
@@ -70,7 +70,7 @@ export class Runner extends Event<'task:skipped' | 'task:start' | 'task:stop'> {
     this.emit(`task:stop`, { task: this });
   }
 
-  async afterAll() {
+  async afterAll(): Promise<void> {
     try {
       this.program.log.debug('Running afterAll()');
       await Promise.all(

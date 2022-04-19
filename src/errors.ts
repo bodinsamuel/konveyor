@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 export class ExitError extends Error {
   isExit = true;
   constructor() {

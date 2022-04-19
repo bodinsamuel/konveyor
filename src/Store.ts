@@ -1,11 +1,11 @@
 import type { StoreGeneric } from './types';
 
-export class Store<Env extends string, Keys extends { [key: string]: any }> {
+export class Store<TEnv extends string, TKeys extends { [key: string]: any }> {
   // @ts-expect-error
-  private kv: StoreGeneric<Env, Keys> = {};
-  private env: Env;
+  private kv: StoreGeneric<TEnv, Keys> = {};
+  private env: TEnv;
 
-  constructor(env: Env, keyValues?: StoreGeneric<Env, Keys>) {
+  constructor(env: TEnv, keyValues?: StoreGeneric<TEnv, TKeys>) {
     if (keyValues) {
       this.kv = keyValues;
     }
@@ -13,19 +13,19 @@ export class Store<Env extends string, Keys extends { [key: string]: any }> {
     this.env = env;
   }
 
-  is(env: Env) {
+  is(env: TEnv): boolean {
     return this.env === env;
   }
 
-  switch(env: Env) {
+  switch(env: TEnv): void {
     this.env = env;
   }
 
-  set(key: keyof Keys, value: any) {
+  set(key: keyof TKeys, value: any): void {
     this.kv[this.env][key] = value;
   }
 
-  get<A extends keyof Keys>(key: A): Keys[A] {
+  get<TKey extends keyof TKeys>(key: TKey): TKeys[TKey] {
     if (typeof this.kv[this.env][key] === 'undefined') {
       throw new Error(`Store: key "${key}" does not exists`);
     }
@@ -33,7 +33,7 @@ export class Store<Env extends string, Keys extends { [key: string]: any }> {
     return this.kv[this.env][key];
   }
 
-  toJson() {
+  toJson(): StoreGeneric<TEnv, TKeys> {
     return this.kv[this.env];
   }
 }

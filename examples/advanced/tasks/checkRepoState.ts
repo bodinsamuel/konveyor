@@ -9,7 +9,7 @@ export const checkRepoState = new Task({
   description: 'Check if your repository is clean.',
   isPrivate: true,
 
-  exec: async ({ spinner, exec, log, exit }) => {
+  exec: async ({ spinner, exec, log, exit }): Promise<void> => {
     spinner.spin('Checking repository...');
     if (await isRepoClean(exec)) {
       spinner.succeed('Repository is clean');

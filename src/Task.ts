@@ -59,11 +59,11 @@ export class Task {
     return this._dependencies;
   }
 
-  executed(is: boolean) {
+  executed(is: boolean): void {
     this._executed = is;
   }
 
-  get isExecuted() {
+  get isExecuted(): boolean {
     return this._executed;
   }
 

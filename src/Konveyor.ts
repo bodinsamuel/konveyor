@@ -9,7 +9,7 @@ import { Logger } from './Logger';
 import { Program } from './Program';
 import { Runner } from './Runner';
 import type { Task } from './Task';
-import { DuplicateTaskError, NoTasksError } from './errors';
+import { DuplicateTaskError, ExitError, NoTasksError } from './errors';
 import type { Spinner } from './utils';
 import { intro, clearConsole, exit } from './utils';
 
@@ -24,15 +24,16 @@ interface Args {
 }
 
 export class Konveyor extends Event<'konveyor:start'> {
+  readonly tasksPublic: Task[] = [];
+  readonly logger: Logger;
+
   // state
   private name: string;
   private version: string;
   private task?: Task;
   private tasks: Task[] = [];
-  readonly tasksPublic: Task[] = [];
 
   // services
-  readonly logger: Logger;
   private program: Program;
   private commander: Command;
   private runner?: Runner;
@@ -61,7 +62,7 @@ export class Konveyor extends Event<'konveyor:start'> {
       });
   }
 
-  get pickedTask() {
+  get pickedTask(): Task | undefined {
     return this.task;
   }
 
@@ -70,7 +71,7 @@ export class Konveyor extends Event<'konveyor:start'> {
    *
    * @param argv - Process.argv.
    */
-  async start(argv: any) {
+  async start(argv: any): Promise<void> {
     this.logger.debug(`---- Konveyor Start [${new Date().toISOString()}]`);
     this.emit('konveyor:start');
 
@@ -94,7 +95,7 @@ export class Konveyor extends Event<'konveyor:start'> {
       this.runner = new Runner(this.program, this.task);
       await this.runner.run();
     } catch (err) {
-      if (!err.isExit) {
+      if (!(err instanceof ExitError)) {
         this.logger.error(err);
       }
       await this.exit(1);
@@ -103,7 +104,7 @@ export class Konveyor extends Event<'konveyor:start'> {
     await this.exit(0);
   }
 
-  registerTasks() {
+  registerTasks(): void {
     const commander = this.commander;
     if (this.tasks.length <= 0) {
       throw new NoTasksError();
@@ -138,7 +139,7 @@ export class Konveyor extends Event<'konveyor:start'> {
     });
   }
 
-  async askForCommand() {
+  async askForCommand(): Promise<void> {
     if (this.task) {
       this.logger.info(
         `${chalk.green('?')} ${chalk.bold(
@@ -159,7 +160,7 @@ export class Konveyor extends Event<'konveyor:start'> {
     this.task = this.tasks.find((task) => task.name === answer);
   }
 
-  async exit(code: number) {
+  async exit(code: number): Promise<void> {
     const prgm = this.program;
     prgm.spinner.fail();
 

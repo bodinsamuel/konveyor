@@ -10,7 +10,7 @@ import { Konveyor, Task } from '../../src';
 const checkRepo = new Task({
   name: 'check_repo_state',
   description: 'Check if your repository is clean.',
-  exec: async ({ spinner, exec, log, exit }) => {
+  exec: async ({ spinner, exec, log, exit }): Promise<void> => {
     spinner.spin('Checking repository...');
     const { stdout } = await exec(`git status --short`);
 
