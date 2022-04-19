@@ -14,13 +14,13 @@ export class Spinner {
     this.logger = logger;
   }
 
-  spin(msg: string) {
+  spin(msg: string): void {
     this.lastMsg = msg;
     this.spinner.start(msg);
     this.logger.debug(`[Spinner] start: ${msg}`);
   }
 
-  stop(persist: boolean = true) {
+  stop(persist: boolean = true): void {
     if (this.lastMsg && persist !== false) {
       this.spinner.stopAndPersist();
     } else {
@@ -31,24 +31,24 @@ export class Spinner {
     this.lastMsg = null;
   }
 
-  clear() {
+  clear(): void {
     this.spinner.clear();
     this.lastMsg = null;
   }
 
-  info(text?: string) {
+  info(text?: string): void {
     this.spinner.info(text);
     this.logger.debug(`[Spinner] info: ${text}`);
     this.lastMsg = null;
   }
 
-  succeed(text?: string) {
+  succeed(text?: string): void {
     this.spinner.succeed(text);
     this.logger.debug(`[Spinner] succeed: ${text}`);
     this.lastMsg = null;
   }
 
-  fail(text?: string) {
+  fail(text?: string): void {
     if (!this.lastMsg) {
       return;
     }
@@ -59,6 +59,6 @@ export class Spinner {
   }
 }
 
-export function createSpinner(logger: Logger) {
+export function createSpinner(logger: Logger): Spinner {
   return new Spinner({ logger });
 }

@@ -61,7 +61,7 @@ describe('run()', () => {
     const task = new Task({
       name: 'my task',
       description: 'my description',
-      before: () => {
+      before: (): any => {
         return { skip: true };
       },
       exec,

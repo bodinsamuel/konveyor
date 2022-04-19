@@ -1,1 +1,1 @@
-export function clearConsole() {}
+export function clearConsole(): void {}

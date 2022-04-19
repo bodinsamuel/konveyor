@@ -1,6 +1,6 @@
 import readline from 'readline';
 
-export function clearConsole() {
+export function clearConsole(): void {
   if (!process.stdout.isTTY) {
     return;
   }

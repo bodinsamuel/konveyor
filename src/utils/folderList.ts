@@ -9,7 +9,7 @@ export function createFolderList(logger: Logger) {
     filter?: RegExp,
     fileList: string[] = [],
     initial: boolean = true
-  ) {
+  ): string[] {
     if (initial) {
       logger.debug(`Listing dir: "${dir}"`);
     }
@@ -21,7 +21,7 @@ export function createFolderList(logger: Logger) {
 
       if (fileStat.isDirectory()) {
         folderList(filePath, filter, fileList, false);
-      } else if (filter && filter.test(filePath)) {
+      } else if (filter?.test(filePath)) {
         fileList.push(filePath);
       } else {
         fileList.push(filePath);

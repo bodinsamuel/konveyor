@@ -1,20 +1,20 @@
 export class Command {
-  version() {
+  version(): this {
     return this;
   }
-  usage() {
+  usage(): this {
     return this;
   }
-  command() {
+  command(): this {
     return this;
   }
-  description() {
+  description(): this {
     return this;
   }
-  action() {
+  action(): this {
     return this;
   }
-  arguments() {
+  arguments(): this {
     return this;
   }
 }

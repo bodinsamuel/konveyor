@@ -1,1 +1,1 @@
-export function intro() {}
+export function intro(): void {}
