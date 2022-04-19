@@ -28,7 +28,7 @@ describe('parallelRun()', () => {
         Promise.reject(new Error('bar')),
       ]);
     } catch (e) {
-      err = e;
+      err = e as Error;
     }
 
     // @ts-expect-error

@@ -1,6 +1,5 @@
 import type { Logger } from './Logger';
 import { ExitError } from './errors';
-import type { Exec } from './types';
 import type { Spinner } from './utils';
 import {
   createChoices,
@@ -36,47 +35,47 @@ export class Program {
     return this._spinner;
   }
 
-  get choices() {
+  get choices(): ReturnType<typeof createChoices> {
     return createChoices(this._logger);
   }
 
-  get yesno() {
+  get yesno(): ReturnType<typeof createYesNo> {
     return createYesNo(this._logger);
   }
 
-  get folderClear() {
+  get folderClear(): ReturnType<typeof createFolderClear> {
     return createFolderClear(this._logger);
   }
 
-  get folderList() {
+  get folderList(): ReturnType<typeof createFolderList> {
     return createFolderList(this._logger);
   }
 
-  get fileRead() {
+  get fileRead(): ReturnType<typeof createFileRead> {
     return createFileRead(this._logger);
   }
 
-  get fileWrite() {
+  get fileWrite(): ReturnType<typeof createFileWrite> {
     return createFileWrite(this._logger);
   }
 
-  get exec(): Exec {
+  get exec(): ReturnType<typeof createExec> {
     return createExec(this._logger);
   }
 
-  get retryUntil() {
+  get retryUntil(): ReturnType<typeof createRetryUntil> {
     return createRetryUntil(this._logger);
   }
 
-  get parallelRun() {
+  get parallelRun(): ReturnType<typeof createParallelRun> {
     return createParallelRun(this._logger);
   }
 
-  get streamSubProcess() {
+  get streamSubProcess(): ReturnType<typeof createStreamSubProcess> {
     return createStreamSubProcess(this._logger);
   }
 
-  get exit() {
+  get exit(): () => void {
     return () => {
       throw new ExitError();
     };

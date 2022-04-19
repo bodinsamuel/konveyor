@@ -14,7 +14,7 @@ export class StreamTransform extends Transform {
     this.level = level;
   }
 
-  _transform(chunk: any, _encoding: string, callback: any) {
+  _transform(chunk: any, _encoding: string, callback: any): void {
     this.push({
       level: this.level,
       message: chunk,
@@ -25,7 +25,7 @@ export class StreamTransform extends Transform {
 }
 
 export function createStreamSubProcess(logger: Logger) {
-  return (subprocess: ChildProcess, level: string = 'debug') => {
+  return (subprocess: ChildProcess, level: string = 'debug'): Promise<void> => {
     return new Promise((resolve) => {
       const stream = new StreamTransform({ level });
       subprocess.stdout!.pipe(stream).pipe(logger.winston, {

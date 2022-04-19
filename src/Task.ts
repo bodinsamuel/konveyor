@@ -55,7 +55,7 @@ export class Task {
     });
   }
 
-  get dependencies() {
+  get dependencies(): Set<Task> {
     return this._dependencies;
   }
 
@@ -67,35 +67,35 @@ export class Task {
     return this._executed;
   }
 
-  get before() {
+  get before(): CallbackBefore | undefined {
     return this._before;
   }
 
-  hasBefore() {
+  hasBefore(): boolean {
     return Boolean(this._before);
   }
 
-  get exec() {
+  get exec(): Callback | undefined {
     return this._exec;
   }
 
-  hasExec() {
+  hasExec(): boolean {
     return Boolean(this._exec);
   }
 
-  get after() {
+  get after(): Callback | undefined {
     return this._after;
   }
 
-  hasAfter() {
+  hasAfter(): boolean {
     return Boolean(this._after);
   }
 
-  get afterAll() {
+  get afterAll(): Callback | undefined {
     return this._afterAll;
   }
 
-  hasAfterAll() {
+  hasAfterAll(): boolean {
     return Boolean(this._afterAll);
   }
 }

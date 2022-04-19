@@ -3,7 +3,7 @@ import rimraf from 'rimraf';
 import type { Logger } from '../Logger';
 
 export function createFolderClear(logger: Logger) {
-  return async function folderClear(path: string) {
+  return async function folderClear(path: string): Promise<void> {
     logger.debug(`Clearing folder: "${path}"`);
 
     await new Promise((resolve, reject) => {
@@ -12,7 +12,7 @@ export function createFolderClear(logger: Logger) {
           reject(error);
           return;
         }
-        resolve();
+        resolve(true);
       });
     });
 
