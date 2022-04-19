@@ -1,24 +1,26 @@
 // Stolen from vue-cli
-import oraFactory, { Ora } from 'ora';
-import { Logger } from '../Logger';
+import type { Ora } from 'ora';
+import oraFactory from 'ora';
+
+import type { Logger } from '../Logger';
 
 export class Spinner {
   private spinner: Ora;
   private lastMsg: string | null = null;
   private logger: Logger;
 
-  public constructor({ logger, ora }: { logger: Logger; ora?: Ora }) {
+  constructor({ logger, ora }: { logger: Logger; ora?: Ora }) {
     this.spinner = ora || oraFactory();
     this.logger = logger;
   }
 
-  public spin(msg: string) {
+  spin(msg: string) {
     this.lastMsg = msg;
     this.spinner.start(msg);
     this.logger.debug(`[Spinner] start: ${msg}`);
   }
 
-  public stop(persist: boolean = true) {
+  stop(persist: boolean = true) {
     if (this.lastMsg && persist !== false) {
       this.spinner.stopAndPersist();
     } else {
@@ -29,24 +31,24 @@ export class Spinner {
     this.lastMsg = null;
   }
 
-  public clear() {
+  clear() {
     this.spinner.clear();
     this.lastMsg = null;
   }
 
-  public info(text?: string) {
+  info(text?: string) {
     this.spinner.info(text);
     this.logger.debug(`[Spinner] info: ${text}`);
     this.lastMsg = null;
   }
 
-  public succeed(text?: string) {
+  succeed(text?: string) {
     this.spinner.succeed(text);
     this.logger.debug(`[Spinner] succeed: ${text}`);
     this.lastMsg = null;
   }
 
-  public fail(text?: string) {
+  fail(text?: string) {
     if (!this.lastMsg) {
       return;
     }

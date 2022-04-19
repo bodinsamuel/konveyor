@@ -1,12 +1,13 @@
-import { ExecaChildProcess } from 'execa';
-import { Program } from './Program';
+import type { ExecaChildProcess } from 'execa';
+
+import type { Program } from './Program';
 
 // Task
 export type Callback = (program: Program) => Promise<void> | void;
 export type BeforeResponse = { skip: boolean };
 export type CallbackBefore = (
   program: Program
-) => Promise<void | BeforeResponse> | BeforeResponse | void;
+) => BeforeResponse | Promise<BeforeResponse | void> | void;
 
 // Store
 export type StoreGeneric<

@@ -1,6 +1,8 @@
-jest.mock('../Logger');
 import { Logger } from '../Logger';
+
 import { createRetryUntil } from './retryUntil';
+
+jest.mock('../Logger');
 
 describe('retryUntil()', () => {
   const logger = new Logger({ folder: '' });

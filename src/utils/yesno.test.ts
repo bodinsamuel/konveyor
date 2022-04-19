@@ -1,7 +1,9 @@
+import { Logger } from '../Logger';
+
+import { createYesNo } from './yesno';
+
 jest.mock('enquirer');
 jest.mock('../Logger');
-import { Logger } from '../Logger';
-import { createYesNo } from './yesno';
 
 describe('yesno()', () => {
   const logger = new Logger({ folder: '' });

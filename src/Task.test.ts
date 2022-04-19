@@ -1,7 +1,7 @@
-jest.mock('./Logger');
-
 import { Task } from './Task';
 import { TaskUndefinedError } from './errors';
+
+jest.mock('./Logger');
 
 describe('constructor', () => {
   it('should create a new instance correctly', () => {
@@ -120,9 +120,9 @@ describe('dependencies', () => {
       new Task({
         name: 'my task',
         description: 'my description',
-        // @ts-ignore
+        // @ts-expect-error
         dependencies: [undefined],
       });
-    }).toThrowError(new TaskUndefinedError('my task'));
+    }).toThrow(new TaskUndefinedError('my task'));
   });
 });

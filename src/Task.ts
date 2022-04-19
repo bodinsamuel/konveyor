@@ -1,11 +1,11 @@
-import { CallbackBefore, Callback } from './types';
 import { TaskUndefinedError } from './errors';
+import type { CallbackBefore, Callback } from './types';
 
 export class Task {
   // task description
-  public readonly name: string;
-  public readonly description: string;
-  public readonly isPrivate: boolean = false;
+  readonly name: string;
+  readonly description: string;
+  readonly isPrivate: boolean = false;
 
   // state
   protected _executed: boolean = false;
@@ -17,7 +17,7 @@ export class Task {
   protected _after?: Callback;
   protected _afterAll?: Callback;
 
-  public constructor({
+  constructor({
     name,
     description,
     dependencies = [],
@@ -48,54 +48,54 @@ export class Task {
     this._afterAll = afterAll;
 
     // Check dependencies
-    this._dependencies.forEach(dep => {
+    this._dependencies.forEach((dep) => {
       if (typeof dep === 'undefined') {
         throw new TaskUndefinedError(this.name);
       }
     });
   }
 
-  public get dependencies() {
+  get dependencies() {
     return this._dependencies;
   }
 
-  public executed(is: boolean) {
+  executed(is: boolean) {
     this._executed = is;
   }
 
-  public get isExecuted() {
+  get isExecuted() {
     return this._executed;
   }
 
-  public get before() {
+  get before() {
     return this._before;
   }
 
-  public hasBefore() {
+  hasBefore() {
     return Boolean(this._before);
   }
 
-  public get exec() {
+  get exec() {
     return this._exec;
   }
 
-  public hasExec() {
+  hasExec() {
     return Boolean(this._exec);
   }
 
-  public get after() {
+  get after() {
     return this._after;
   }
 
-  public hasAfter() {
+  hasAfter() {
     return Boolean(this._after);
   }
 
-  public get afterAll() {
+  get afterAll() {
     return this._afterAll;
   }
 
-  public hasAfterAll() {
+  hasAfterAll() {
     return Boolean(this._afterAll);
   }
 }

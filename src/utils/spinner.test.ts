@@ -1,13 +1,15 @@
-import { Ora } from 'ora';
+import type { Ora } from 'ora';
+
+import type { Logger } from '../Logger';
+
 import { Spinner } from './spinner';
-import { Logger } from '../Logger';
 
 describe('spinner', () => {
   let instance: Spinner;
-  const logger = ({
+  const logger = {
     debug: jest.fn(),
-  } as unknown) as Logger;
-  const ora = ({
+  } as unknown as Logger;
+  const ora = {
     spin: jest.fn(),
     start: jest.fn(),
     succeed: jest.fn(),
@@ -15,7 +17,7 @@ describe('spinner', () => {
     fail: jest.fn(),
     stop: jest.fn(),
     stopAndPersist: jest.fn(),
-  } as unknown) as Ora;
+  } as unknown as Ora;
 
   it('should create an instance', () => {
     instance = new Spinner({ logger, ora });

@@ -1,11 +1,12 @@
+import type { ChildProcess } from 'child_process';
 import { Transform } from 'stream';
-import { ChildProcess } from 'child_process';
-import { Logger } from '../Logger';
+
+import type { Logger } from '../Logger';
 
 export class StreamTransform extends Transform {
   private level: string;
 
-  public constructor({ level }: { level: string } = { level: 'info' }) {
+  constructor({ level }: { level: string } = { level: 'info' }) {
     super({
       readableObjectMode: true,
       writableObjectMode: true,
@@ -13,7 +14,7 @@ export class StreamTransform extends Transform {
     this.level = level;
   }
 
-  public _transform(chunk: any, _encoding: string, callback: any) {
+  _transform(chunk: any, _encoding: string, callback: any) {
     this.push({
       level: this.level,
       message: chunk,
@@ -25,13 +26,13 @@ export class StreamTransform extends Transform {
 
 export function createStreamSubProcess(logger: Logger) {
   return (subprocess: ChildProcess, level: string = 'debug') => {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       const stream = new StreamTransform({ level });
       subprocess.stdout!.pipe(stream).pipe(logger.winston, {
         end: false,
       });
 
-      subprocess.stderr!.on('data', err => {
+      subprocess.stderr!.on('data', (err) => {
         throw new Error(err);
       });
 

@@ -1,4 +1,4 @@
-import { Logger } from '../Logger';
+import type { Logger } from '../Logger';
 
 export function createParallelRun(logger: Logger) {
   return async function parallelRun<TReturn>(

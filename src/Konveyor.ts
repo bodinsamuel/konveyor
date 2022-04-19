@@ -1,15 +1,17 @@
 import path from 'path';
+
 import chalk from 'chalk';
 import { Command } from 'commander';
 import figures from 'figures';
 
-import { Task } from './Task';
+import { Event } from './Event';
 import { Logger } from './Logger';
 import { Program } from './Program';
-import { Event } from './Event';
 import { Runner } from './Runner';
-import { intro, clearConsole, Spinner, exit } from './utils/';
+import type { Task } from './Task';
 import { DuplicateTaskError, NoTasksError } from './errors';
+import type { Spinner } from './utils';
+import { intro, clearConsole, exit } from './utils';
 
 interface Args {
   name: string;
@@ -27,15 +29,15 @@ export class Konveyor extends Event<'konveyor:start'> {
   private version: string;
   private task?: Task;
   private tasks: Task[] = [];
-  public readonly tasksPublic: Task[] = [];
+  readonly tasksPublic: Task[] = [];
 
   // services
-  public readonly logger: Logger;
+  readonly logger: Logger;
   private program: Program;
   private commander: Command;
   private runner?: Runner;
 
-  public constructor({ name, version, logger, tasks, command, program }: Args) {
+  constructor({ name, version, logger, tasks, command, program }: Args) {
     super();
 
     this.name = name;
@@ -59,16 +61,16 @@ export class Konveyor extends Event<'konveyor:start'> {
       });
   }
 
-  public get pickedTask() {
+  get pickedTask() {
     return this.task;
   }
 
   /**
    * Main entrypoint.
    *
-   * @param argv - process.argv
+   * @param argv - Process.argv.
    */
-  public async start(argv: any) {
+  async start(argv: any) {
     this.logger.debug(`---- Konveyor Start [${new Date().toISOString()}]`);
     this.emit('konveyor:start');
 
@@ -101,14 +103,14 @@ export class Konveyor extends Event<'konveyor:start'> {
     await this.exit(0);
   }
 
-  public registerTasks() {
+  registerTasks() {
     const commander = this.commander;
     if (this.tasks.length <= 0) {
       throw new NoTasksError();
     }
 
     const names: string[] = [];
-    this.tasks.forEach(task => {
+    this.tasks.forEach((task) => {
       if (names.includes(task.name)) {
         throw new DuplicateTaskError(task.name);
       }
@@ -128,7 +130,7 @@ export class Konveyor extends Event<'konveyor:start'> {
     this.logger.debug(`Registered ${this.tasks.length} tasks`);
 
     // Final catch all command
-    commander.arguments('<command>').action(cmd => {
+    commander.arguments('<command>').action((cmd) => {
       commander.outputHelp();
       this.logger.error(
         `  ${chalk.red(`Unknown command ${chalk.yellow(cmd)}.`)}`
@@ -136,7 +138,7 @@ export class Konveyor extends Event<'konveyor:start'> {
     });
   }
 
-  public async askForCommand() {
+  async askForCommand() {
     if (this.task) {
       this.logger.info(
         `${chalk.green('?')} ${chalk.bold(
@@ -146,7 +148,7 @@ export class Konveyor extends Event<'konveyor:start'> {
       return;
     }
 
-    const list = this.tasksPublic.map(task => {
+    const list = this.tasksPublic.map((task) => {
       return {
         name: task.name,
         hint: task.description,
@@ -154,10 +156,10 @@ export class Konveyor extends Event<'konveyor:start'> {
     });
     const answer = await this.program.choices('What do you want to do?', list);
 
-    this.task = this.tasks.find(task => task.name === answer);
+    this.task = this.tasks.find((task) => task.name === answer);
   }
 
-  public async exit(code: number) {
+  async exit(code: number) {
     const prgm = this.program;
     prgm.spinner.fail();
 

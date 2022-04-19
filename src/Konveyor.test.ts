@@ -1,3 +1,13 @@
+import chalk from 'chalk';
+import figures from 'figures';
+
+import { Konveyor } from './Konveyor';
+import { Logger } from './Logger';
+import type { Program } from './Program';
+import { Task } from './Task';
+import { NoTasksError, DuplicateTaskError } from './errors';
+import { Spinner, exit } from './utils';
+
 jest.mock('commander');
 jest.mock('./Logger');
 jest.mock('./utils/exit');
@@ -5,15 +15,6 @@ jest.mock('./utils/clearConsole');
 jest.mock('./utils/intro');
 jest.mock('./utils/exit');
 jest.mock('./utils/spinner');
-
-import chalk from 'chalk';
-import figures from 'figures';
-import { Konveyor } from './Konveyor';
-import { NoTasksError, DuplicateTaskError } from './errors';
-import { Task } from './Task';
-import { Program } from './Program';
-import { Logger } from './Logger';
-import { Spinner, exit } from './utils';
 
 describe('constructor', () => {
   it('should create a new instance correctly', () => {
@@ -36,7 +37,7 @@ describe('registerTasks()', () => {
 
     expect(() => {
       knv.registerTasks();
-    }).toThrowError(new NoTasksError());
+    }).toThrow(new NoTasksError());
   });
 
   it('should throw correctly when duplicate tasks', () => {
@@ -52,7 +53,7 @@ describe('registerTasks()', () => {
 
     expect(() => {
       knv.registerTasks();
-    }).toThrowError(new DuplicateTaskError('task'));
+    }).toThrow(new DuplicateTaskError('task'));
   });
 
   it('should register correctly', () => {
@@ -82,9 +83,9 @@ describe('askForCommand()', () => {
       description: '',
     });
 
-    const program = ({
+    const program = {
       choices: jest.fn(() => 'task1'),
-    } as unknown) as Program;
+    } as unknown as Program;
     const knv = new Konveyor({
       name: 'my script',
       version: '1.0',
@@ -102,10 +103,10 @@ describe('askForCommand()', () => {
 describe('exit()', () => {
   it('should exit(0)', async () => {
     const logger = new Logger({ folder: '/' });
-    const program = ({
+    const program = {
       spinner: new Spinner({ logger }),
       log: logger,
-    } as unknown) as Program;
+    } as unknown as Program;
 
     const knv = new Konveyor({
       name: 'my script',
@@ -127,10 +128,10 @@ describe('exit()', () => {
 
   it('should exit(1)', async () => {
     const logger = new Logger({ folder: '/' });
-    const program = ({
+    const program = {
       spinner: new Spinner({ logger }),
       log: logger,
-    } as unknown) as Program;
+    } as unknown as Program;
 
     const knv = new Konveyor({
       name: 'my script',

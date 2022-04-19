@@ -1,11 +1,7 @@
-import {
-  createLogger as createWinston,
-  transports,
-  format,
-  Logger as WinstonLogger,
-} from 'winston';
 import chalk from 'chalk';
 import figures from 'figures';
+import type { Logger as WinstonLogger } from 'winston';
+import { createLogger as createWinston, transports, format } from 'winston';
 
 const formatConsole = format.printf(({ level, message }) => {
   if (level.indexOf('info') < 0) {
@@ -22,9 +18,9 @@ const formatFile = format.printf(({ level, message }) => {
 });
 
 export class Logger {
-  public readonly winston: WinstonLogger;
+  readonly winston: WinstonLogger;
 
-  public constructor({ folder }: { folder: string }) {
+  constructor({ folder }: { folder: string }) {
     this.winston = createWinston({
       transports: [
         new transports.Console({
@@ -40,11 +36,11 @@ export class Logger {
     });
   }
 
-  public info(msg: string) {
+  info(msg: string) {
     this.winston.info(msg);
   }
 
-  public error(msg: string | Error) {
+  error(msg: Error | string) {
     if (typeof msg === 'object') {
       this.winston.debug(msg.stack as string);
       this.winston.error(msg.message);
@@ -53,30 +49,30 @@ export class Logger {
     }
   }
 
-  public warn(msg: string) {
+  warn(msg: string) {
     this.winston.warn(msg);
   }
 
-  public debug(msg: string) {
+  debug(msg: string) {
     this.winston.debug(msg);
   }
 
-  public help(msg: string, command?: string) {
+  help(msg: string, command?: string) {
     this.info(`${chalk.blue(figures.info)} ${msg}:`);
     this.info(`   ${figures.pointerSmall} ${command && chalk.dim(command)}`);
     this.info('\r');
   }
 
-  public async close() {
+  async close() {
     await Promise.all([
-      new Promise(resolve => {
+      new Promise((resolve) => {
         this.winston.on('finish', () => {
           resolve();
         });
         this.winston.end();
       }),
       // Wait at least 1s anyway
-      new Promise(resolve => {
+      new Promise((resolve) => {
         setTimeout(resolve, 1000);
       }),
     ]);

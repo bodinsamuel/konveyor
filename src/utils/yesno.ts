@@ -1,5 +1,6 @@
 import { prompt } from 'enquirer';
-import { Logger } from '../Logger';
+
+import type { Logger } from '../Logger';
 
 export function createYesNo(logger: Logger) {
   return async function yesno(question: string): Promise<boolean> {

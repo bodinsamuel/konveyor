@@ -1,20 +1,20 @@
 export class Command {
-  public version() {
+  version() {
     return this;
   }
-  public usage() {
+  usage() {
     return this;
   }
-  public command() {
+  command() {
     return this;
   }
-  public description() {
+  description() {
     return this;
   }
-  public action() {
+  action() {
     return this;
   }
-  public arguments() {
+  arguments() {
     return this;
   }
 }

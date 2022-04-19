@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import { Logger } from '../Logger';
+
+import type { Logger } from '../Logger';
 
 export function createFolderList(logger: Logger) {
   return function folderList(
@@ -14,7 +15,7 @@ export function createFolderList(logger: Logger) {
     }
     const files = fs.readdirSync(dir);
 
-    files.forEach(file => {
+    files.forEach((file) => {
       const filePath = path.join(dir, file);
       const fileStat = fs.lstatSync(filePath);
 

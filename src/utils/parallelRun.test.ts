@@ -1,6 +1,8 @@
-jest.mock('../Logger');
 import { Logger } from '../Logger';
+
 import { createParallelRun } from './parallelRun';
+
+jest.mock('../Logger');
 
 describe('parallelRun()', () => {
   const logger = new Logger({ folder: '' });
@@ -29,7 +31,7 @@ describe('parallelRun()', () => {
       err = e;
     }
 
-    // @ts-ignore
+    // @ts-expect-error
     expect(err).toEqual(new Error('bar'));
     expect(logger.debug).toHaveBeenCalledWith(`Running in parallel: failed`);
   });

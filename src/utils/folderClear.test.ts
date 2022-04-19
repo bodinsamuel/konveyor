@@ -1,7 +1,9 @@
+import { Logger } from '../Logger';
+
+import { createFolderClear } from './folderClear';
+
 jest.mock('rimraf');
 jest.mock('../Logger');
-import { Logger } from '../Logger';
-import { createFolderClear } from './folderClear';
 
 describe('folderClear()', () => {
   const logger = new Logger({ folder: '' });

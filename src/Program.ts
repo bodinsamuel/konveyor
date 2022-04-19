@@ -1,3 +1,6 @@
+import type { Logger } from './Logger';
+import { ExitError } from './errors';
+import type { Spinner } from './utils';
 import {
   createChoices,
   createExec,
@@ -7,27 +10,24 @@ import {
   createFolderList,
   createStreamSubProcess,
   createYesNo,
-  Spinner,
   createRetryUntil,
   createSpinner,
   createParallelRun,
 } from './utils';
-import { Logger } from './Logger';
-import { ExitError } from './errors';
 
 export class Program {
   private _spinner?: Spinner;
   private _logger: Logger;
 
-  public constructor({ logger }: { logger: Logger }) {
+  constructor({ logger }: { logger: Logger }) {
     this._logger = logger;
   }
 
-  public get log() {
+  get log() {
     return this._logger;
   }
 
-  public get spinner() {
+  get spinner() {
     if (!this._spinner) {
       this._spinner = createSpinner(this._logger);
     }
@@ -35,47 +35,47 @@ export class Program {
     return this._spinner;
   }
 
-  public get choices() {
+  get choices() {
     return createChoices(this._logger);
   }
 
-  public get yesno() {
+  get yesno() {
     return createYesNo(this._logger);
   }
 
-  public get folderClear() {
+  get folderClear() {
     return createFolderClear(this._logger);
   }
 
-  public get folderList() {
+  get folderList() {
     return createFolderList(this._logger);
   }
 
-  public get fileRead() {
+  get fileRead() {
     return createFileRead(this._logger);
   }
 
-  public get fileWrite() {
+  get fileWrite() {
     return createFileWrite(this._logger);
   }
 
-  public get exec() {
+  get exec() {
     return createExec(this._logger);
   }
 
-  public get retryUntil() {
+  get retryUntil() {
     return createRetryUntil(this._logger);
   }
 
-  public get parallelRun() {
+  get parallelRun() {
     return createParallelRun(this._logger);
   }
 
-  public get streamSubProcess() {
+  get streamSubProcess() {
     return createStreamSubProcess(this._logger);
   }
 
-  public get exit() {
+  get exit() {
     return () => {
       throw new ExitError();
     };

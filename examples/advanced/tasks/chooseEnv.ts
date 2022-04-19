@@ -11,7 +11,7 @@ export const chooseEnv = new Task({
   exec: async ({ choices, yesno, exit }) => {
     const env = await choices<keyof typeof Env>(
       'Select an environement:',
-      Object.values(Env).map(name => {
+      Object.values(Env).map((name) => {
         return {
           name,
         };

@@ -31,12 +31,12 @@ describe('get()', () => {
 
   it('should get correctly', () => {
     const get = store.get('foobar');
-    expect(get).toEqual(true);
+    expect(get).toBe(true);
   });
 
   it('should throw correctly', () => {
     expect(() => {
-      // @ts-ignore
+      // @ts-expect-error
       store.get('barfoo');
     }).toThrow(`Store: key "barfoo" does not exists`);
   });
@@ -49,15 +49,15 @@ describe('switch()', () => {
   });
 
   it('should switch env correctly', () => {
-    expect(store.is('dev')).toEqual(true);
-    expect(store.is('prod')).toEqual(false);
+    expect(store.is('dev')).toBe(true);
+    expect(store.is('prod')).toBe(false);
     const getDev = store.get('foobar');
-    expect(getDev).toEqual(true);
+    expect(getDev).toBe(true);
 
     store.switch('prod');
-    expect(store.is('dev')).toEqual(false);
-    expect(store.is('prod')).toEqual(true);
+    expect(store.is('dev')).toBe(false);
+    expect(store.is('prod')).toBe(true);
     const getProd = store.get('foobar');
-    expect(getProd).toEqual(false);
+    expect(getProd).toBe(false);
   });
 });

@@ -1,4 +1,4 @@
-import { Logger } from '../Logger';
+import type { Logger } from '../Logger';
 
 export function createRetryUntil(logger: Logger) {
   return function retryUntil(
@@ -7,7 +7,7 @@ export function createRetryUntil(logger: Logger) {
   ): Promise<void> {
     logger.debug(`Trying callback until resolution...`);
 
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       const ref = setInterval(async () => {
         const ret = await callback();
 

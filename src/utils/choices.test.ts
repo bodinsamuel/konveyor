@@ -1,7 +1,9 @@
+import { Logger } from '../Logger';
+
+import { createChoices } from './choices';
+
 jest.mock('enquirer');
 jest.mock('../Logger');
-import { createChoices } from './choices';
-import { Logger } from '../Logger';
 
 describe('choices()', () => {
   const logger = new Logger({ folder: '' });

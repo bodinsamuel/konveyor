@@ -1,5 +1,6 @@
 import { prompt } from 'enquirer';
-import { Logger } from '../Logger';
+
+import type { Logger } from '../Logger';
 
 // Copied from enquirer/index.d.ts because they do not export it
 type Choice = {

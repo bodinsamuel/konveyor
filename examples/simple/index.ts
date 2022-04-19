@@ -2,7 +2,7 @@
 import { Konveyor, Task } from '../../src';
 
 /**
- * ts-node index.ts
+ * Ts-node index.ts.
  */
 
 // Create a simple task

@@ -1,5 +1,6 @@
 // import { Task, Exec } from 'konveyor';
-import { Task, Exec } from '../../../src';
+import type { Exec } from '../../../src';
+import { Task } from '../../../src';
 
 // Create a simple task
 // This task will check if the repo is clean from any changes

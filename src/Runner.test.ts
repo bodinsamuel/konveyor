@@ -1,9 +1,9 @@
-jest.mock('./Logger');
-
-import { Runner } from './Runner';
-import { Program } from './Program';
 import { Logger } from './Logger';
+import { Program } from './Program';
+import { Runner } from './Runner';
 import { Task } from './Task';
+
+jest.mock('./Logger');
 
 const prgm = new Program({ logger: new Logger({ folder: './' }) });
 
