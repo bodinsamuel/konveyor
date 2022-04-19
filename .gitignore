@@ -9,3 +9,8 @@ dist
 tsconfig.tsbuildinfo
 debug.log
 coverage
+
+# https://yarnpkg.com/getting-started/qa#which-files-should-be-gitignored
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
