@@ -1,6 +1,6 @@
 {
   "name": "konveyor",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "author": "Samuel Bodin <bodin.samuel@gmail.com>",
   "license": "MIT",
   "description": "Create and manage scripts at scale in a breeze.",
