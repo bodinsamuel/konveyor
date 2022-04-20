@@ -1,5 +1,4 @@
-/* eslint-disable import/no-unresolved */
-import { Store } from 'konveyor';
+import { Store } from '../../src';
 
 // Types our keys that will set in the store
 type Keys = {

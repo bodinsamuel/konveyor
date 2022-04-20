@@ -1,8 +1,8 @@
 import boxen from 'boxen';
-import chalk from 'chalk';
+import * as kolorist from 'kolorist';
 
 export function intro(name: string, version: string): string {
-  const title = chalk.bold.greenBright(`${name} v${version}`);
+  const title = kolorist.lightGreen(kolorist.bold(`${name} v${version}`));
   return boxen(title, {
     align: 'center',
     borderColor: 'green',

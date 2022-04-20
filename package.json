@@ -4,7 +4,7 @@
   "author": "Samuel Bodin <bodin.samuel@gmail.com>",
   "license": "MIT",
   "description": "Create and manage scripts at scale in a breeze.",
-  "main": "dist/index.js",
+  "exports": "./dist/index.js",
   "keywords": [
     "workflow",
     "conveyor",
@@ -48,26 +48,26 @@
     "node-fetch": "3.2.3",
     "prettier": "^2.6.2",
     "ts-jest": "^27.1.4",
-    "ts-node": "^10.7.0",
+    "ts-node": "10.7.0",
     "typescript": "^4.6.3"
   },
   "dependencies": {
     "boxen": "5.1.2",
-    "chalk": "5.0.1",
     "commander": "9.2.0",
-    "execa": "5.1.1",
-    "figures": "4.0.1",
-    "ora": "5.4.1",
+    "execa": "5.1.0",
+    "figures": "3.2.0",
+    "kolorist": "1.5.1",
+    "ora": "5.3.0",
     "rimraf": "3.0.2",
     "winston": "3.7.2"
   },
   "engines": {
-    "node": ">= 14.0.0",
+    "node": ">= 14.13.1",
     "yarn": ">= 3.0.0"
   },
   "scripts": {
-    "build": "rm -rf dist/ && tsc -b ./",
-    "build:hot": "tsc -b -w ./",
+    "build": "rm -rf dist/ && tsc -b --preserveWatchOutput",
+    "build:hot": "tsc -b --preserveWatchOutput -w",
     "lint": "eslint --ext=jsx,ts,tsx,js .",
     "test": "jest"
   },

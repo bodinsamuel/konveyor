@@ -1,5 +1,5 @@
-import chalk from 'chalk';
 import figures from 'figures';
+import * as kolorist from 'kolorist';
 import type { Logger as WinstonLogger } from 'winston';
 import { createLogger as createWinston, transports, format } from 'winston';
 
@@ -58,8 +58,8 @@ export class Logger {
   }
 
   help(msg: string, command?: string): void {
-    this.info(`${chalk.blue(figures.info)} ${msg}:`);
-    this.info(`   ${figures.pointerSmall} ${command && chalk.dim(command)}`);
+    this.info(`${kolorist.blue(figures.info)} ${msg}:`);
+    this.info(`   ${figures.pointerSmall} ${command && kolorist.dim(command)}`);
     this.info('\r');
   }
 

@@ -42,7 +42,6 @@ module.exports = {
   rules: {
     '@typescript-eslint/array-type': 'off',
     '@typescript-eslint/generic-type-naming': 'off',
-    'import/extensions': 'off',
     'valid-jsdoc': 'off',
     'no-continue': 'off',
   },

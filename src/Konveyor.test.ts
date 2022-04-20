@@ -1,5 +1,5 @@
-import chalk from 'chalk';
 import figures from 'figures';
+import * as kolorist from 'kolorist';
 
 import { Konveyor } from './Konveyor';
 import { Logger } from './Logger';
@@ -120,7 +120,7 @@ describe('exit()', () => {
 
     expect(program.spinner.fail).toHaveBeenCalled();
     expect(logger.info).toHaveBeenCalledWith(
-      `${chalk.magenta(figures.heart)} my script done.`
+      `${kolorist.magenta(figures.heart)} my script done.`
     );
     expect(logger.debug).toHaveBeenCalledWith(`---- Konveyor Exit (0)`);
     expect(exit).toHaveBeenCalledWith(0);
@@ -145,7 +145,7 @@ describe('exit()', () => {
 
     expect(program.spinner.fail).toHaveBeenCalled();
     expect(logger.info).toHaveBeenCalledWith(
-      `${chalk.red(
+      `${kolorist.red(
         figures.squareSmallFilled
       )} Failed. Check "debug.log" to know more`
     );

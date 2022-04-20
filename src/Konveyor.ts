@@ -1,8 +1,8 @@
 import path from 'path';
 
-import chalk from 'chalk';
 import { Command } from 'commander';
 import figures from 'figures';
+import * as kolorist from 'kolorist';
 
 import { Event } from './Event';
 import { Logger } from './Logger';
@@ -134,7 +134,7 @@ export class Konveyor extends Event<'konveyor:start'> {
     commander.arguments('<command>').action((cmd) => {
       commander.outputHelp();
       this.logger.error(
-        `  ${chalk.red(`Unknown command ${chalk.yellow(cmd)}.`)}`
+        `  ${kolorist.red(`Unknown command ${kolorist.yellow(cmd)}.`)}`
       );
     });
   }
@@ -142,9 +142,9 @@ export class Konveyor extends Event<'konveyor:start'> {
   async askForCommand(): Promise<void> {
     if (this.task) {
       this.logger.info(
-        `${chalk.green('?')} ${chalk.bold(
+        `${kolorist.green('?')} ${kolorist.bold(
           'What do you want to do?'
-        )} ${chalk.cyan(this.task.name)}`
+        )} ${kolorist.cyan(this.task.name)}`
       );
       return;
     }
@@ -171,12 +171,12 @@ export class Konveyor extends Event<'konveyor:start'> {
     // Display final message
     if (code > 0) {
       this.logger.info(
-        `${chalk.red(
+        `${kolorist.red(
           figures.squareSmallFilled
         )} Failed. Check "debug.log" to know more`
       );
     } else {
-      this.logger.info(`${chalk.magenta(figures.heart)} ${this.name} done.`);
+      this.logger.info(`${kolorist.magenta(figures.heart)} ${this.name} done.`);
     }
 
     prgm.log.debug(`---- Konveyor Exit (${code})`);

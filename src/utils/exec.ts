@@ -1,4 +1,4 @@
-import execa = require('execa');
+import execa from 'execa';
 
 import type { Logger } from '../Logger';
 import type { Exec } from '../types';
@@ -6,6 +6,6 @@ import type { Exec } from '../types';
 export function createExec(logger: Logger): Exec {
   return (command: string) => {
     logger.debug(`Exec: "${command}"`);
-    return execa.command(command);
+    return execa(command);
   };
 }
