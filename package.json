@@ -4,7 +4,7 @@
   "author": "Samuel Bodin <bodin.samuel@gmail.com>",
   "license": "MIT",
   "description": "Create and manage scripts at scale in a breeze.",
-  "exports": "./dist/index.js",
+  "main": "./dist/index.js",
   "keywords": [
     "workflow",
     "conveyor",
@@ -71,5 +71,8 @@
     "lint": "eslint --ext=jsx,ts,tsx,js .",
     "test": "jest"
   },
-  "packageManager": "yarn@3.2.0"
+  "packageManager": "yarn@3.2.0",
+  "files": [
+    "dist/"
+  ]
 }
