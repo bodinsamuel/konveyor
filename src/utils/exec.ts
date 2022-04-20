@@ -6,6 +6,6 @@ import type { Exec } from '../types';
 export function createExec(logger: Logger): Exec {
   return (command: string) => {
     logger.debug(`Exec: "${command}"`);
-    return execa(command);
+    return execa.command(command);
   };
 }

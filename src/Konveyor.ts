@@ -21,44 +21,49 @@ interface Args {
   spinner?: Spinner;
   command?: Command;
   program?: Program;
+  clearOnStart?: boolean;
 }
 
 export class Konveyor extends Event<'konveyor:start'> {
   readonly tasksPublic: Task[] = [];
-  readonly logger: Logger;
+  readonly log: Logger;
 
   // state
   private name: string;
   private version: string;
   private task?: Task;
   private tasks: Task[] = [];
+  private clearOnStart: boolean;
+  private path: string;
 
   // services
   private program: Program;
   private commander: Command;
   private runner?: Runner;
 
-  constructor({ name, version, logger, tasks, command, program }: Args) {
+  constructor(args: Args) {
     super();
 
-    this.name = name;
-    this.version = version;
-    this.tasks = tasks;
+    this.name = args.name;
+    this.version = args.version;
+    this.tasks = args.tasks;
+    this.clearOnStart = args.clearOnStart === true;
+    this.path = path.dirname(require!.main!.filename);
 
-    this.logger =
-      logger ||
+    this.log =
+      args.logger ||
       new Logger({
-        folder: path.dirname(require!.main!.filename),
+        folder: this.path,
       });
 
     this.commander =
-      command ||
+      args.command ||
       new Command().version(this.version).usage('<command> [options]');
 
     this.program =
-      program ||
+      args.program ||
       new Program({
-        logger: this.logger,
+        logger: this.log,
       });
   }
 
@@ -72,17 +77,21 @@ export class Konveyor extends Event<'konveyor:start'> {
    * @param argv - Process.argv.
    */
   async start(argv: any): Promise<void> {
-    this.logger.debug(`---- Konveyor Start [${new Date().toISOString()}]`);
+    const { log } = this;
+
+    log.debug(`---- Konveyor Start [${new Date().toISOString()}]`);
     this.emit('konveyor:start');
 
     try {
       this.registerTasks();
 
       // display intro
-      clearConsole();
-      this.logger.info(intro(this.name, this.version));
+      if (this.clearOnStart) {
+        clearConsole();
+      }
+      log.info(intro(this.name, this.version));
 
-      this.commander.parse(argv);
+      await this.commander.parseAsync(argv);
 
       await this.askForCommand();
 
@@ -96,7 +105,7 @@ export class Konveyor extends Event<'konveyor:start'> {
       await this.runner.run();
     } catch (err) {
       if (!(err instanceof ExitError)) {
-        this.logger.error(err);
+        log.error(err);
       }
       await this.exit(1);
     }
@@ -105,64 +114,61 @@ export class Konveyor extends Event<'konveyor:start'> {
   }
 
   registerTasks(): void {
-    const commander = this.commander;
-    if (this.tasks.length <= 0) {
+    const { commander, log, tasks } = this;
+    if (tasks.length <= 0) {
       throw new NoTasksError();
     }
 
     const names: string[] = [];
-    this.tasks.forEach((task) => {
+    tasks.forEach((task) => {
       if (names.includes(task.name)) {
         throw new DuplicateTaskError(task.name);
       }
+
       names.push(task.name);
 
-      if (task.isPrivate === false) {
-        this.tasksPublic.push(task);
-        commander
-          .command(task.name)
-          .description(task.description)
-          .action(() => {
-            this.task = task;
-          });
+      if (task.isPrivate) {
+        return;
       }
+
+      this.tasksPublic.push(task);
+      commander
+        .command(task.name)
+        .description(task.description)
+        .action(() => {
+          this.task = task;
+        });
     });
 
-    this.logger.debug(`Registered ${this.tasks.length} tasks`);
-
-    // Final catch all command
-    commander.arguments('<command>').action((cmd) => {
-      commander.outputHelp();
-      this.logger.error(
-        `  ${kolorist.red(`Unknown command ${kolorist.yellow(cmd)}.`)}`
-      );
-    });
+    log.debug(`Registered ${tasks.length} tasks`);
   }
 
   async askForCommand(): Promise<void> {
-    if (this.task) {
-      this.logger.info(
+    const { tasks, log, task } = this;
+
+    if (task) {
+      log.info(
         `${kolorist.green('?')} ${kolorist.bold(
           'What do you want to do?'
-        )} ${kolorist.cyan(this.task.name)}`
+        )} ${kolorist.cyan(task.name)}`
       );
       return;
     }
 
-    const list = this.tasksPublic.map((task) => {
+    const list = this.tasksPublic.map((t) => {
       return {
-        name: task.name,
-        hint: task.description,
+        name: t.name,
+        hint: t.description,
       };
     });
-    const answer = await this.program.choices('What do you want to do?', list);
 
-    this.task = this.tasks.find((task) => task.name === answer);
+    const answer = await this.program.choices('What do you want to do?', list);
+    this.task = tasks.find((t) => t.name === answer);
   }
 
   async exit(code: number): Promise<void> {
-    const prgm = this.program;
-    prgm.spinner.fail();
+    const { log, program } = this;
+    program.spinner.fail();
 
     if (this.runner) {
       this.runner.afterAll();
@@ -170,19 +176,19 @@ export class Konveyor extends Event<'konveyor:start'> {
 
     // Display final message
     if (code > 0) {
-      this.logger.info(
-        `${kolorist.red(
-          figures.squareSmallFilled
-        )} Failed. Check "debug.log" to know more`
+      log.info(
+        `${kolorist.red(figures.squareSmallFilled)} Failed. Check "${
+          this.path
+        }/debug.log" to know more`
       );
     } else {
-      this.logger.info(`${kolorist.magenta(figures.heart)} ${this.name} done.`);
+      log.info(`${kolorist.magenta(figures.heart)} ${this.name} done.`);
     }
 
-    prgm.log.debug(`---- Konveyor Exit (${code})`);
+    log.debug(`---- Konveyor Exit (${code})`);
 
     // Write final log to file
-    await prgm.log.close();
+    await log.close();
 
     exit(code);
   }
