@@ -4,6 +4,11 @@ import { Config } from '../../src';
 interface Keys {
   version?: string;
   email?: string;
+  gcp: {
+    project: string;
+    cluster: string;
+    region: string;
+  };
 }
 
 // List our possible environement
@@ -14,8 +19,20 @@ export type Env = 'dev' | 'prod';
 export default new Config<Keys, Env>({
   defaultEnv: 'dev',
   configs: {
-    dev: {},
-    prod: {},
+    dev: {
+      gcp: {
+        project: 'agolia-crawler',
+        region: 'us',
+        cluster: 'crawler-prod-2',
+      },
+    },
+    prod: {
+      gcp: {
+        project: 'agolia-crawler',
+        region: 'us',
+        cluster: 'crawler-dev-2',
+      },
+    },
   },
 });
 

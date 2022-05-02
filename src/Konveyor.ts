@@ -12,6 +12,7 @@ import type { Task } from './Task';
 import { DuplicateTaskError, ExitError, NoTasksError } from './errors';
 import { toAbsolute } from './helpers/fs';
 import { loadTasksFromPath } from './helpers/loadTasksFromPath';
+import { parseArgv } from './helpers/parseArgv';
 import type { ConfigDefault } from './types';
 import type { Spinner } from './utils';
 import { intro, clearConsole, exit } from './utils';
@@ -115,7 +116,13 @@ export class Konveyor<
       }
       log.info(intro(this.name, this.version));
 
+      // console.log('prout');
+      const prepared = parseArgv(argv);
+      console.log('prep', prepared);
+
       await this.commander.parseAsync(argv);
+      // console.log('edf');
+      // console.log(this.commander);
 
       await this.askForTask();
 
@@ -132,6 +139,11 @@ export class Konveyor<
       });
       await this.runner.run();
     } catch (err) {
+      console.log('prat');
+
+      console.log(this.commander);
+
+      this.program.spinner.fail();
       if (!(err instanceof ExitError)) {
         log.error(err);
       }
@@ -163,18 +175,18 @@ export class Konveyor<
       }
 
       this.tasksPublic.push(task);
-      const cmd = commander
-        .command(task.name)
-        .description(task.description)
-        .action(() => {
-          this.task = task;
-        });
+      // const cmd = commander
+      //   .command( task.name)
+      //   .description(task.description)
+      //   .action(() => {
+      //     this.task = task;
+      //   });
 
-      if (task.options && task.options?.length > 0) {
-        task.options.forEach((option) => {
-          cmd.addOption(option);
-        });
-      }
+      // if (task.options && task.options?.length > 0) {
+      //   task.options.forEach((option) => {
+      //     cmd.addOption(option);
+      //   });
+      // }
     });
 
     log.debug(`Registered ${tasks.length} tasks`);
@@ -219,6 +231,7 @@ export class Konveyor<
 
     // Display final message
     if (code > 0) {
+      log.info('');
       log.info(
         `${kolorist.red(figures.squareSmallFilled)} Failed. Check "${
           this.path

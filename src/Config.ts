@@ -3,8 +3,8 @@ import type { ConfigGeneric, ConfigRecord } from './types';
 export class Config<TConfig extends ConfigRecord, TEnv extends string> {
   // @ts-expect-error
   private kv: ConfigGeneric<TEnv, Keys> = {};
-  private env: TEnv;
-  private envs: TEnv[];
+  private _env: TEnv;
+  private _envs: TEnv[];
 
   constructor({
     configs,
@@ -17,8 +17,16 @@ export class Config<TConfig extends ConfigRecord, TEnv extends string> {
       this.kv = configs;
     }
 
-    this.env = defaultEnv;
-    this.envs = Object.keys(configs) as any;
+    this._env = defaultEnv;
+    this._envs = Object.keys(configs) as any;
+  }
+
+  get env(): TEnv {
+    return this._env;
+  }
+
+  get envs(): TEnv[] {
+    return this._envs;
   }
 
   is(env: TEnv): boolean {
@@ -26,14 +34,14 @@ export class Config<TConfig extends ConfigRecord, TEnv extends string> {
   }
 
   switch(env: TEnv): void {
-    this.env = env;
+    this._env = env;
   }
 
   set(key: keyof TConfig, value: any): void {
     this.kv[this.env][key] = value;
   }
 
-  get<TKey extends keyof TConfig>(key: TKey): any {
+  get<TKey extends keyof TConfig>(key: TKey): TConfig[TKey] {
     if (typeof this.kv[this.env][key] === 'undefined') {
       throw new Error(`Store: key "${key}" does not exists`);
     }
@@ -43,9 +51,5 @@ export class Config<TConfig extends ConfigRecord, TEnv extends string> {
 
   toJson(): ConfigGeneric<string, TConfig[string]> {
     return this.kv[this.env];
-  }
-
-  listEnv(): TEnv[] {
-    return this.envs;
   }
 }
