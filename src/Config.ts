@@ -1,4 +1,4 @@
-import type { ConfigGeneric, ConfigRecord } from './types';
+import type { ConfigGeneric, ConfigRecord } from './@types/config';
 
 export class Config<TConfig extends ConfigRecord, TEnv extends string> {
   // @ts-expect-error

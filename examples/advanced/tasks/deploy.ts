@@ -17,8 +17,9 @@ export default new Task({
   options: [
     Task.option('--no-dirty').msg('Ignore dirty repo'),
     Task.option('--env')
+      .alias('-e')
       .msg('Environment')
-      .validation(alt.string().in(...localConfig.envs)),
+      .valueValidation(alt.string().in(...localConfig.envs)),
   ],
 
   async exec({ yesno, exit }, config): Promise<void> {

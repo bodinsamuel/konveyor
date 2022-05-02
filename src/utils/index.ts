@@ -6,7 +6,6 @@ export * from './fileRead';
 export * from './fileWrite';
 export * from './folderClear';
 export * from './folderList';
-export * from './intro';
 export * from './parallelRun';
 export * from './spinner';
 export * from './streamTransform';

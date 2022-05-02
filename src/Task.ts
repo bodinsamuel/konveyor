@@ -1,6 +1,7 @@
+import type { ConfigDefault } from './@types/config';
+import type { CallbackBefore, Callback } from './@types/task';
 import { Option } from './Option';
 import { TaskUndefinedError } from './errors';
-import type { CallbackBefore, Callback, ConfigDefault } from './types';
 
 export interface TaskArgs<TConf extends ConfigDefault> {
   name: string;

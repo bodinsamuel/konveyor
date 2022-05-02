@@ -1,9 +1,12 @@
 import path from 'path';
+import util from 'util';
 
-import { Command, Option } from 'commander';
+import { Command } from 'commander';
 import figures from 'figures';
 import * as kolorist from 'kolorist';
 
+import type { ConfigDefault } from './@types/config';
+import type { ValidationPlan } from './@types/parser';
 import { Event } from './Event';
 import { Logger } from './Logger';
 import { Program } from './Program';
@@ -11,14 +14,15 @@ import { Runner } from './Runner';
 import type { Task } from './Task';
 import { DuplicateTaskError, ExitError, NoTasksError } from './errors';
 import { toAbsolute } from './helpers/fs';
+import { help } from './helpers/help';
 import { loadTasksFromPath } from './helpers/loadTasksFromPath';
-import { parseArgv } from './helpers/parseArgv';
-import type { ConfigDefault } from './types';
+import { parseArgv, validateParsedArgv } from './helpers/parseArgv';
 import type { Spinner } from './utils';
-import { intro, clearConsole, exit } from './utils';
+import { clearConsole, exit } from './utils';
 
 interface Args<TConfig extends ConfigDefault> {
   name: string;
+  description?: string;
   version: string;
   tasks?: Task<TConfig>[];
   tasksPath?: string;
@@ -38,15 +42,20 @@ export class Konveyor<
 
   // state
   private name: string;
+  private description?: string;
   private version: string;
   private task?: Task<TConfig>;
   private tasks: Task<TConfig>[] = [];
   private tasksPath?: string;
   private clearOnStart: boolean;
   private path: string;
-  private config?: TConfig;
+  private validationPlan: ValidationPlan = {
+    commands: [],
+    options: [],
+  };
 
   // services
+  private config?: TConfig;
   private program: Program;
   private commander: Command;
   private runner?: Runner<TConfig>;
@@ -55,6 +64,7 @@ export class Konveyor<
     super();
 
     this.name = args.name;
+    this.description = args.description;
     this.version = args.version;
     this.tasks = args.tasks || [];
     this.path = path.dirname(require!.main!.filename);
@@ -104,41 +114,54 @@ export class Konveyor<
         ];
       }
 
+      this.validationPlan.options = [
+        { name: '--version', aliases: ['-v'] },
+        { name: '--help', aliases: ['-h'] },
+      ];
       this.registerTasks();
 
-      // display intro
       if (this.clearOnStart) {
         clearConsole();
       }
-      log.info(intro(this.name, this.version));
 
-      // console.log('prout');
-      const prepared = parseArgv(argv);
-      console.log('prep', prepared);
+      // Parse arguments
+      const parsed = parseArgv(argv);
+      const validated = validateParsedArgv(parsed.flat, this.validationPlan);
+      console.log(
+        util.inspect(
+          { f: parsed.flat, v: validated, vp: this.validationPlan },
+          { depth: null }
+        )
+      );
+      if (!validated.success) {
+        log.info(this.getHelp());
+        log.info('\r\n');
 
-      await this.commander.parseAsync(argv);
-      // console.log('edf');
-      // console.log(this.commander);
+        for (const plan of validated.plan) {
+          if (plan.unknownOption) {
+            log.error(`Unknown option: --${plan.unknownOption}`);
+            break;
+          }
+          if (plan.unknownCommand) {
+            log.error(`Unknown command: ${plan.unknownCommand}`);
+            break;
+          }
+        }
+
+        await this.exit(1);
+        return;
+      }
 
       await this.askForTask();
-
-      if (!this.task) {
-        // A throw to make Typescript happy
-        throw new Error();
-      }
 
       // run the chosen task
       this.runner = new Runner({
         program: this.program,
-        task: this.task,
+        task: this.task!,
         config: this.config,
       });
       await this.runner.run();
     } catch (err) {
-      console.log('prat');
-
-      console.log(this.commander);
-
       this.program.spinner.fail();
       if (!(err instanceof ExitError)) {
         log.error(err);
@@ -153,7 +176,7 @@ export class Konveyor<
    * Register tasks into Konveyor.
    */
   registerTasks(): void {
-    const { commander, log, tasks } = this;
+    const { log, tasks } = this;
     if (tasks.length <= 0) {
       throw new NoTasksError();
     }
@@ -171,18 +194,12 @@ export class Konveyor<
       }
 
       this.tasksPublic.push(task);
-      // const cmd = commander
-      //   .command( task.name)
-      //   .description(task.description)
-      //   .action(() => {
-      //     this.task = task;
-      //   });
-
-      // if (task.options && task.options?.length > 0) {
-      //   task.options.forEach((option) => {
-      //     cmd.addOption(option);
-      //   });
-      // }
+      this.validationPlan.commands!.push({
+        command: task.name,
+        options: (task.options || []).map((opts) => {
+          return opts.validation;
+        }),
+      });
     });
 
     log.debug(`Registered ${tasks.length} tasks`);
@@ -243,5 +260,14 @@ export class Konveyor<
     await log.close();
 
     exit(code);
+  }
+
+  private getHelp(): string {
+    return help({
+      name: this.name,
+      description: this.description,
+      version: this.version,
+      plan: this.validationPlan,
+    });
   }
 }

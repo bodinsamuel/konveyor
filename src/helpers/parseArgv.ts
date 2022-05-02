@@ -1,29 +1,10 @@
-export type Plan = {
-  command?: string;
-  options: Record<string, boolean | number | string>;
-  unknownCommand?: string;
-  unknownOption?: string[];
-};
-
-export type Arg = ArgOption | ArgValue;
-export interface ArgOption {
-  type: 'option';
-  name: string;
-}
-export interface ArgValue {
-  type: 'value';
-  value: string;
-}
-
-export interface Validation {
-  command?: string;
-  options: ValidationOption[];
-  commands?: Validation[];
-}
-export interface ValidationOption {
-  name: string;
-  withValue?: boolean;
-}
+import type {
+  Arg,
+  ValidationPlan,
+  Plan,
+  ValidationOption,
+  ValidationTask,
+} from '../@types/parser';
 
 /**
  * Parse process.argv and return a list of k/v.
@@ -59,23 +40,25 @@ export function parseArgv(argv: string[]): { flat: Arg[] } {
 
     // Handle Options
     const double = arg.startsWith('--');
-    const name = arg.substring(double ? 2 : 1);
     if (double) {
-      if (name.includes('=')) {
-        const [_name, value] = name.split('=', 2);
+      if (arg.includes('=')) {
+        const [_name, value] = arg.split('=', 2);
         flat.push({ type: 'option', name: _name });
         flat.push({ type: 'value', value });
         continue;
       }
 
-      flat.push({ type: 'option', name });
+      flat.push({ type: 'option', name: arg });
       continue;
     }
 
     // single letter option
-    name.split('').forEach((letter) => {
-      flat.push({ type: 'option', name: letter });
-    });
+    arg
+      .replace('-', '')
+      .split('')
+      .forEach((letter) => {
+        flat.push({ type: 'option', name: `-${letter}` });
+      });
   }
 
   return { flat };
@@ -86,11 +69,11 @@ export function parseArgv(argv: string[]): { flat: Arg[] } {
  */
 export function validateParsedArgv(
   flat: Arg[],
-  val: Validation[]
+  val: ValidationPlan
 ): { plan: Plan[]; success: boolean } {
   const plan: Plan[] = [];
   let success: boolean = true;
-  let context: Validation | undefined;
+  let context: ValidationTask | undefined;
   let prevOptions: ValidationOption | undefined;
 
   // We don't push directly to have an empty array in case of no args
@@ -100,55 +83,48 @@ export function validateParsedArgv(
     const prev = flat[index - 1];
     const arg = flat[index];
 
-    // Create default group
-    if (!currGroup) {
-      currGroup = { options: {} };
-      plan.push(currGroup);
-    }
-
     if (arg.type === 'value') {
       if (prev?.type === 'option' && prevOptions?.withValue) {
         // Modify the past option in case we receive a value
-        currGroup.options[prev.name] = arg.value;
+        currGroup!.options[prev.name] = arg.value;
         continue;
       }
 
-      let hasCommand;
-      if (!context) {
-        // Root level
-        hasCommand = val.find(({ command }) => command === arg.value);
-        if (hasCommand) {
-          context = hasCommand;
-          currGroup.command = arg.value;
-          continue;
-        }
-      } else if (context.commands) {
-        // Nest commands
-        hasCommand = context.commands.find(
-          ({ command }) => command === arg.value
-        );
-        if (hasCommand) {
-          context = hasCommand;
-          currGroup = { command: arg.value, options: {} };
-          plan.push(currGroup);
-          continue;
-        }
+      const hasCommand = (context || val).commands?.find(
+        ({ command }) => command === arg.value
+      );
+      if (hasCommand) {
+        context = hasCommand;
+        currGroup = { command: arg.value, options: {} };
+        plan.push(currGroup);
+        continue;
       }
 
+      // Create default group
+      if (!currGroup) {
+        currGroup = { options: {} };
+        plan.push(currGroup);
+      }
       // Unknown command
       success = false;
       currGroup.unknownCommand = arg.value;
       continue;
     }
 
-    // Support only one root level with global flag
-    if (!context) {
-      context = val[0];
+    // Create default group
+    if (!currGroup) {
+      currGroup = { options: {} };
+      plan.push(currGroup);
     }
-    const hasOption = context.options.find(({ name }) => name === arg.name);
+
+    // Support only one root level with global flag
+    const hasOption = (context || val).options.find(
+      ({ name, aliases }) =>
+        name === arg.name || aliases?.find((alias) => alias === arg.name)
+    );
 
     if (hasOption) {
-      currGroup.options[arg.name] = true;
+      currGroup.options[hasOption.name] = true;
       prevOptions = hasOption;
       continue;
     }

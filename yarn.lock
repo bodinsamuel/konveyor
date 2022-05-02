@@ -1757,22 +1757,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"boxen@npm:5.1.2":
-  version: 5.1.2
-  resolution: "boxen@npm:5.1.2"
-  dependencies:
-    ansi-align: ^3.0.0
-    camelcase: ^6.2.0
-    chalk: ^4.1.0
-    cli-boxes: ^2.2.1
-    string-width: ^4.2.2
-    type-fest: ^0.20.2
-    widest-line: ^3.1.0
-    wrap-ansi: ^7.0.0
-  checksum: 82d03e42a72576ff235123f17b7c505372fe05c83f75f61e7d4fa4bcb393897ec95ce766fecb8f26b915f0f7a7227d66e5ec7cef43f5b2bd9d3aeed47ec55877
-  languageName: node
-  linkType: hard
-
 "brace-expansion@npm:^1.1.7":
   version: 1.1.11
   resolution: "brace-expansion@npm:1.1.11"
@@ -1986,7 +1970,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cli-boxes@npm:^2.2.0, cli-boxes@npm:^2.2.1":
+"cli-boxes@npm:^2.2.0":
   version: 2.2.1
   resolution: "cli-boxes@npm:2.2.1"
   checksum: be79f8ec23a558b49e01311b39a1ea01243ecee30539c880cf14bf518a12e223ef40c57ead0cb44f509bffdffc5c129c746cd50d863ab879385370112af4f585
@@ -4638,7 +4622,6 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ^5.20.0
     "@typescript-eslint/parser": ^5.20.0
     altheia-async-data-validator: 5.0.13
-    boxen: 5.1.2
     commander: 9.2.0
     enquirer: ^2.3.6
     eslint: ^8.13.0
@@ -6034,7 +6017,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"string-width@npm:^1.0.2 || 2 || 3 || 4, string-width@npm:^4.0.0, string-width@npm:^4.2.0, string-width@npm:^4.2.2, string-width@npm:^4.2.3":
+"string-width@npm:^1.0.2 || 2 || 3 || 4, string-width@npm:^4.0.0, string-width@npm:^4.2.0, string-width@npm:^4.2.3":
   version: 4.2.3
   resolution: "string-width@npm:4.2.3"
   dependencies:

@@ -1,7 +1,8 @@
+import type { ConfigDefault } from './@types/config';
+import type { Callback } from './@types/task';
 import { Event } from './Event';
 import type { Program } from './Program';
 import type { Task } from './Task';
-import type { Callback, ConfigDefault } from './types';
 
 export class Runner<TConfig extends ConfigDefault> extends Event<
   'task:skipped' | 'task:start' | 'task:stop'
