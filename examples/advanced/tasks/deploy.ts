@@ -1,12 +1,15 @@
 // import { Task } from 'konveyor';
-import { Task } from '../../../src';
+import { Konveyor, Task } from '../../../src';
 
-import { checkRepoState } from './checkRepoState';
-import { chooseEnv } from './chooseEnv';
+import checkRepoState from './checkRepoState';
+import chooseEnv from './chooseEnv';
 
-export const deploy = new Task({
+export default new Task({
   name: 'deploy',
   description: 'Deploy your project',
   isPrivate: false,
-  dependencies: [checkRepoState, chooseEnv],
+  dependencies(): Task<any>[] {
+    return [checkRepoState, chooseEnv];
+  },
+  options: [Konveyor.option('--ignore-dirty')],
 });

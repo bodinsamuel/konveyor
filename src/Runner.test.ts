@@ -1,3 +1,4 @@
+import { Config } from './Config';
 import { Logger } from './Logger';
 import { Program } from './Program';
 import { Runner } from './Runner';
@@ -6,6 +7,7 @@ import { Task } from './Task';
 jest.mock('./Logger');
 
 const prgm = new Program({ logger: new Logger({ folder: './' }) });
+const config = new Config({ configs: { dev: {} }, defaultEnv: 'dev' });
 
 describe('run()', () => {
   it('should run everything correctly', async () => {
@@ -21,7 +23,7 @@ describe('run()', () => {
       after,
     });
 
-    const runner = new Runner(prgm, task);
+    const runner = new Runner({ program: prgm, task, config });
     await runner.run();
 
     expect(before).toHaveBeenCalled();
@@ -41,7 +43,7 @@ describe('run()', () => {
       exec,
     });
 
-    const runner = new Runner(prgm, task);
+    const runner = new Runner({ program: prgm, task, config });
     runner.once('task:start', start);
     runner.once('task:skipped', skipped);
     runner.once('task:stop', stop);
@@ -67,7 +69,7 @@ describe('run()', () => {
       exec,
     });
 
-    const runner = new Runner(prgm, task);
+    const runner = new Runner({ program: prgm, task, config });
     runner.once('task:skipped', skipped);
     runner.once('task:stop', stop);
     await runner.run();
@@ -92,7 +94,7 @@ describe('hooks', () => {
       after,
     });
 
-    const runner = new Runner(prgm, task);
+    const runner = new Runner({ program: prgm, task, config });
     await runner.run();
 
     expect(before).toHaveBeenCalled();
@@ -111,7 +113,7 @@ describe('hooks', () => {
       afterAll,
     });
 
-    const runner = new Runner(prgm, task);
+    const runner = new Runner({ program: prgm, task, config });
     await runner.run();
 
     expect(exec).toHaveBeenCalled();
@@ -137,7 +139,7 @@ describe('dependencies', () => {
     const start = jest.fn();
     const stop = jest.fn();
 
-    const runner = new Runner(prgm, task2);
+    const runner = new Runner({ program: prgm, task: task2, config });
     runner.on('task:start', start);
     runner.on('task:stop', stop);
     await runner.run();
@@ -167,7 +169,7 @@ describe('dependencies', () => {
     const start = jest.fn();
     const stop = jest.fn();
 
-    const runner = new Runner(prgm, task3);
+    const runner = new Runner({ program: prgm, task: task3, config });
     runner.on('task:start', start);
     runner.on('task:stop', stop);
     await runner.run();

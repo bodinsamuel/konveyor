@@ -1,6 +1,6 @@
 import path from 'path';
 
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 import figures from 'figures';
 import * as kolorist from 'kolorist';
 
@@ -10,45 +10,57 @@ import { Program } from './Program';
 import { Runner } from './Runner';
 import type { Task } from './Task';
 import { DuplicateTaskError, ExitError, NoTasksError } from './errors';
+import { toAbsolute } from './helpers/fs';
+import { loadTasksFromPath } from './helpers/loadTasksFromPath';
+import type { ConfigDefault } from './types';
 import type { Spinner } from './utils';
 import { intro, clearConsole, exit } from './utils';
 
-interface Args {
+interface Args<TConfig extends ConfigDefault> {
   name: string;
   version: string;
-  tasks: Task[];
+  tasks?: Task<TConfig>[];
+  tasksPath?: string;
   logger?: Logger;
   spinner?: Spinner;
   command?: Command;
   program?: Program;
   clearOnStart?: boolean;
+  config?: TConfig;
 }
 
-export class Konveyor extends Event<'konveyor:start'> {
-  readonly tasksPublic: Task[] = [];
+export class Konveyor<
+  TConfig extends ConfigDefault
+> extends Event<'konveyor:start'> {
+  readonly tasksPublic: Task<TConfig>[] = [];
   readonly log: Logger;
 
   // state
   private name: string;
   private version: string;
-  private task?: Task;
-  private tasks: Task[] = [];
+  private task?: Task<TConfig>;
+  private tasks: Task<TConfig>[] = [];
+  private tasksPath?: string;
   private clearOnStart: boolean;
   private path: string;
+  private config?: TConfig;
 
   // services
   private program: Program;
   private commander: Command;
-  private runner?: Runner;
+  private runner?: Runner<TConfig>;
 
-  constructor(args: Args) {
+  constructor(args: Args<TConfig>) {
     super();
 
     this.name = args.name;
     this.version = args.version;
-    this.tasks = args.tasks;
-    this.clearOnStart = args.clearOnStart === true;
+    this.tasks = args.tasks || [];
     this.path = path.dirname(require!.main!.filename);
+    this.tasksPath = args.tasksPath
+      ? toAbsolute(args.tasksPath, this.path)
+      : undefined;
+    this.clearOnStart = args.clearOnStart === true;
 
     this.log =
       args.logger ||
@@ -65,9 +77,14 @@ export class Konveyor extends Event<'konveyor:start'> {
       new Program({
         logger: this.log,
       });
+    this.config = args.config;
   }
 
-  get pickedTask(): Task | undefined {
+  static option(flags: string, description?: string): Option {
+    return new Option(flags, description);
+  }
+
+  get pickedTask(): Task<TConfig> | undefined {
     return this.task;
   }
 
@@ -83,6 +100,13 @@ export class Konveyor extends Event<'konveyor:start'> {
     this.emit('konveyor:start');
 
     try {
+      if (this.tasksPath) {
+        this.tasks = [
+          ...this.tasks,
+          ...(await loadTasksFromPath({ dirPath: this.tasksPath, log })),
+        ];
+      }
+
       this.registerTasks();
 
       // display intro
@@ -93,7 +117,7 @@ export class Konveyor extends Event<'konveyor:start'> {
 
       await this.commander.parseAsync(argv);
 
-      await this.askForCommand();
+      await this.askForTask();
 
       if (!this.task) {
         // A throw to make Typescript happy
@@ -101,7 +125,11 @@ export class Konveyor extends Event<'konveyor:start'> {
       }
 
       // run the chosen task
-      this.runner = new Runner(this.program, this.task);
+      this.runner = new Runner({
+        program: this.program,
+        task: this.task,
+        config: this.config,
+      });
       await this.runner.run();
     } catch (err) {
       if (!(err instanceof ExitError)) {
@@ -113,6 +141,9 @@ export class Konveyor extends Event<'konveyor:start'> {
     await this.exit(0);
   }
 
+  /**
+   * Register tasks into Konveyor.
+   */
   registerTasks(): void {
     const { commander, log, tasks } = this;
     if (tasks.length <= 0) {
@@ -132,18 +163,27 @@ export class Konveyor extends Event<'konveyor:start'> {
       }
 
       this.tasksPublic.push(task);
-      commander
+      const cmd = commander
         .command(task.name)
         .description(task.description)
         .action(() => {
           this.task = task;
         });
+
+      if (task.options && task.options?.length > 0) {
+        task.options.forEach((option) => {
+          cmd.addOption(option);
+        });
+      }
     });
 
     log.debug(`Registered ${tasks.length} tasks`);
   }
 
-  async askForCommand(): Promise<void> {
+  /**
+   * Ask for a task.
+   */
+  async askForTask(): Promise<void> {
     const { tasks, log, task } = this;
 
     if (task) {
@@ -166,6 +206,9 @@ export class Konveyor extends Event<'konveyor:start'> {
     this.task = tasks.find((t) => t.name === answer);
   }
 
+  /**
+   * Terminate cli.
+   */
   async exit(code: number): Promise<void> {
     const { log, program } = this;
     program.spinner.fail();

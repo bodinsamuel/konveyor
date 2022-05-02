@@ -4,12 +4,12 @@ import { Task } from '../../../src';
 
 // Create a simple task
 // This task will check if the repo is clean from any changes
-export const checkRepoState = new Task({
+export default new Task({
   name: 'check_repo_state',
   description: 'Check if your repository is clean.',
   isPrivate: true,
 
-  exec: async ({ spinner, exec, log, exit }): Promise<void> => {
+  async exec({ spinner, exec, log, exit }): Promise<void> {
     spinner.spin('Checking repository...');
     if (await isRepoClean(exec)) {
       spinner.succeed('Repository is clean');

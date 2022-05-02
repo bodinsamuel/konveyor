@@ -76,7 +76,7 @@ describe('registerTasks()', () => {
   });
 });
 
-describe('askForCommand()', () => {
+describe('askForTask()', () => {
   it('should ask for a task', async () => {
     const task1 = new Task({
       name: 'task1',
@@ -94,7 +94,7 @@ describe('askForCommand()', () => {
     });
 
     knv.registerTasks();
-    await knv.askForCommand();
+    await knv.askForTask();
     expect(program.choices).toHaveBeenCalled();
     expect(knv.pickedTask).toBe(task1);
   });

@@ -1,62 +1,69 @@
-import { TaskUndefinedError } from './errors';
-import type { CallbackBefore, Callback } from './types';
+import type { Option } from 'commander';
 
-export class Task {
+import { TaskUndefinedError } from './errors';
+import type { CallbackBefore, Callback, ConfigDefault } from './types';
+
+export interface TaskArgs<TConf extends ConfigDefault> {
+  name: string;
+  description: string;
+  isPrivate?: boolean;
+  options?: Option[];
+  dependencies?: Task<TConf>[] | (() => Task<TConf>[]);
+
+  before?: CallbackBefore;
+  exec?: Callback<TConf>;
+  after?: Callback<TConf>;
+  afterAll?: Callback<TConf>;
+}
+
+export class Task<TConf extends ConfigDefault> {
   // task description
   readonly name: string;
   readonly description: string;
   readonly isPrivate: boolean = false;
+  readonly options?: Option[] = [];
 
   // state
   protected _executed: boolean = false;
-  protected _dependencies: Set<Task> = new Set();
+  protected _dependencies: Set<Task<TConf>> = new Set();
+  protected _dependenciesPlan?: () => Task<TConf>[];
 
   // actual tasks
   protected _before?: CallbackBefore;
-  protected _exec?: Callback;
-  protected _after?: Callback;
-  protected _afterAll?: Callback;
+  protected _exec?: Callback<TConf>;
+  protected _after?: Callback<TConf>;
+  protected _afterAll?: Callback<TConf>;
 
-  constructor({
-    name,
-    description,
-    dependencies = [],
-    before,
-    exec,
-    after,
-    afterAll,
-    isPrivate = false,
-  }: {
-    name: string;
-    description: string;
-    dependencies?: Task[];
-    isPrivate?: boolean;
+  constructor(args: TaskArgs<TConf>) {
+    this.name = args.name;
+    this.description = args.description;
+    this.isPrivate = args.isPrivate === true;
+    this.options = args.options;
 
-    before?: CallbackBefore;
-    exec?: Callback;
-    after?: Callback;
-    afterAll?: Callback;
-  }) {
-    this.name = name;
-    this.description = description;
-    this._dependencies = new Set(dependencies);
-    this.isPrivate = isPrivate;
-
-    this._before = before;
-    this._exec = exec;
-    this._after = after;
-    this._afterAll = afterAll;
+    this._before = args.before;
+    this._exec = args.exec;
+    this._after = args.after;
+    this._afterAll = args.afterAll;
 
     // Check dependencies
-    this._dependencies.forEach((dep) => {
-      if (typeof dep === 'undefined') {
-        throw new TaskUndefinedError(this.name);
-      }
-    });
+    if (args.dependencies && Array.isArray(args.dependencies)) {
+      this._dependencies = new Set(args.dependencies);
+      this._dependencies.forEach((dep) => {
+        if (typeof dep === 'undefined') {
+          throw new TaskUndefinedError(this.name);
+        }
+      });
+    } else if (args.dependencies) {
+      this._dependenciesPlan = args.dependencies;
+    }
   }
 
-  get dependencies(): Set<Task> {
+  get dependencies(): Set<Task<TConf>> {
     return this._dependencies;
+  }
+
+  get dependenciesPlan(): (() => Task<TConf>[]) | undefined {
+    return this._dependenciesPlan;
   }
 
   executed(is: boolean): void {
@@ -75,7 +82,7 @@ export class Task {
     return Boolean(this._before);
   }
 
-  get exec(): Callback | undefined {
+  get exec(): Callback<TConf> | undefined {
     return this._exec;
   }
 
@@ -83,7 +90,7 @@ export class Task {
     return Boolean(this._exec);
   }
 
-  get after(): Callback | undefined {
+  get after(): Callback<TConf> | undefined {
     return this._after;
   }
 
@@ -91,7 +98,7 @@ export class Task {
     return Boolean(this._after);
   }
 
-  get afterAll(): Callback | undefined {
+  get afterAll(): Callback<TConf> | undefined {
     return this._afterAll;
   }
 

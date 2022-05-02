@@ -69,7 +69,8 @@
     "build": "rm -rf dist/ && tsc -b --preserveWatchOutput",
     "build:hot": "tsc -b --preserveWatchOutput -w",
     "lint": "eslint --ext=jsx,ts,tsx,js .",
-    "test": "jest"
+    "test": "jest",
+    "cli": "ts-node src/cli"
   },
   "packageManager": "yarn@3.2.0",
   "files": [
