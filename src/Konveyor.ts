@@ -81,10 +81,6 @@ export class Konveyor<
     this.config = args.config;
   }
 
-  static option(flags: string, description?: string): Option {
-    return new Option(flags, description);
-  }
-
   get pickedTask(): Task<TConfig> | undefined {
     return this.task;
   }

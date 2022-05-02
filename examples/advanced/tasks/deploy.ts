@@ -1,5 +1,6 @@
-// import { Task } from 'konveyor';
-import { Konveyor, Task } from '../../../src';
+import alt from 'altheia-async-data-validator';
+
+import { Task } from '../../../src';
 import localConfig from '../config';
 
 import checkRepoState from './checkRepoState';
@@ -14,8 +15,10 @@ export default new Task({
     return [/* checkRepoState,*/ chooseEnv, connectEnv];
   },
   options: [
-    Konveyor.option('--ignore-dirty'),
-    Konveyor.option('--env', 'Environment').choices(localConfig.envs),
+    Task.option('--no-dirty').msg('Ignore dirty repo'),
+    Task.option('--env')
+      .msg('Environment')
+      .validation(alt.string().in(...localConfig.envs)),
   ],
 
   async exec({ yesno, exit }, config): Promise<void> {

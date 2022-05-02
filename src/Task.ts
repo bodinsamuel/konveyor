@@ -1,5 +1,4 @@
-import type { Option } from 'commander';
-
+import { Option } from './Option';
 import { TaskUndefinedError } from './errors';
 import type { CallbackBefore, Callback, ConfigDefault } from './types';
 
@@ -56,6 +55,10 @@ export class Task<TConf extends ConfigDefault> {
     } else if (args.dependencies) {
       this._dependenciesPlan = args.dependencies;
     }
+  }
+
+  static option(long: string, short?: string): Option {
+    return new Option(long, short);
   }
 
   get dependencies(): Set<Task<TConf>> {

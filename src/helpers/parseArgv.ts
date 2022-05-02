@@ -1,6 +1,8 @@
 export type Plan = {
   command?: string;
   options: Record<string, boolean | number | string>;
+  unknownCommand?: string;
+  unknownOption?: string[];
 };
 
 export type Arg = ArgOption | ArgValue;
@@ -15,8 +17,12 @@ export interface ArgValue {
 
 export interface Validation {
   command?: string;
-  options: { name: string; withValue?: boolean }[];
+  options: ValidationOption[];
   commands?: Validation[];
+}
+export interface ValidationOption {
+  name: string;
+  withValue?: boolean;
 }
 
 /**
@@ -81,11 +87,14 @@ export function parseArgv(argv: string[]): { flat: Arg[] } {
 export function validateParsedArgv(
   flat: Arg[],
   val: Validation[]
-): { plan: Plan[] } {
+): { plan: Plan[]; success: boolean } {
   const plan: Plan[] = [];
+  let success: boolean = true;
+  let context: Validation | undefined;
+  let prevOptions: ValidationOption | undefined;
+
   // We don't push directly to have an empty array in case of no args
   let currGroup: Plan | undefined;
-  let context: Validation | undefined;
 
   for (let index = 0; index < flat.length; index++) {
     const prev = flat[index - 1];
@@ -98,13 +107,15 @@ export function validateParsedArgv(
     }
 
     if (arg.type === 'value') {
-      if (prev?.type === 'option') {
+      if (prev?.type === 'option' && prevOptions?.withValue) {
+        // Modify the past option in case we receive a value
         currGroup.options[prev.name] = arg.value;
         continue;
       }
 
       let hasCommand;
       if (!context) {
+        // Root level
         hasCommand = val.find(({ command }) => command === arg.value);
         if (hasCommand) {
           context = hasCommand;
@@ -112,6 +123,7 @@ export function validateParsedArgv(
           continue;
         }
       } else if (context.commands) {
+        // Nest commands
         hasCommand = context.commands.find(
           ({ command }) => command === arg.value
         );
@@ -123,7 +135,9 @@ export function validateParsedArgv(
         }
       }
 
-      // currGroup.value = arg.value;
+      // Unknown command
+      success = false;
+      currGroup.unknownCommand = arg.value;
       continue;
     }
 
@@ -135,9 +149,17 @@ export function validateParsedArgv(
 
     if (hasOption) {
       currGroup.options[arg.name] = true;
+      prevOptions = hasOption;
       continue;
     }
+
+    // Unknown options
+    if (!currGroup.unknownOption) {
+      currGroup.unknownOption = [];
+    }
+    currGroup.unknownOption.push(arg.name);
+    success = false;
   }
 
-  return { plan };
+  return { plan, success };
 }
