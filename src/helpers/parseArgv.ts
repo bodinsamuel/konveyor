@@ -1,23 +1,23 @@
 export type Plan = {
   command?: string;
   options: Record<string, boolean | number | string>;
-  value?: string;
 };
 
-export type Arg =
-  | {
-      type: 'command';
-      name: string;
-    }
-  | {
-      type: 'option';
-      name: string;
-      value: boolean | string;
-    }
-  | {
-      type: 'value';
-      value: string;
-    };
+export type Arg = ArgOption | ArgValue;
+export interface ArgOption {
+  type: 'option';
+  name: string;
+}
+export interface ArgValue {
+  type: 'value';
+  value: string;
+}
+
+export interface Validation {
+  command?: string;
+  options: { name: string; withValue?: boolean }[];
+  commands?: Validation[];
+}
 
 /**
  * Parse process.argv and return a list of k/v.
@@ -29,11 +29,13 @@ export function parseArgv(argv: string[]): { flat: Arg[] } {
 
   // Copy to avoid modifying ref
   const copy = argv.slice();
+
+  // caller
+  copy.shift();
+  // script path
   copy.shift();
 
-  const scriptPath = copy.shift();
   const args = copy;
-
   const flat: Arg[] = [];
 
   // Build a flat map of arguments
@@ -43,35 +45,30 @@ export function parseArgv(argv: string[]): { flat: Arg[] } {
       break;
     }
 
-    const prev = flat[flat.length - 1];
-
     // Handle command
     if (!arg.startsWith('-')) {
-      if (prev && prev.type === 'option' && !prev.value) {
-        // Special case for option with value separated with space
-        flat.push({ type: 'value', value: arg });
-        continue;
-      }
-
-      flat.push({ type: 'command', name: arg });
+      flat.push({ type: 'value', value: arg });
       continue;
     }
 
     // Handle Options
     const double = arg.startsWith('--');
-    let name = arg.substring(double ? 2 : 1);
+    const name = arg.substring(double ? 2 : 1);
     if (double) {
-      let value: any = true;
       if (name.includes('=')) {
-        [name, value] = name.split('=', 2);
+        const [_name, value] = name.split('=', 2);
+        flat.push({ type: 'option', name: _name });
+        flat.push({ type: 'value', value });
+        continue;
       }
-      flat.push({ type: 'option', name, value });
+
+      flat.push({ type: 'option', name });
       continue;
     }
 
     // single letter option
     name.split('').forEach((letter) => {
-      flat.push({ type: 'option', name: letter, value: true });
+      flat.push({ type: 'option', name: letter });
     });
   }
 
@@ -81,34 +78,65 @@ export function parseArgv(argv: string[]): { flat: Arg[] } {
 /**
  * Build a plan from flat map.
  */
-export function groupParsedArgv(flat: Arg[]): { plan: Plan[] } {
+export function validateParsedArgv(
+  flat: Arg[],
+  val: Validation[]
+): { plan: Plan[] } {
   const plan: Plan[] = [];
   // We don't push directly to have an empty array in case of no args
   let currGroup: Plan | undefined;
+  let context: Validation | undefined;
 
-  for (const arg of flat) {
+  for (let index = 0; index < flat.length; index++) {
+    const prev = flat[index - 1];
+    const arg = flat[index];
+
     // Create default group
     if (!currGroup) {
       currGroup = { options: {} };
       plan.push(currGroup);
     }
 
-    if (arg.type === 'command') {
-      if (currGroup.command || Object.keys(currGroup.options).length > 0) {
-        currGroup = { options: {} };
-        plan.push(currGroup);
+    if (arg.type === 'value') {
+      if (prev?.type === 'option') {
+        currGroup.options[prev.name] = arg.value;
+        continue;
       }
 
-      currGroup.command = arg.name;
+      let hasCommand;
+      if (!context) {
+        hasCommand = val.find(({ command }) => command === arg.value);
+        if (hasCommand) {
+          context = hasCommand;
+          currGroup.command = arg.value;
+          continue;
+        }
+      } else if (context.commands) {
+        hasCommand = context.commands.find(
+          ({ command }) => command === arg.value
+        );
+        if (hasCommand) {
+          context = hasCommand;
+          currGroup = { command: arg.value, options: {} };
+          plan.push(currGroup);
+          continue;
+        }
+      }
+
+      // currGroup.value = arg.value;
       continue;
     }
 
-    if (arg.type === 'value') {
-      currGroup.value = arg.value;
+    // Support only one root level with global flag
+    if (!context) {
+      context = val[0];
+    }
+    const hasOption = context.options.find(({ name }) => name === arg.name);
+
+    if (hasOption) {
+      currGroup.options[arg.name] = true;
       continue;
     }
-
-    currGroup.options[arg.name] = arg.value!;
   }
 
   return { plan };

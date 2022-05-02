@@ -1,12 +1,10 @@
-import { groupParsedArgv, parseArgv } from './parseArgv';
-
-console.log(process.argv);
+import { validateParsedArgv, parseArgv } from './parseArgv';
 
 describe('parseArgv', () => {
   it('should not modify source', () => {
     const source = ['/foo', '/bar'];
     const parsed = parseArgv(source);
-    const grouped = groupParsedArgv(parsed.flat);
+    const grouped = validateParsedArgv(parsed.flat, []);
 
     expect(source).toHaveLength(2);
     expect(parsed).toStrictEqual({ flat: [] });
@@ -18,12 +16,14 @@ describe('parseArgv', () => {
   it('should produce appropriate plan with one command and a boolean option', () => {
     const source = ['/foo', '/bar', 'deploy', '--foo'];
     const parsed = parseArgv(source);
-    const grouped = groupParsedArgv(parsed.flat);
+    const grouped = validateParsedArgv(parsed.flat, [
+      { command: 'deploy', options: [{ name: 'foo' }] },
+    ]);
 
     expect(parsed).toStrictEqual({
       flat: [
-        { type: 'command', name: 'deploy' },
-        { type: 'option', name: 'foo', value: true },
+        { type: 'value', value: 'deploy' },
+        { type: 'option', name: 'foo' },
       ],
     });
     expect(grouped).toStrictEqual({
@@ -31,29 +31,36 @@ describe('parseArgv', () => {
     });
   });
 
-  it('should produce appropriate plan with global option and one command', () => {
+  it('should produce appropriate plan with global option and one value that looks like a value', () => {
     const source = ['/foo', '/bar', '--foo', 'deploy'];
     const parsed = parseArgv(source);
-    const grouped = groupParsedArgv(parsed.flat);
+    const grouped = validateParsedArgv(parsed.flat, [
+      {
+        options: [{ name: 'foo', withValue: true }],
+        commands: [{ command: 'deploy', options: [] }],
+      },
+    ]);
 
     expect(parsed).toStrictEqual({
       flat: [
-        { type: 'option', name: 'foo', value: true },
-        { type: 'command', name: 'deploy' },
+        { type: 'option', name: 'foo' },
+        { type: 'value', value: 'deploy' },
       ],
     });
     expect(grouped).toStrictEqual({
-      plan: [{ options: { foo: true } }, { command: 'deploy', options: {} }],
+      plan: [{ options: { foo: 'deploy' } }],
     });
   });
 
-  it('should parse option with dash', () => {
+  it('should parse option with dash inside', () => {
     const source = ['/foo', '/bar', '--foo-bar'];
     const parsed = parseArgv(source);
-    const grouped = groupParsedArgv(parsed.flat);
+    const grouped = validateParsedArgv(parsed.flat, [
+      { options: [{ name: 'foo-bar' }] },
+    ]);
 
     expect(parsed).toStrictEqual({
-      flat: [{ type: 'option', name: 'foo-bar', value: true }],
+      flat: [{ type: 'option', name: 'foo-bar' }],
     });
     expect(grouped).toStrictEqual({
       plan: [{ options: { 'foo-bar': true } }],
@@ -63,12 +70,14 @@ describe('parseArgv', () => {
   it('should parse option with value', () => {
     const source = ['/foo', '/bar', '--foo-bar', 'hello'];
     const parsed = parseArgv(source);
-    const grouped = groupParsedArgv(parsed.flat);
+    const grouped = validateParsedArgv(parsed.flat, [
+      { command: 'deploy', options: [{ name: 'foo' }] },
+    ]);
 
     expect(parsed).toStrictEqual({
       flat: [
-        { type: 'option', name: 'foo-bar', value: true },
-        { type: 'value', name: 'hello' },
+        { type: 'option', name: 'foo-bar' },
+        { type: 'value', value: 'hello' },
       ],
     });
     expect(grouped).toStrictEqual({
@@ -79,20 +88,49 @@ describe('parseArgv', () => {
   it('should parse option with =value', () => {
     const source = ['/foo', '/bar', '--foo-bar=hello'];
     const parsed = parseArgv(source);
-    const grouped = groupParsedArgv(parsed.flat);
+    const grouped = validateParsedArgv(parsed.flat, [
+      { command: 'deploy', options: [{ name: 'foo' }] },
+    ]);
 
     expect(parsed).toStrictEqual({
-      flat: [{ type: 'option', name: 'foo-bar', value: 'hello' }],
+      flat: [
+        { type: 'option', name: 'foo-bar' },
+        { type: 'value', value: 'hello' },
+      ],
     });
     expect(grouped).toStrictEqual({
       plan: [{ options: { 'foo-bar': 'hello' } }],
     });
   });
 
+  it('should parse option with =value and value', () => {
+    const source = ['/foo', '/bar', '--foo=hello', 'deploy'];
+    const parsed = parseArgv(source);
+    const grouped = validateParsedArgv(parsed.flat, [
+      {
+        options: [{ name: 'foo', withValue: true }],
+        commands: [{ command: 'deploy', options: [] }],
+      },
+    ]);
+
+    expect(parsed).toStrictEqual({
+      flat: [
+        { type: 'option', name: 'foo' },
+        { type: 'value', value: 'hello' },
+        { type: 'value', value: 'deploy' },
+      ],
+    });
+    expect(grouped).toStrictEqual({
+      plan: [{ options: { foo: 'hello' } }, { command: 'deploy', options: {} }],
+    });
+  });
+
   it('should not parse options after --', () => {
     const source = ['/foo', '/bar', '--', 'everything', '--else'];
     const parsed = parseArgv(source);
-    const grouped = groupParsedArgv(parsed.flat);
+    const grouped = validateParsedArgv(parsed.flat, [
+      { command: 'deploy', options: [{ name: 'foo' }] },
+    ]);
 
     expect(parsed).toStrictEqual({ flat: [] });
     expect(grouped).toStrictEqual({
@@ -103,12 +141,14 @@ describe('parseArgv', () => {
   it('should handle value with dash', () => {
     const source = ['/foo', '/bar', 'foo', '"--bar"'];
     const parsed = parseArgv(source);
-    const grouped = groupParsedArgv(parsed.flat);
+    const grouped = validateParsedArgv(parsed.flat, [
+      { command: 'foo', options: [] },
+    ]);
 
     expect(parsed).toStrictEqual({
       flat: [
-        { type: 'command', name: 'foo' },
-        { type: 'value', name: '"--bar"' },
+        { type: 'value', value: 'foo' },
+        { type: 'value', value: '"--bar"' },
       ],
     });
     expect(grouped).toStrictEqual({
@@ -119,15 +159,20 @@ describe('parseArgv', () => {
   it('should handle single dash options and group them', () => {
     const source = ['/foo', '/bar', 'deploy', '-xcb', '-a'];
     const parsed = parseArgv(source);
-    const grouped = groupParsedArgv(parsed.flat);
+    const grouped = validateParsedArgv(parsed.flat, [
+      {
+        command: 'deploy',
+        options: [{ name: 'x' }, { name: 'c' }, { name: 'b' }, { name: 'a' }],
+      },
+    ]);
 
     expect(parsed).toStrictEqual({
       flat: [
-        { type: 'command', name: 'deploy' },
-        { type: 'option', name: 'x', value: true },
-        { type: 'option', name: 'c', value: true },
-        { type: 'option', name: 'b', value: true },
-        { type: 'option', name: 'a', value: true },
+        { type: 'value', value: 'deploy' },
+        { type: 'option', name: 'x' },
+        { type: 'option', name: 'c' },
+        { type: 'option', name: 'b' },
+        { type: 'option', name: 'a' },
       ],
     });
     expect(grouped).toStrictEqual({
