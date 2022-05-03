@@ -1,3 +1,4 @@
+import type { Command } from '../Command';
 import type { Program } from '../Program';
 
 import type { ConfigDefault } from './config';
@@ -19,3 +20,9 @@ export type CallbackAll<TConf extends ConfigDefault> = (
   program: Program,
   config?: TConf
 ) => Promise<void> | void;
+
+export type DependenciesPlan<TConf extends ConfigDefault> = (
+  program: Program,
+  options: Plan['options'],
+  config?: TConf
+) => Command<TConf>[];

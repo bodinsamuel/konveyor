@@ -32,7 +32,8 @@ const sayHello = new Command({
 const knv = new Konveyor({
   name: 'My Script',
   version: '1.0.0',
-  tasks: [sayHello],
+  options: [Command.option('--verbose')],
+  commands: [sayHello],
 });
 
 knv.start(process.argv);
@@ -49,9 +50,9 @@ See [documentation folder](./docs/).
 ## Todo
 
 - Timings
-- parametrisable task
-- default run
 - Examples
   - Test with mock
 - Documentation
 - Release script
+- Option inheritance
+- Nested help

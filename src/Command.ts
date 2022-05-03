@@ -1,4 +1,9 @@
-import type { CallbackBefore, Callback, CallbackAll } from './@types/command';
+import type {
+  CallbackBefore,
+  Callback,
+  CallbackAll,
+  DependenciesPlan,
+} from './@types/command';
 import type { ConfigDefault } from './@types/config';
 import { Option } from './Option';
 import { CommandUndefinedError } from './errors';
@@ -8,7 +13,7 @@ export interface CommandArgs<TConf extends ConfigDefault> {
   description: string;
   isPrivate?: boolean;
   options?: Option[];
-  dependencies?: Command<TConf>[] | (() => Command<TConf>[]);
+  dependencies?: Command<TConf>[] | DependenciesPlan<TConf>;
 
   before?: Callback<TConf>;
   exec?: Callback<TConf>;
@@ -26,7 +31,7 @@ export class Command<TConf extends ConfigDefault> {
   // state
   protected _executed: boolean = false;
   protected _dependencies: Set<Command<TConf>> = new Set();
-  protected _dependenciesPlan?: () => Command<TConf>[];
+  protected _dependenciesPlan?: DependenciesPlan<TConf>;
 
   // actual commands
   protected _before?: Callback<TConf>;
@@ -66,7 +71,7 @@ export class Command<TConf extends ConfigDefault> {
     return this._dependencies;
   }
 
-  get dependenciesPlan(): (() => Command<TConf>[]) | undefined {
+  get dependenciesPlan(): DependenciesPlan<TConf> | undefined {
     return this._dependenciesPlan;
   }
 
