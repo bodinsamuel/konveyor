@@ -24,7 +24,7 @@ export function help({
 
   if (name) {
     msg.push(`${kolorist.white('NAME')}\r\n`);
-    msg.push(`  ${name} @ ${version}\r\n  ${description}`);
+    msg.push(`  ${name} ${kolorist.dim(`@ ${version}`)} \r\n  ${description}`);
   }
 
   if (rootCommand?.options && rootCommand.options.length > 0) {
@@ -33,9 +33,15 @@ export function help({
     msg.push(getOptions(rootCommand.options).join('\r\n'));
   }
 
+  if (dirMapping.subs.length > 0) {
+    const res = getTopics(dirMapping.subs);
+    msg.push(`\r\n\r\n${kolorist.white('TOPICS')}\r\n`);
+    msg.push(res.join('\r\n'));
+  }
+
   if (dirMapping.cmds.length > 0) {
-    msg.push(`\r\n\r\n${kolorist.white('COMMANDS')}\r\n`);
     const res = getCommands(dirMapping.cmds);
+    msg.push(`\r\n\r\n${kolorist.white('COMMANDS')}\r\n`);
     msg.push(res.join('\r\n'));
 
     // const pp = commandsPath.join('//');
@@ -59,9 +65,9 @@ function getOptions(options: Option[]): string[] {
   for (const opt of options) {
     const p = opt.toJSON();
     msg.push(
-      `  ${kolorist.white(p.name)}${
+      `  ${p.name}${
         p.aliases && p.aliases.length > 0 ? `, ${p.aliases?.join(',')}` : ''
-      }${p.msg ? `    ${p.msg}` : ''}`
+      }${p.msg ? `    ${kolorist.dim(p.msg)}` : ''}`
     );
   }
 
@@ -76,7 +82,21 @@ function getCommands(commands: DirMapping['cmds']): string[] {
       continue;
     }
 
-    msg.push(`  ${kolorist.white(basename)}\r\n     ${cmd.description}`);
+    msg.push(`  ${basename}     ${kolorist.dim(cmd.description)}`);
+  }
+
+  return msg;
+}
+
+function getTopics(subs: DirMapping['subs']): string[] {
+  const msg: string[] = [];
+
+  for (const { isTopic, paths } of subs) {
+    if (!isTopic) {
+      continue;
+    }
+
+    msg.push(`  ${paths[paths.length - 1]}`);
   }
 
   return msg;
