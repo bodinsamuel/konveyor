@@ -1,9 +1,9 @@
 import * as kolorist from 'kolorist';
 
 import type { Option } from '../Option';
+import type { DirMapping } from '../parser/loadCommandsFromFs';
 
 import type { RootCommand } from './RootCommand';
-import type { DirMapping } from './loadCommandsFromFs';
 
 export function help({
   name,

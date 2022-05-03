@@ -1,7 +1,6 @@
 import type { Exec } from '../../../src';
 import { Command } from '../../../src';
 
-// Create a simple task
 // This task will check if the repo is clean from any changes
 export default new Command({
   name: 'check_repo_state',

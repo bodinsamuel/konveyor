@@ -16,9 +16,9 @@ import type { RootCommand } from './helpers/RootCommand';
 import { defaultRootCommand } from './helpers/RootCommand';
 import { toAbsolute } from './helpers/fs';
 import { help } from './helpers/help';
-import type { DirMapping } from './helpers/loadCommandsFromFs';
-import { loadCommandsFromFs } from './helpers/loadCommandsFromFs';
-import { parseArgv, createExecutionPlan } from './helpers/parseArgv';
+import type { DirMapping } from './parser/loadCommandsFromFs';
+import { loadCommandsFromFs } from './parser/loadCommandsFromFs';
+import { parseArgv, createExecutionPlan } from './parser/parseArgv';
 import type { Spinner } from './utils';
 import { clearConsole, exit } from './utils';
 
@@ -77,11 +77,11 @@ export class Konveyor<
       this.commands[0] = {
         dirPath: './',
         paths: [],
+        isTopic: false,
         cmds: args.commands.map((command) => {
           return {
             basename: command.name,
             cmd: command,
-            isTopic: false,
             paths: [command.name],
           };
         }),
@@ -227,7 +227,6 @@ export class Konveyor<
         if (names.has(paths)) {
           throw new DuplicateCommandError(command.name);
         }
-        console.log(paths);
 
         names.add(paths);
 

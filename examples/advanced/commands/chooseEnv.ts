@@ -1,9 +1,6 @@
-// import { Command } from 'konveyor';
 import { Command } from '../../../src';
 import type { Env, Conf } from '../config';
 
-// Create a simple task
-// This task will check if the repo is clean from any changes
 export default new Command<Conf>({
   name: 'choose_env',
   description: 'Select the working environement.',

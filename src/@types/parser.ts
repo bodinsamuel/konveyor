@@ -22,6 +22,7 @@ export type ValidationPlan = {
 
 export type ValidationCommand = {
   command: string;
+  isTopic: boolean;
   options: ValidationOption[];
   commands?: ValidationCommand[];
 };
