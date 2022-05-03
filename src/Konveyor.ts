@@ -41,13 +41,13 @@ interface Args<TConfig extends ConfigDefault> {
 export class Konveyor<
   TConfig extends ConfigDefault
 > extends Event<'konveyor:start'> {
-  // readonly commandsPublic: Command<TConfig>[] = [];
+  #version: string;
+
   readonly log: Logger;
 
   // state
   private name: string;
   private description?: string;
-  private version: string;
   private dirMapping: DirMapping | undefined;
   private commandsPath?: string;
   private clearOnStart: boolean;
@@ -68,7 +68,7 @@ export class Konveyor<
 
     this.name = args.name;
     this.description = args.description;
-    this.version = args.version;
+    this.#version = args.version;
     this.path = path.dirname(require!.main!.filename);
     this.commandsPath = args.commandsPath
       ? toAbsolute(args.commandsPath, this.path)
@@ -106,9 +106,23 @@ export class Konveyor<
     this.rootCommand = args.rootCommand || defaultRootCommand;
   }
 
+  get version(): string {
+    return this.#version;
+  }
+
+  getHelp(commandsPath: string[]): string {
+    return help({
+      name: this.name,
+      description: this.description,
+      version: this.#version,
+      rootCommand: this.rootCommand,
+      dirMapping: this.dirMapping!,
+      commandsPath,
+    });
+  }
+
   /**
    * Main entrypoint.
-   
    */
   async start(argv: string[]): Promise<void> {
     const { log } = this;
@@ -127,31 +141,18 @@ export class Konveyor<
       if (!validated) {
         return;
       }
-
-      const rootOptions = Object.entries(validated.plan[0].options);
-      let command: Command<any> | undefined;
-      if (rootOptions.length > 0) {
-        command = this.rootCommand;
-      }
-
-      let hasCommand = validated.plan[0].command;
-      if (hasCommand) {
-        this.logCommand(hasCommand!);
-      }
-      if (!command) {
-        hasCommand = hasCommand || (await this.askForCommand());
-        command = this.dirMapping!.cmds.find(
-          ({ cmd }) => cmd.name === hasCommand
-        )!.cmd;
-      }
+      this.rootCommand.exec = this.rootCommand.prepare(this);
 
       // run the chosen command
       this.runner = new Runner({
         program: this.program,
-        command,
         config: this.config,
+        dirMapping: this.dirMapping!,
+        validationPlan: this.validationPlan,
+        validatedPlan: validated.plan,
+        rootCommand: this.rootCommand,
       });
-      await this.runner.run();
+      await this.runner.start();
     } catch (err) {
       this.program.spinner.fail();
       if (!(err instanceof ExitError)) {
@@ -241,14 +242,6 @@ export class Konveyor<
     await this.exit(1);
   }
 
-  logCommand(name: string): void {
-    this.log.info(
-      `${kolorist.green('?')} ${kolorist.bold(
-        'What do you want to do?'
-      )} ${kolorist.cyan(name)}`
-    );
-  }
-
   /**
    * Ask for a command.
    */
@@ -299,16 +292,5 @@ export class Konveyor<
     await log.close();
 
     exit(code);
-  }
-
-  private getHelp(commandsPath: string[]): string {
-    return help({
-      name: this.name,
-      description: this.description,
-      version: this.version,
-      rootCommand: this.rootCommand,
-      dirMapping: this.dirMapping!,
-      commandsPath,
-    });
   }
 }

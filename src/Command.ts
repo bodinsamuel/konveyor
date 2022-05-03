@@ -1,4 +1,4 @@
-import type { CallbackBefore, Callback } from './@types/command';
+import type { CallbackBefore, Callback, CallbackAll } from './@types/command';
 import type { ConfigDefault } from './@types/config';
 import { Option } from './Option';
 import { CommandUndefinedError } from './errors';
@@ -10,10 +10,10 @@ export interface CommandArgs<TConf extends ConfigDefault> {
   options?: Option[];
   dependencies?: Command<TConf>[] | (() => Command<TConf>[]);
 
-  before?: CallbackBefore;
+  before?: Callback<TConf>;
   exec?: Callback<TConf>;
   after?: Callback<TConf>;
-  afterAll?: Callback<TConf>;
+  afterAll?: CallbackAll<TConf>;
 }
 
 export class Command<TConf extends ConfigDefault> {
@@ -29,10 +29,10 @@ export class Command<TConf extends ConfigDefault> {
   protected _dependenciesPlan?: () => Command<TConf>[];
 
   // actual commands
-  protected _before?: CallbackBefore;
+  protected _before?: Callback<TConf>;
   protected _exec?: Callback<TConf>;
   protected _after?: Callback<TConf>;
-  protected _afterAll?: Callback<TConf>;
+  protected _afterAll?: CallbackAll<TConf>;
 
   constructor(args: CommandArgs<TConf>) {
     this.name = args.name;
@@ -78,7 +78,7 @@ export class Command<TConf extends ConfigDefault> {
     return this._executed;
   }
 
-  get before(): CallbackBefore | undefined {
+  get before(): CallbackBefore<TConf> | undefined {
     return this._before;
   }
 
@@ -88,6 +88,9 @@ export class Command<TConf extends ConfigDefault> {
 
   get exec(): Callback<TConf> | undefined {
     return this._exec;
+  }
+  set exec(e: Callback<TConf> | undefined) {
+    this._exec = e;
   }
 
   hasExec(): boolean {
@@ -102,7 +105,7 @@ export class Command<TConf extends ConfigDefault> {
     return Boolean(this._after);
   }
 
-  get afterAll(): Callback<TConf> | undefined {
+  get afterAll(): CallbackAll<TConf> | undefined {
     return this._afterAll;
   }
 

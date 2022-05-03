@@ -22,7 +22,7 @@ export default new Command({
       .valueValidation(alt.string().in(...localConfig.envs)),
   ],
 
-  async exec({ yesno, exit }, config): Promise<void> {
+  async exec({ yesno, exit }, options, config): Promise<void> {
     const answer = await yesno(`Do you want to deploy "${config!.env}"?`);
     if (!answer) {
       exit();

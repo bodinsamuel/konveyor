@@ -1,35 +1,60 @@
-import type { Callback } from './@types/command';
+import type { CallbackAll } from './@types/command';
 import type { ConfigDefault } from './@types/config';
+import type { Plan, ValidatedPlan, ValidationPlan } from './@types/parser';
 import type { Command } from './Command';
 import { Event } from './Event';
 import type { Program } from './Program';
+import type { RootCommand } from './helpers/RootCommand';
+import type { DirMapping } from './parser/loadCommandsFromFs';
 
 export class Runner<TConfig extends ConfigDefault> extends Event<
   'command:skipped' | 'command:start' | 'command:stop'
 > {
   private program: Program;
-  private command: Command<TConfig>;
   private config?: TConfig;
-  private afterAlls: Callback<TConfig>[] = [];
+  private afterAlls: CallbackAll<TConfig>[] = [];
+  private validatedPlan;
+  private validationPlan;
+  private dirMapping;
+  private rootCommand;
 
   constructor(args: {
     program: Program;
-    command: Command<TConfig>;
     config?: TConfig;
+    validatedPlan: ValidatedPlan['plan'];
+    validationPlan: ValidationPlan;
+    dirMapping: DirMapping;
+    rootCommand: RootCommand;
   }) {
     super();
 
     this.program = args.program;
-    this.command = args.command;
     this.config = args.config;
+    this.validatedPlan = args.validatedPlan;
+    this.validationPlan = args.validationPlan;
+    this.dirMapping = args.dirMapping;
+    this.rootCommand = args.rootCommand;
+  }
+
+  async start(): Promise<void> {
+    const copy = this.validatedPlan.slice();
+    while (copy.length > 0) {
+      const item = copy.shift()!;
+      if (!item.command) {
+        await this.run(this.rootCommand, item.options);
+        continue;
+      }
+    }
   }
 
   /**
    * Execute a command.
    */
-  async run(chainedCommand?: Command<TConfig>): Promise<void> {
+  async run(
+    command: Command<TConfig>,
+    options: Plan['options']
+  ): Promise<void> {
     const { program, config } = this;
-    const command = chainedCommand || this.command;
 
     // Run dependencies first
     const entries = command.dependenciesPlan
@@ -41,7 +66,7 @@ export class Runner<TConfig extends ConfigDefault> extends Event<
         continue;
       }
 
-      await this.run(entry);
+      await this.run(entry, {});
     }
 
     // Mark as executed before executing
@@ -59,7 +84,7 @@ export class Runner<TConfig extends ConfigDefault> extends Event<
 
     // Execute before()
     if (command.before) {
-      const answer = await command.before(program);
+      const answer = await command.before(program, options, config);
       program.spinner.stop();
 
       if (answer?.skip) {
@@ -71,19 +96,22 @@ export class Runner<TConfig extends ConfigDefault> extends Event<
 
     // Main callback
     if (command.exec) {
-      await command.exec(program, config);
+      await command.exec(program, options, config);
       program.spinner.stop();
     }
 
     // After
     if (command.after) {
-      await command.after(program, config);
+      await command.after(program, options, config);
       program.spinner.stop();
     }
 
     this.emit(`command:stop`, { command: this });
   }
 
+  /**
+   * Run after everything has been executed.
+   */
   async afterAll(): Promise<void> {
     try {
       this.program.log.debug('Running afterAll()');

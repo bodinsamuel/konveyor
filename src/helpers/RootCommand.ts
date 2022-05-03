@@ -4,18 +4,17 @@ import type { Konveyor } from '../Konveyor';
 import type { Option } from '../Option';
 
 export class RootCommand extends Command<any> {
+  prepare;
+
   constructor({
     options,
-    exec,
+    prepare,
   }: {
     options: Option[];
-    exec: (knvyr: Konveyor<any>) => Callback<any>;
+    prepare: (knvyr: Konveyor<any>) => Callback<any>;
   }) {
-    super({ name: '', description: '', options });
-  }
-
-  get exec(): Callback<any> | undefined {
-    return this._exec;
+    super({ name: 'root', description: '', options });
+    this.prepare = prepare;
   }
 }
 
@@ -24,7 +23,15 @@ export const defaultRootCommand = new RootCommand({
     Command.option('--version').msg('Show cli version'),
     Command.option('--help').msg('Show help for command'),
   ],
-  exec(knvyr) {
-    return () => {};
+  prepare(knvyr): Callback<any> {
+    return ({ log }, options): void => {
+      if (options['--version']) {
+        log.info(knvyr.version);
+        return;
+      }
+      if (options['--help']) {
+        knvyr.getHelp([]);
+      }
+    };
   },
 });
