@@ -11,8 +11,8 @@ export function help({
   version,
   rootCommand,
   dirMapping,
-  commandsPath,
-}: {
+}: // commandsPath,
+{
   name: string;
   description?: string;
   version: string;

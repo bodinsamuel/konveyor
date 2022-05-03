@@ -10,7 +10,7 @@ import type {
 /**
  * Build a plan from flat map.
  */
-export function validateExecutionPlan(
+export function getExecutionPlan(
   flat: Arg[],
   val: ValidationPlan
 ): ValidatedPlan {

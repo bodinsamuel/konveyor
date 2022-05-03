@@ -44,5 +44,6 @@ module.exports = {
     '@typescript-eslint/generic-type-naming': 'off',
     'valid-jsdoc': 'off',
     'no-continue': 'off',
+    'consistent-return': 'off',
   },
 };

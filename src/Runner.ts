@@ -8,7 +8,7 @@ import type { RootCommand } from './helpers/RootCommand';
 import type { DirMapping } from './parser/loadCommandsFromFs';
 
 export class Runner<TConfig extends ConfigDefault> extends Event<
-  'command:skipped' | 'command:start' | 'command:stop'
+  'command:run' | 'command:skipped' | 'command:stop'
 > {
   private program: Program;
   private config?: TConfig;
@@ -38,19 +38,26 @@ export class Runner<TConfig extends ConfigDefault> extends Event<
 
   async start(): Promise<void> {
     const copy = this.validatedPlan.slice();
+
     while (copy.length > 0) {
       const item = copy.shift()!;
       if (!item.command) {
-        await this.run(this.rootCommand, item.options);
+        await this.runOne(this.rootCommand, item.options);
         continue;
       }
+
+      const command = this.dirMapping.cmds.find((cmd) => {
+        return cmd.basename === item.command;
+      })!;
+
+      await this.runOne(command.cmd, item.options);
     }
   }
 
   /**
    * Execute a command.
    */
-  async run(
+  async runOne(
     command: Command<TConfig>,
     options: Plan['options']
   ): Promise<void> {
@@ -58,7 +65,7 @@ export class Runner<TConfig extends ConfigDefault> extends Event<
 
     // Run dependencies first
     const entries = command.dependenciesPlan
-      ? command.dependenciesPlan()
+      ? command.dependenciesPlan(program, options)
       : Array.from(command.dependencies);
     for (let index = 0; index < entries.length; index++) {
       const entry = entries[index];
@@ -66,13 +73,13 @@ export class Runner<TConfig extends ConfigDefault> extends Event<
         continue;
       }
 
-      await this.run(entry, {});
+      await this.runOne(entry, {});
     }
 
     // Mark as executed before executing
     command.executed(true);
 
-    this.emit('command:start', { command });
+    this.emit('command:run', { command });
 
     program.log.debug(`Executing command: ${command.name}`);
 

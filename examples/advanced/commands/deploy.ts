@@ -3,7 +3,7 @@ import alt from 'altheia-async-data-validator';
 import { Command } from '../../../src';
 import localConfig from '../config';
 
-import checkRepoState from './checkRepoState';
+// import checkRepoState from './checkRepoState';
 import chooseEnv from './chooseEnv';
 import connectEnv from './prod/connectEnv';
 

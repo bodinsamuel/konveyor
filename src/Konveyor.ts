@@ -17,10 +17,10 @@ import { defaultRootCommand } from './helpers/RootCommand';
 import { toAbsolute } from './helpers/fs';
 import { help } from './helpers/help';
 import { fsToValidationPlan } from './parser/fsToValidationPlan';
+import { getExecutionPlan } from './parser/getExecutionPlan';
 import type { DirMapping } from './parser/loadCommandsFromFs';
 import { loadCommandsFromFs } from './parser/loadCommandsFromFs';
 import { parseArgv } from './parser/parseArgv';
-import { validateExecutionPlan } from './parser/validateExecutionPlan';
 import type { Choice, Spinner } from './utils';
 import { clearConsole, exit } from './utils';
 
@@ -49,6 +49,7 @@ export class Konveyor<
   private name: string;
   private description?: string;
   private dirMapping: DirMapping | undefined;
+  private commands?: Command<TConfig>[];
   private commandsPath?: string;
   private clearOnStart: boolean;
   private path: string;
@@ -75,20 +76,7 @@ export class Konveyor<
       : undefined;
     this.clearOnStart = args.clearOnStart === true;
 
-    // if (args.commands) {
-    //   this.commands[0] = {
-    //     dirPath: './',
-    //     paths: [],
-    //     isTopic: false,
-    //     cmds: args.commands.map((command) => {
-    //       return {
-    //         basename: command.name,
-    //         cmd: command,
-    //         paths: [command.name],
-    //       };
-    //     }),
-    //   };
-    // }
+    this.commands = args.commands;
 
     this.log =
       args.logger ||
@@ -131,7 +119,7 @@ export class Konveyor<
     this.emit('konveyor:start');
 
     try {
-      await this.loadTasks();
+      await this.loadCommands();
 
       if (this.clearOnStart) {
         clearConsole();
@@ -165,20 +153,44 @@ export class Konveyor<
   }
 
   /**
-   * Load task from file system and register validation plan.
+   * Load commands from file system and register validation plan.
    */
-  async loadTasks(): Promise<void> {
+  async loadCommands(): Promise<void> {
     const { log, commandsPath } = this;
+
+    // Create a fake dir mapping if we specify raw commands
+    this.dirMapping = {
+      dirPath: this.path,
+      isTopic: false,
+      paths: [],
+      subs: [],
+      cmds: (this.commands ?? []).map((cmd) => {
+        return {
+          basename: cmd.name,
+          cmd,
+          paths: [],
+        };
+      }),
+    };
+
     if (!commandsPath) {
       return;
     }
 
-    this.dirMapping = await loadCommandsFromFs({
+    const dirMapping = await loadCommandsFromFs({
       dirPath: commandsPath,
       log,
     });
+
+    // Manual merge
+    this.dirMapping.cmds = [...this.dirMapping.cmds, ...dirMapping.cmds];
+    this.dirMapping.subs = dirMapping.subs;
+
+    log.debug('Loaded from FS:');
     log.debug(util.inspect(this.dirMapping, { depth: null }));
+
     this.validationPlan = fsToValidationPlan(this.dirMapping);
+    log.debug('Validation plan:');
     log.debug(util.inspect(this.validationPlan, { depth: null }));
 
     this.validationPlan.options = this.rootCommand.options!.map((opts) => {
@@ -192,7 +204,7 @@ export class Konveyor<
   async parse(argv: string[]): Promise<ValidatedPlan | undefined> {
     const { log } = this;
     const parsed = parseArgv(argv);
-    const validated = validateExecutionPlan(parsed.flat, this.validationPlan);
+    const validated = getExecutionPlan(parsed.flat, this.validationPlan);
     log.debug(util.inspect(validated, { depth: null }));
 
     if (validated.success) {

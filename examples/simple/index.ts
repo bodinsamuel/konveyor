@@ -4,8 +4,7 @@ import { Konveyor, Command } from '../../src';
  * Ts-node index.ts.
  */
 
-// Create a simple task
-// This task will check if the repo is clean from any changes
+// This command will check if the repo is clean from any changes
 const checkRepo = new Command({
   name: 'check_repo_state',
   description: 'Check if your repository is clean.',
@@ -27,7 +26,7 @@ const checkRepo = new Command({
   },
 });
 
-// Create the main Program and register our task
+// Create the main Program and register our command
 const knv = new Konveyor({
   name: 'My script',
   version: '1.0.0',
