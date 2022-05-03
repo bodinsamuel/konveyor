@@ -4,6 +4,7 @@ import type {
   Plan,
   ValidationCommand,
   ValidationOption,
+  ValidatedPlan,
 } from '../@types/parser';
 
 /**
@@ -12,7 +13,7 @@ import type {
 export function validateExecutionPlan(
   flat: Arg[],
   val: ValidationPlan
-): { plan: Plan[]; success: boolean } {
+): ValidatedPlan {
   const plan: Plan[] = [];
   let success: boolean = true;
   let context: ValidationCommand | undefined;

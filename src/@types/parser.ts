@@ -33,3 +33,8 @@ export interface ValidationOption {
   aliases?: string[];
   msg?: string;
 }
+
+export interface ValidatedPlan {
+  plan: Plan[];
+  success: boolean;
+}

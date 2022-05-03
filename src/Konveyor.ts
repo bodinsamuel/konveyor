@@ -5,20 +5,22 @@ import figures from 'figures';
 import * as kolorist from 'kolorist';
 
 import type { ConfigDefault } from './@types/config';
-import type { ValidationPlan } from './@types/parser';
+import type { ValidatedPlan, ValidationPlan } from './@types/parser';
 import type { Command } from './Command';
 import { Event } from './Event';
 import { Logger } from './Logger';
 import { Program } from './Program';
 import { Runner } from './Runner';
-import { DuplicateCommandError, ExitError, NoCommandsError } from './errors';
+import { ExitError } from './errors';
 import type { RootCommand } from './helpers/RootCommand';
 import { defaultRootCommand } from './helpers/RootCommand';
 import { toAbsolute } from './helpers/fs';
 import { help } from './helpers/help';
+import { fsToValidationPlan } from './parser/fsToValidationPlan';
 import type { DirMapping } from './parser/loadCommandsFromFs';
 import { loadCommandsFromFs } from './parser/loadCommandsFromFs';
-import { parseArgv, createExecutionPlan } from './parser/parseArgv';
+import { parseArgv } from './parser/parseArgv';
+import { validateExecutionPlan } from './parser/validateExecutionPlan';
 import type { Spinner } from './utils';
 import { clearConsole, exit } from './utils';
 
@@ -73,20 +75,20 @@ export class Konveyor<
       : undefined;
     this.clearOnStart = args.clearOnStart === true;
 
-    if (args.commands) {
-      this.commands[0] = {
-        dirPath: './',
-        paths: [],
-        isTopic: false,
-        cmds: args.commands.map((command) => {
-          return {
-            basename: command.name,
-            cmd: command,
-            paths: [command.name],
-          };
-        }),
-      };
-    }
+    // if (args.commands) {
+    //   this.commands[0] = {
+    //     dirPath: './',
+    //     paths: [],
+    //     isTopic: false,
+    //     cmds: args.commands.map((command) => {
+    //       return {
+    //         basename: command.name,
+    //         cmd: command,
+    //         paths: [command.name],
+    //       };
+    //     }),
+    //   };
+    // }
 
     this.log =
       args.logger ||
@@ -112,20 +114,18 @@ export class Konveyor<
    
    */
   async start(argv: string[]): Promise<void> {
-    const { log } = this;
+    const { log, commandsPath } = this;
 
     log.debug(`---- Konveyor Start [${new Date().toISOString()}]`);
     this.emit('konveyor:start');
 
     try {
-      if (this.commandsPath) {
-        this.commands.push(
-          ...(await loadCommandsFromFs({ dirPath: this.commandsPath, log }))
-        );
+      if (commandsPath) {
+        const dirs = await loadCommandsFromFs({ dirPath: commandsPath, log });
+        log.debug(util.inspect(dirs, { depth: null }));
+        this.validationPlan = fsToValidationPlan(dirs);
         log.debug(util.inspect(this.commands, { depth: null }));
       }
-
-      this.registerCommands();
 
       if (this.clearOnStart) {
         clearConsole();
@@ -167,13 +167,11 @@ export class Konveyor<
   /**
    * Parse and exit if any error.
    */
-  async parse(
-    argv: string[]
-  ): Promise<ReturnType<typeof createExecutionPlan> | undefined> {
+  async parse(argv: string[]): Promise<ValidatedPlan | undefined> {
     const { log } = this;
     log.debug(util.inspect(this.validationPlan, { depth: null }));
     const parsed = parseArgv(argv);
-    const validated = createExecutionPlan(parsed.flat, this.validationPlan);
+    const validated = validateExecutionPlan(parsed.flat, this.validationPlan);
 
     if (validated.success) {
       if (validated.plan.length <= 0) {
@@ -210,43 +208,6 @@ export class Konveyor<
     await this.exit(1);
   }
 
-  /**
-   * Register commands into Konveyor.
-   */
-  registerCommands(): void {
-    const { log, commands } = this;
-    if (commands.length <= 0) {
-      throw new NoCommandsError();
-    }
-
-    const names = new Set<string[]>();
-
-    for (const ll of commands) {
-      for (const { cmd, paths } of ll.cmds) {
-        const command = cmd;
-        if (names.has(paths)) {
-          throw new DuplicateCommandError(command.name);
-        }
-
-        names.add(paths);
-
-        if (command.isPrivate) {
-          continue;
-        }
-
-        // this.commandsPublic.push(command);
-        this.validationPlan.commands!.push({
-          command: command.name,
-          options: (command.options || []).map((opts) => {
-            return opts.toJSON();
-          }),
-        });
-      }
-    }
-
-    log.debug(`Registered ${commands.length} commands`);
-  }
-
   logCommand(name: string): void {
     this.log.info(
       `${kolorist.green('?')} ${kolorist.bold(
@@ -270,10 +231,10 @@ export class Konveyor<
       'What do you want to do?',
       list
     );
-    this.validationPlan.commands.push({
-      command: answer,
-      options: [],
-    });
+    // this.validationPlan.commands.push({
+    //   command: answer,
+    //   options: [],
+    // });
   }
 
   /**

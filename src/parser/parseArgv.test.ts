@@ -23,7 +23,9 @@ describe('parseArgv', () => {
     const parsed = parseArgv(source);
     const grouped = validateExecutionPlan(parsed.flat, {
       options: [],
-      commands: [{ command: 'deploy', options: [{ name: '--foo' }] }],
+      commands: [
+        { command: 'deploy', isTopic: false, options: [{ name: '--foo' }] },
+      ],
     });
 
     expect(parsed).toStrictEqual({
@@ -43,7 +45,7 @@ describe('parseArgv', () => {
     const parsed = parseArgv(source);
     const grouped = validateExecutionPlan(parsed.flat, {
       options: [{ name: '--foo', withValue: true }],
-      commands: [{ command: 'deploy', options: [] }],
+      commands: [{ command: 'deploy', isTopic: false, options: [] }],
     });
 
     expect(parsed).toStrictEqual({
@@ -63,7 +65,9 @@ describe('parseArgv', () => {
     const parsed = parseArgv(source);
     const grouped = validateExecutionPlan(parsed.flat, {
       options: [],
-      commands: [{ command: 'deploy', options: [{ name: 'foo' }] }],
+      commands: [
+        { command: 'deploy', isTopic: false, options: [{ name: 'foo' }] },
+      ],
     });
 
     expect(parsed).toStrictEqual({ flat: [] });
@@ -142,7 +146,7 @@ describe('validateExecutionPlan()', () => {
     it('should handle unknown command', () => {
       const grouped = validateExecutionPlan([{ type: 'value', value: 'foo' }], {
         options: [],
-        commands: [{ command: 'bar', options: [] }],
+        commands: [{ command: 'bar', isTopic: false, options: [] }],
       });
       expect(grouped).toStrictEqual({
         plan: [
@@ -161,7 +165,10 @@ describe('validateExecutionPlan()', () => {
           { type: 'value', value: 'foo' },
           { type: 'option', name: '--bar' },
         ],
-        { options: [], commands: [{ command: 'foo', options: [] }] }
+        {
+          options: [],
+          commands: [{ command: 'foo', isTopic: false, options: [] }],
+        }
       );
       expect(grouped).toStrictEqual({
         plan: [
@@ -189,11 +196,13 @@ describe('validateExecutionPlan()', () => {
           {
             command: 'foo',
             options: [],
+            isTopic: false,
             commands: [
               {
                 command: 'bar',
                 options: [],
-                commands: [{ command: 'hello', options: [] }],
+                isTopic: false,
+                commands: [{ command: 'hello', isTopic: false, options: [] }],
               },
             ],
           },
@@ -232,6 +241,7 @@ describe('validateExecutionPlan()', () => {
             {
               command: 'deploy',
               options: [],
+              isTopic: false,
             },
           ],
         }
@@ -270,7 +280,7 @@ describe('validateExecutionPlan()', () => {
         ],
         {
           options: [{ name: '--foo', withValue: true }],
-          commands: [{ command: 'deploy', options: [] }],
+          commands: [{ command: 'deploy', isTopic: false, options: [] }],
         }
       );
 
@@ -297,6 +307,7 @@ describe('validateExecutionPlan()', () => {
           commands: [
             {
               command: 'deploy',
+              isTopic: false,
               options: [
                 { name: '-x' },
                 { name: '-c' },

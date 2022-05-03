@@ -27,6 +27,9 @@ export async function loadCommandsFromFs({
   prevPaths?: string[];
   log: Logger;
 }): Promise<DirMapping> {
+  log.debug(`Autoload commands from path "${dirPath}"`);
+
+  const basename = path.basename(dirPath);
   const res: DirMapping = {
     dirPath,
     paths: [...(prevPaths || [])],
@@ -34,7 +37,9 @@ export async function loadCommandsFromFs({
     subs: [],
     cmds: [],
   };
-  log.debug(`Autoload commands from path "${dirPath}"`);
+  if (prevPaths) {
+    res.paths.push(basename);
+  }
 
   let stat: Stats | undefined;
   try {
@@ -51,16 +56,13 @@ export async function loadCommandsFromFs({
     withFileTypes: true,
   });
 
-  const basename = path.basename(dirPath);
-  const paths = prevPaths ? [...prevPaths, basename] : [];
-
   for (const file of dir) {
     const load = path.join(dirPath, file.name);
     if (file.isDirectory()) {
       res.subs.push(
         await loadCommandsFromFs({
           dirPath: load,
-          prevPaths: paths,
+          prevPaths: res.paths,
           log,
         })
       );
@@ -73,7 +75,7 @@ export async function loadCommandsFromFs({
     }
     res.cmds.push({
       basename: name,
-      paths: [...paths, name],
+      paths: [...res.paths, name],
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       cmd: require(load).default,
     });

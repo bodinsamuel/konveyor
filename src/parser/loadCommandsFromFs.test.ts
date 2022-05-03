@@ -46,7 +46,7 @@ describe('loadCommandsFromFs', () => {
           dirPath:
             '/Users/samuel.bodin/code/konveyor/examples/advanced/commands/db-migrate',
           isTopic: false,
-          paths: [],
+          paths: ['db-migrate'],
           subs: [],
         },
         {
@@ -60,7 +60,7 @@ describe('loadCommandsFromFs', () => {
           dirPath:
             '/Users/samuel.bodin/code/konveyor/examples/advanced/commands/prod',
           isTopic: true,
-          paths: [],
+          paths: ['prod'],
           subs: [],
         },
       ],
