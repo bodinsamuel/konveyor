@@ -10,14 +10,14 @@ export function help({
   description,
   version,
   rootCommand,
-  commands,
+  dirMapping,
   commandsPath,
 }: {
   name: string;
   description?: string;
   version: string;
   rootCommand?: RootCommand;
-  commands: DirMapping[];
+  dirMapping: DirMapping;
   commandsPath: string[];
 }): string {
   const msg: string[] = [];
@@ -33,17 +33,21 @@ export function help({
     msg.push(getOptions(rootCommand.options).join('\r\n'));
   }
 
-  if (commands.length > 0) {
-    const pp = commandsPath.join('//');
-    console.log(pp, commandsPath);
-    const list = commands.find(({ paths }) => paths.join('//') === pp);
-    if (list) {
-      const res = getCommands(list.cmds);
-      if (res.length > 0) {
-        msg.push(`\r\n\r\n${kolorist.white('COMMANDS')}\r\n`);
-        msg.push(res.join('\r\n'));
-      }
-    }
+  if (dirMapping.cmds.length > 0) {
+    msg.push(`\r\n\r\n${kolorist.white('COMMANDS')}\r\n`);
+    const res = getCommands(dirMapping.cmds);
+    msg.push(res.join('\r\n'));
+
+    // const pp = commandsPath.join('//');
+    // console.log(pp, commandsPath);
+    // const list = dirMapping.cmds.find(({ paths }) => paths.join('//') === pp);
+    // if (list) {
+    //   const res = getCommands(list);
+    //   if (res.length > 0) {
+    //     msg.push(`\r\n\r\n${kolorist.white('COMMANDS')}\r\n`);
+    //     msg.push(res.join('\r\n'));
+    //   }
+    // }
   }
 
   return msg.join('');

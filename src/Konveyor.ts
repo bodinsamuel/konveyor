@@ -48,7 +48,7 @@ export class Konveyor<
   private name: string;
   private description?: string;
   private version: string;
-  private commands: DirMapping[] = [];
+  private dirMapping: DirMapping | undefined;
   private commandsPath?: string;
   private clearOnStart: boolean;
   private path: string;
@@ -114,18 +114,13 @@ export class Konveyor<
    
    */
   async start(argv: string[]): Promise<void> {
-    const { log, commandsPath } = this;
+    const { log } = this;
 
     log.debug(`---- Konveyor Start [${new Date().toISOString()}]`);
     this.emit('konveyor:start');
 
     try {
-      if (commandsPath) {
-        const dirs = await loadCommandsFromFs({ dirPath: commandsPath, log });
-        log.debug(util.inspect(dirs, { depth: null }));
-        this.validationPlan = fsToValidationPlan(dirs);
-        log.debug(util.inspect(this.commands, { depth: null }));
-      }
+      await this.loadTasks();
 
       if (this.clearOnStart) {
         clearConsole();
@@ -147,7 +142,7 @@ export class Konveyor<
       this.runner = new Runner({
         program: this.program,
         command: hasCommand
-          ? this.commands[0].cmds.find(({ cmd }) => cmd.name === hasCommand)!
+          ? this.dirMapping!.cmds.find(({ cmd }) => cmd.name === hasCommand)!
               .cmd
           : this.rootCommand,
         config: this.config,
@@ -164,14 +159,29 @@ export class Konveyor<
     await this.exit(0);
   }
 
+  async loadTasks(): Promise<void> {
+    const { log, commandsPath } = this;
+    if (!commandsPath) {
+      return;
+    }
+
+    this.dirMapping = await loadCommandsFromFs({
+      dirPath: commandsPath,
+      log,
+    });
+    log.debug(util.inspect(this.dirMapping, { depth: null }));
+    this.validationPlan = fsToValidationPlan(this.dirMapping);
+    log.debug(util.inspect(this.validationPlan, { depth: null }));
+  }
+
   /**
    * Parse and exit if any error.
    */
   async parse(argv: string[]): Promise<ValidatedPlan | undefined> {
     const { log } = this;
-    log.debug(util.inspect(this.validationPlan, { depth: null }));
     const parsed = parseArgv(argv);
     const validated = validateExecutionPlan(parsed.flat, this.validationPlan);
+    log.debug(util.inspect(validated, { depth: null }));
 
     if (validated.success) {
       if (validated.plan.length <= 0) {
@@ -183,8 +193,14 @@ export class Konveyor<
       return validated;
     }
 
-    // const vp = this.validationPlan;
+    const paths: string[] = [];
+    function forCommand(): string {
+      if (paths.length <= 0) return '';
+      return ` for command ${kolorist.lightBlue(paths.join('>'))}`;
+    }
+
     for (const plan of validated.plan) {
+      if (plan.command) paths.push(plan.command);
       if (!plan.unknownOption && !plan.unknownCommand) {
         // if (plan.command) {
         //   vp = vp.commands.find((command) => command.command === plan.command)!;
@@ -196,11 +212,19 @@ export class Konveyor<
       log.info('\r\n');
 
       if (plan.unknownOption) {
-        log.error(`Unknown option: ${plan.unknownOption}`);
+        log.error(
+          `Unknown option: ${kolorist.yellow(
+            plan.unknownOption.join(' ')
+          )}${forCommand()}`
+        );
         break;
       }
       if (plan.unknownCommand) {
-        log.error(`Unknown command: ${plan.unknownCommand}`);
+        log.error(
+          `Unknown command: ${kolorist.yellow(
+            plan.unknownCommand
+          )}${forCommand()}`
+        );
         break;
       }
     }
@@ -220,7 +244,7 @@ export class Konveyor<
    * Ask for a command.
    */
   async askForCommand(): Promise<void> {
-    const list = this.commands[0].cmds.map(({ cmd }) => {
+    const list = this.dirMapping!.cmds.map(({ cmd }) => {
       return {
         name: cmd.name,
         hint: cmd.description,
@@ -275,7 +299,7 @@ export class Konveyor<
       description: this.description,
       version: this.version,
       rootCommand: this.rootCommand,
-      commands: this.commands,
+      dirMapping: this.dirMapping!,
       commandsPath,
     });
   }
