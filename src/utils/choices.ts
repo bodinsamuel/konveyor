@@ -3,7 +3,7 @@ import { prompt } from 'enquirer';
 import type { Logger } from '../Logger';
 
 // Copied from enquirer/index.d.ts because they do not export it
-type Choice = {
+export type Choice = {
   name: string;
   message?: string;
   value?: string;

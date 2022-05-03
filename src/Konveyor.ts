@@ -21,7 +21,7 @@ import type { DirMapping } from './parser/loadCommandsFromFs';
 import { loadCommandsFromFs } from './parser/loadCommandsFromFs';
 import { parseArgv } from './parser/parseArgv';
 import { validateExecutionPlan } from './parser/validateExecutionPlan';
-import type { Spinner } from './utils';
+import type { Choice, Spinner } from './utils';
 import { clearConsole, exit } from './utils';
 
 interface Args<TConfig extends ConfigDefault> {
@@ -104,9 +104,6 @@ export class Konveyor<
     this.config = args.config;
 
     this.rootCommand = args.rootCommand || defaultRootCommand;
-    this.validationPlan.options = this.rootCommand.options!.map((opts) => {
-      return opts.toJSON();
-    });
   }
 
   /**
@@ -131,20 +128,27 @@ export class Konveyor<
         return;
       }
 
-      const hasCommand = validated.plan[0].command;
+      const rootOptions = Object.entries(validated.plan[0].options);
+      let command: Command<any> | undefined;
+      if (rootOptions.length > 0) {
+        command = this.rootCommand;
+      }
+
+      let hasCommand = validated.plan[0].command;
       if (hasCommand) {
-        this.logCommand(hasCommand);
-      } else {
-        await this.askForCommand();
+        this.logCommand(hasCommand!);
+      }
+      if (!command) {
+        hasCommand = hasCommand || (await this.askForCommand());
+        command = this.dirMapping!.cmds.find(
+          ({ cmd }) => cmd.name === hasCommand
+        )!.cmd;
       }
 
       // run the chosen command
       this.runner = new Runner({
         program: this.program,
-        command: hasCommand
-          ? this.dirMapping!.cmds.find(({ cmd }) => cmd.name === hasCommand)!
-              .cmd
-          : this.rootCommand,
+        command,
         config: this.config,
       });
       await this.runner.run();
@@ -159,6 +163,9 @@ export class Konveyor<
     await this.exit(0);
   }
 
+  /**
+   * Load task from file system and register validation plan.
+   */
   async loadTasks(): Promise<void> {
     const { log, commandsPath } = this;
     if (!commandsPath) {
@@ -172,6 +179,10 @@ export class Konveyor<
     log.debug(util.inspect(this.dirMapping, { depth: null }));
     this.validationPlan = fsToValidationPlan(this.dirMapping);
     log.debug(util.inspect(this.validationPlan, { depth: null }));
+
+    this.validationPlan.options = this.rootCommand.options!.map((opts) => {
+      return opts.toJSON();
+    });
   }
 
   /**
@@ -185,8 +196,6 @@ export class Konveyor<
 
     if (validated.success) {
       if (validated.plan.length <= 0) {
-        log.info(this.getHelp([]));
-        log.info('\r\n');
         return;
       }
 
@@ -243,18 +252,19 @@ export class Konveyor<
   /**
    * Ask for a command.
    */
-  async askForCommand(): Promise<void> {
-    const list = this.dirMapping!.cmds.map(({ cmd }) => {
-      return {
+  async askForCommand(): Promise<string> {
+    const list: Choice[] = [];
+    for (const { cmd } of this.dirMapping!.cmds) {
+      if (cmd.isPrivate) {
+        continue;
+      }
+      list.push({
         name: cmd.name,
         hint: cmd.description,
-      };
-    });
+      });
+    }
 
-    const answer = await this.program.choices<string>(
-      'What do you want to do?',
-      list
-    );
+    return await this.program.choices<string>('What do you want to do?', list);
     // this.validationPlan.commands.push({
     //   command: answer,
     //   options: [],
@@ -281,8 +291,6 @@ export class Konveyor<
           figures.squareSmallFilled
         )} Failed. Check "${kolorist.underline(debug)}" to know more`
       );
-    } else {
-      log.info(`${kolorist.magenta(figures.heart)} ${this.name} done.`);
     }
 
     log.debug(`---- Konveyor Exit (${code})`);

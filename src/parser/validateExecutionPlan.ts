@@ -51,7 +51,7 @@ export function validateExecutionPlan(
       // Unknown command
       success = false;
       currGroup.unknownCommand = arg.value;
-      continue;
+      break;
     }
 
     // Create default group
