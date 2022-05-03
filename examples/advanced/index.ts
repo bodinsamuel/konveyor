@@ -8,13 +8,13 @@ import config from './config';
  * ts-node index.ts
  */
 
-// Create the main Program and register all our tasks
+// Create the main Program and register all our commands
 const knv = new Konveyor({
   name: 'my-cli',
   description:
-    'An advanced CLI that contains dependents tasks, options, nested tasks, etc...',
+    'An advanced CLI that contains dependents commands, options, nested commands, etc...',
   version: '0.0.1',
-  tasksPath: './tasks',
+  commandsPath: './commands',
   config,
 });
 

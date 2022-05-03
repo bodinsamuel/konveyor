@@ -1,11 +1,11 @@
 import figures from 'figures';
 import * as kolorist from 'kolorist';
 
+import { Command } from './Command';
 import { Konveyor } from './Konveyor';
 import { Logger } from './Logger';
 import type { Program } from './Program';
-import { Task } from './Task';
-import { NoTasksError, DuplicateTaskError } from './errors';
+import { NoCommandsError, DuplicateCommandError } from './errors';
 import { Spinner, exit } from './utils';
 
 jest.mock('commander');
@@ -21,82 +21,82 @@ describe('constructor', () => {
     const knv = new Konveyor({
       name: 'my script',
       version: '1.0',
-      tasks: [],
+      commands: [],
     });
     expect(knv).toBeInstanceOf(Konveyor);
   });
 });
 
-describe('registerTasks()', () => {
-  it('should throw correctly when no tasks', () => {
+describe('registerCommands()', () => {
+  it('should throw correctly when no commands', () => {
     const knv = new Konveyor({
       name: 'my script',
       version: '1.0',
-      tasks: [],
+      commands: [],
     });
 
     expect(() => {
-      knv.registerTasks();
-    }).toThrow(new NoTasksError());
+      knv.registerCommands();
+    }).toThrow(new NoCommandsError());
   });
 
-  it('should throw correctly when duplicate tasks', () => {
-    const task = new Task({
-      name: 'task',
+  it('should throw correctly when duplicate commands', () => {
+    const command = new Command({
+      name: 'command',
       description: '',
     });
     const knv = new Konveyor({
       name: 'my script',
       version: '1.0',
-      tasks: [task, task],
+      commands: [command, command],
     });
 
     expect(() => {
-      knv.registerTasks();
-    }).toThrow(new DuplicateTaskError('task'));
+      knv.registerCommands();
+    }).toThrow(new DuplicateCommandError('command'));
   });
 
   it('should register correctly', () => {
-    const task1 = new Task({
-      name: 'task1',
+    const command1 = new Command({
+      name: 'command1',
       description: '',
     });
-    const task2 = new Task({
-      name: 'task2',
+    const command2 = new Command({
+      name: 'command2',
       description: '',
     });
     const knv = new Konveyor({
       name: 'my script',
       version: '1.0',
-      tasks: [task1, task2],
+      commands: [command1, command2],
     });
 
-    knv.registerTasks();
-    expect(knv.tasksPublic).toEqual([task1, task2]);
+    knv.registerCommands();
+    expect(knv.commandsPublic).toEqual([command1, command2]);
   });
 });
 
-describe('askForTask()', () => {
-  it('should ask for a task', async () => {
-    const task1 = new Task({
-      name: 'task1',
+describe('askForCommand()', () => {
+  it('should ask for a command', async () => {
+    const command1 = new Command({
+      name: 'command1',
       description: '',
     });
 
     const program = {
-      choices: jest.fn(() => 'task1'),
+      choices: jest.fn(() => 'command1'),
     } as unknown as Program;
     const knv = new Konveyor({
       name: 'my script',
       version: '1.0',
-      tasks: [task1],
+      commands: [command1],
       program,
     });
 
-    knv.registerTasks();
-    await knv.askForTask();
+    knv.registerCommands();
+    await knv.askForCommand();
     expect(program.choices).toHaveBeenCalled();
-    expect(knv.pickedTask).toBe(task1);
+    // expect(knv.pickedCommand).toBe(command1);
   });
 });
 
@@ -111,7 +111,7 @@ describe('exit()', () => {
     const knv = new Konveyor({
       name: 'my script',
       version: '1.0',
-      tasks: [],
+      commands: [],
       logger,
       program,
     });
@@ -136,7 +136,7 @@ describe('exit()', () => {
     const knv = new Konveyor({
       name: 'my script',
       version: '1.0',
-      tasks: [],
+      commands: [],
       logger,
       program,
     });

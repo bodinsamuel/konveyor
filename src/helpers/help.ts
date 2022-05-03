@@ -1,19 +1,24 @@
-import { cp } from 'fs';
-
 import * as kolorist from 'kolorist';
 
-import type { ValidationPlan, ValidationTask } from '../@types/parser';
+import type { Option } from '../Option';
+
+import type { RootCommand } from './RootCommand';
+import type { DirMapping } from './loadCommandsFromFs';
 
 export function help({
   name,
   description,
   version,
-  plan,
+  rootCommand,
+  commands,
+  commandsPath,
 }: {
   name: string;
   description?: string;
   version: string;
-  plan?: ValidationPlan;
+  rootCommand?: RootCommand;
+  commands: DirMapping[];
+  commandsPath: string[];
 }): string {
   const msg: string[] = [];
 
@@ -22,44 +27,52 @@ export function help({
     msg.push(`  ${name} @ ${version}\r\n  ${description}`);
   }
 
-  if (plan) {
-    msg.push('\r\n');
-    msg.push('\r\n');
-    if (plan.options.length > 0) {
-      msg.push(`${kolorist.white('GLOBAL OPTIONS')}\r\n`);
-      msg.push(getOptions(plan.options).join('\r\n'));
-    }
+  if (rootCommand?.options && rootCommand.options.length > 0) {
+    msg.push('\r\n'.repeat(2));
+    msg.push(`${kolorist.white('GLOBAL OPTIONS')}\r\n`);
+    msg.push(getOptions(rootCommand.options).join('\r\n'));
+  }
 
-    if (plan.commands) {
-      msg.push(`\r\n\r\n${kolorist.white('TASKS')}\r\n`);
-      msg.push(getTasks(plan.commands).join('\r\n'));
+  if (commands.length > 0) {
+    const pp = commandsPath.join('//');
+    console.log(pp, commandsPath);
+    const list = commands.find(({ paths }) => paths.join('//') === pp);
+    if (list) {
+      const res = getCommands(list.cmds);
+      if (res.length > 0) {
+        msg.push(`\r\n\r\n${kolorist.white('COMMANDS')}\r\n`);
+        msg.push(res.join('\r\n'));
+      }
     }
   }
 
   return msg.join('');
 }
 
-function getOptions(options: ValidationPlan['options']): string[] {
+function getOptions(options: Option[]): string[] {
   const msg: string[] = [];
 
   for (const opt of options) {
+    const p = opt.toJSON();
     msg.push(
-      `  ${kolorist.white(opt.name)}${
-        opt.aliases && opt.aliases.length > 0
-          ? `, ${opt.aliases?.join(',')}`
-          : ''
-      }`
+      `  ${kolorist.white(p.name)}${
+        p.aliases && p.aliases.length > 0 ? `, ${p.aliases?.join(',')}` : ''
+      }${p.msg ? `    ${p.msg}` : ''}`
     );
   }
 
   return msg;
 }
 
-function getTasks(tasks: ValidationTask[]): string[] {
+function getCommands(commands: DirMapping['cmds']): string[] {
   const msg: string[] = [];
 
-  for (const task of tasks) {
-    msg.push(`  ${kolorist.white(task.command)}`);
+  for (const { cmd, basename } of commands) {
+    if (cmd.isPrivate) {
+      continue;
+    }
+
+    msg.push(`  ${kolorist.white(basename)}\r\n     ${cmd.description}`);
   }
 
   return msg;

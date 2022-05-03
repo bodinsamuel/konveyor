@@ -1,5 +1,6 @@
 import type { TypeBase } from 'altheia-async-data-validator';
 
+import type { Callback } from './@types/command';
 import type { ValidationOption } from './@types/parser';
 
 export class Option {
@@ -7,6 +8,7 @@ export class Option {
   #short;
   #withValues: boolean;
   #aliases: string[] = [];
+  #exec: Callback<any> | undefined;
   #msg: string | undefined;
   #val: TypeBase | undefined;
 
@@ -20,11 +22,12 @@ export class Option {
     }
   }
 
-  get validation(): ValidationOption {
+  toJSON(): ValidationOption {
     return {
       name: this.#long,
       aliases: this.#aliases,
       withValue: this.#withValues,
+      msg: this.#msg,
     };
   }
 
@@ -41,6 +44,11 @@ export class Option {
   valueValidation(val: TypeBase): this {
     this.#withValues = true;
     this.#val = val;
+    return this;
+  }
+
+  exec(exec: Callback<any>): this {
+    this.#exec = exec;
     return this;
   }
 }

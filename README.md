@@ -21,7 +21,7 @@ Because each projects comes with its own requirements and specifity you know bet
 - 🚀 Typed, use the power of Typescript to add safety to your scripts.
 
 ```javascript
-const sayHello = new Task({
+const sayHello = new Command({
   name: 'say_hello',
   description: 'Say hello to Github User',
   exec: ({ log }) => {

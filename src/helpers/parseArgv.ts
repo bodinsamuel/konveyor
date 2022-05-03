@@ -3,7 +3,7 @@ import type {
   ValidationPlan,
   Plan,
   ValidationOption,
-  ValidationTask,
+  ValidationCommand,
 } from '../@types/parser';
 
 /**
@@ -67,13 +67,13 @@ export function parseArgv(argv: string[]): { flat: Arg[] } {
 /**
  * Build a plan from flat map.
  */
-export function validateParsedArgv(
+export function createExecutionPlan(
   flat: Arg[],
   val: ValidationPlan
 ): { plan: Plan[]; success: boolean } {
   const plan: Plan[] = [];
   let success: boolean = true;
-  let context: ValidationTask | undefined;
+  let context: ValidationCommand | undefined;
   let prevOptions: ValidationOption | undefined;
 
   // We don't push directly to have an empty array in case of no args

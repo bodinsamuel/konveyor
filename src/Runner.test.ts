@@ -1,8 +1,8 @@
+import { Command } from './Command';
 import { Config } from './Config';
 import { Logger } from './Logger';
 import { Program } from './Program';
 import { Runner } from './Runner';
-import { Task } from './Task';
 
 jest.mock('./Logger');
 
@@ -15,15 +15,15 @@ describe('run()', () => {
     const exec = jest.fn();
     const after = jest.fn();
 
-    const task = new Task({
-      name: 'my task',
+    const command = new Command({
+      name: 'my command',
       description: 'my description',
       before,
       exec,
       after,
     });
 
-    const runner = new Runner({ program: prgm, task, config });
+    const runner = new Runner({ program: prgm, command, config });
     await runner.run();
 
     expect(before).toHaveBeenCalled();
@@ -37,16 +37,16 @@ describe('run()', () => {
     const skipped = jest.fn();
     const stop = jest.fn();
 
-    const task = new Task({
-      name: 'my task',
+    const command = new Command({
+      name: 'my command',
       description: 'my description',
       exec,
     });
 
-    const runner = new Runner({ program: prgm, task, config });
-    runner.once('task:start', start);
-    runner.once('task:skipped', skipped);
-    runner.once('task:stop', stop);
+    const runner = new Runner({ program: prgm, command, config });
+    runner.once('command:start', start);
+    runner.once('command:skipped', skipped);
+    runner.once('command:stop', stop);
     await runner.run();
 
     expect(exec).toHaveBeenCalled();
@@ -60,8 +60,8 @@ describe('run()', () => {
     const skipped = jest.fn();
     const stop = jest.fn();
 
-    const task = new Task({
-      name: 'my task',
+    const command = new Command({
+      name: 'my command',
       description: 'my description',
       before: (): any => {
         return { skip: true };
@@ -69,9 +69,9 @@ describe('run()', () => {
       exec,
     });
 
-    const runner = new Runner({ program: prgm, task, config });
-    runner.once('task:skipped', skipped);
-    runner.once('task:stop', stop);
+    const runner = new Runner({ program: prgm, command, config });
+    runner.once('command:skipped', skipped);
+    runner.once('command:stop', stop);
     await runner.run();
 
     expect(exec).not.toHaveBeenCalled();
@@ -86,15 +86,15 @@ describe('hooks', () => {
     const exec = jest.fn();
     const after = jest.fn();
 
-    const task = new Task({
-      name: 'task',
+    const command = new Command({
+      name: 'command',
       description: 'my description',
       before,
       exec,
       after,
     });
 
-    const runner = new Runner({ program: prgm, task, config });
+    const runner = new Runner({ program: prgm, command, config });
     await runner.run();
 
     expect(before).toHaveBeenCalled();
@@ -106,14 +106,14 @@ describe('hooks', () => {
     const exec = jest.fn();
     const afterAll = jest.fn();
 
-    const task = new Task({
-      name: 'task',
+    const command = new Command({
+      name: 'command',
       description: 'my description',
       exec,
       afterAll,
     });
 
-    const runner = new Runner({ program: prgm, task, config });
+    const runner = new Runner({ program: prgm, command, config });
     await runner.run();
 
     expect(exec).toHaveBeenCalled();
@@ -126,52 +126,52 @@ describe('hooks', () => {
 
 describe('dependencies', () => {
   it('should run deps correctly', async () => {
-    const task1 = new Task({
-      name: 'task1',
+    const command1 = new Command({
+      name: 'command1',
       description: 'my description',
     });
-    const task2 = new Task({
-      name: 'task2',
+    const command2 = new Command({
+      name: 'command2',
       description: 'my description',
-      dependencies: [task1],
+      dependencies: [command1],
     });
 
     const start = jest.fn();
     const stop = jest.fn();
 
-    const runner = new Runner({ program: prgm, task: task2, config });
-    runner.on('task:start', start);
-    runner.on('task:stop', stop);
+    const runner = new Runner({ program: prgm, command: command2, config });
+    runner.on('command:start', start);
+    runner.on('command:stop', stop);
     await runner.run();
 
     expect(start).toHaveBeenCalledTimes(2);
     expect(stop).toHaveBeenCalledTimes(2);
-    expect(start).toHaveBeenNthCalledWith(1, [{ task: task1 }]);
-    expect(start).toHaveBeenNthCalledWith(2, [{ task: task2 }]);
+    expect(start).toHaveBeenNthCalledWith(1, [{ command: command1 }]);
+    expect(start).toHaveBeenNthCalledWith(2, [{ command: command2 }]);
   });
 
   it('should run 1 deps correctly and ignore it the second time', async () => {
-    const task1 = new Task({
-      name: 'task1',
+    const command1 = new Command({
+      name: 'command1',
       description: 'my description',
     });
-    const task2 = new Task({
-      name: 'task2',
+    const command2 = new Command({
+      name: 'command2',
       description: 'my description',
-      dependencies: [task1],
+      dependencies: [command1],
     });
-    const task3 = new Task({
-      name: 'task3',
+    const command3 = new Command({
+      name: 'command3',
       description: 'my description',
-      dependencies: [task1, task2],
+      dependencies: [command1, command2],
     });
 
     const start = jest.fn();
     const stop = jest.fn();
 
-    const runner = new Runner({ program: prgm, task: task3, config });
-    runner.on('task:start', start);
-    runner.on('task:stop', stop);
+    const runner = new Runner({ program: prgm, command: command3, config });
+    runner.on('command:start', start);
+    runner.on('command:stop', stop);
     await runner.run();
 
     expect(start).toHaveBeenCalledTimes(3);

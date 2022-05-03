@@ -1,10 +1,9 @@
-// import { Task, Exec } from 'konveyor';
 import type { Exec } from '../../../src';
-import { Task } from '../../../src';
+import { Command } from '../../../src';
 
 // Create a simple task
 // This task will check if the repo is clean from any changes
-export default new Task({
+export default new Command({
   name: 'check_repo_state',
   description: 'Check if your repository is clean.',
   isPrivate: true,

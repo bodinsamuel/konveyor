@@ -1,22 +1,24 @@
 import path from 'path';
 import util from 'util';
 
-import { Command } from 'commander';
 import figures from 'figures';
 import * as kolorist from 'kolorist';
 
 import type { ConfigDefault } from './@types/config';
 import type { ValidationPlan } from './@types/parser';
+import type { Command } from './Command';
 import { Event } from './Event';
 import { Logger } from './Logger';
 import { Program } from './Program';
 import { Runner } from './Runner';
-import type { Task } from './Task';
-import { DuplicateTaskError, ExitError, NoTasksError } from './errors';
+import { DuplicateCommandError, ExitError, NoCommandsError } from './errors';
+import type { RootCommand } from './helpers/RootCommand';
+import { defaultRootCommand } from './helpers/RootCommand';
 import { toAbsolute } from './helpers/fs';
 import { help } from './helpers/help';
-import { loadTasksFromPath } from './helpers/loadTasksFromPath';
-import { parseArgv, validateParsedArgv } from './helpers/parseArgv';
+import type { DirMapping } from './helpers/loadCommandsFromFs';
+import { loadCommandsFromFs } from './helpers/loadCommandsFromFs';
+import { parseArgv, createExecutionPlan } from './helpers/parseArgv';
 import type { Spinner } from './utils';
 import { clearConsole, exit } from './utils';
 
@@ -24,31 +26,31 @@ interface Args<TConfig extends ConfigDefault> {
   name: string;
   description?: string;
   version: string;
-  tasks?: Task<TConfig>[];
-  tasksPath?: string;
+  commands?: Command<TConfig>[];
+  commandsPath?: string;
   logger?: Logger;
   spinner?: Spinner;
-  command?: Command;
   program?: Program;
   clearOnStart?: boolean;
   config?: TConfig;
+  rootCommand?: RootCommand;
 }
 
 export class Konveyor<
   TConfig extends ConfigDefault
 > extends Event<'konveyor:start'> {
-  readonly tasksPublic: Task<TConfig>[] = [];
+  // readonly commandsPublic: Command<TConfig>[] = [];
   readonly log: Logger;
 
   // state
   private name: string;
   private description?: string;
   private version: string;
-  private task?: Task<TConfig>;
-  private tasks: Task<TConfig>[] = [];
-  private tasksPath?: string;
+  private commands: DirMapping[] = [];
+  private commandsPath?: string;
   private clearOnStart: boolean;
   private path: string;
+  private rootCommand: RootCommand;
   private validationPlan: ValidationPlan = {
     commands: [],
     options: [],
@@ -57,7 +59,6 @@ export class Konveyor<
   // services
   private config?: TConfig;
   private program: Program;
-  private commander: Command;
   private runner?: Runner<TConfig>;
 
   constructor(args: Args<TConfig>) {
@@ -66,12 +67,26 @@ export class Konveyor<
     this.name = args.name;
     this.description = args.description;
     this.version = args.version;
-    this.tasks = args.tasks || [];
     this.path = path.dirname(require!.main!.filename);
-    this.tasksPath = args.tasksPath
-      ? toAbsolute(args.tasksPath, this.path)
+    this.commandsPath = args.commandsPath
+      ? toAbsolute(args.commandsPath, this.path)
       : undefined;
     this.clearOnStart = args.clearOnStart === true;
+
+    if (args.commands) {
+      this.commands[0] = {
+        dirPath: './',
+        paths: [],
+        cmds: args.commands.map((command) => {
+          return {
+            basename: command.name,
+            cmd: command,
+            isTopic: false,
+            paths: [command.name],
+          };
+        }),
+      };
+    }
 
     this.log =
       args.logger ||
@@ -79,85 +94,62 @@ export class Konveyor<
         folder: this.path,
       });
 
-    this.commander =
-      args.command ||
-      new Command().version(this.version).usage('<command> [options]');
-
     this.program =
       args.program ||
       new Program({
         logger: this.log,
       });
     this.config = args.config;
-  }
 
-  get pickedTask(): Task<TConfig> | undefined {
-    return this.task;
+    this.rootCommand = args.rootCommand || defaultRootCommand;
+    this.validationPlan.options = this.rootCommand.options!.map((opts) => {
+      return opts.toJSON();
+    });
   }
 
   /**
    * Main entrypoint.
-   *
-   * @param argv - Process.argv.
+   
    */
-  async start(argv: any): Promise<void> {
+  async start(argv: string[]): Promise<void> {
     const { log } = this;
 
     log.debug(`---- Konveyor Start [${new Date().toISOString()}]`);
     this.emit('konveyor:start');
 
     try {
-      if (this.tasksPath) {
-        this.tasks = [
-          ...this.tasks,
-          ...(await loadTasksFromPath({ dirPath: this.tasksPath, log })),
-        ];
+      if (this.commandsPath) {
+        this.commands.push(
+          ...(await loadCommandsFromFs({ dirPath: this.commandsPath, log }))
+        );
+        log.debug(util.inspect(this.commands, { depth: null }));
       }
 
-      this.validationPlan.options = [
-        { name: '--version', aliases: ['-v'] },
-        { name: '--help', aliases: ['-h'] },
-      ];
-      this.registerTasks();
+      this.registerCommands();
 
       if (this.clearOnStart) {
         clearConsole();
       }
 
-      // Parse arguments
-      const parsed = parseArgv(argv);
-      const validated = validateParsedArgv(parsed.flat, this.validationPlan);
-      console.log(
-        util.inspect(
-          { f: parsed.flat, v: validated, vp: this.validationPlan },
-          { depth: null }
-        )
-      );
-      if (!validated.success) {
-        log.info(this.getHelp());
-        log.info('\r\n');
-
-        for (const plan of validated.plan) {
-          if (plan.unknownOption) {
-            log.error(`Unknown option: --${plan.unknownOption}`);
-            break;
-          }
-          if (plan.unknownCommand) {
-            log.error(`Unknown command: ${plan.unknownCommand}`);
-            break;
-          }
-        }
-
-        await this.exit(1);
+      const validated = (await this.parse(argv))!;
+      if (!validated) {
         return;
       }
 
-      await this.askForTask();
+      const hasCommand = validated.plan[0].command;
+      if (hasCommand) {
+        this.logCommand(hasCommand);
+      } else {
+        await this.askForCommand();
+      }
 
-      // run the chosen task
+      // run the chosen command
       this.runner = new Runner({
         program: this.program,
-        task: this.task!,
+        command: hasCommand
+          ? this.commands[0].cmds.find(({ cmd }) => cmd.name === hasCommand)!
+              .cmd
+          : this.rootCommand,
         config: this.config,
       });
       await this.runner.run();
@@ -173,62 +165,116 @@ export class Konveyor<
   }
 
   /**
-   * Register tasks into Konveyor.
+   * Parse and exit if any error.
    */
-  registerTasks(): void {
-    const { log, tasks } = this;
-    if (tasks.length <= 0) {
-      throw new NoTasksError();
-    }
+  async parse(
+    argv: string[]
+  ): Promise<ReturnType<typeof createExecutionPlan> | undefined> {
+    const { log } = this;
+    log.debug(util.inspect(this.validationPlan, { depth: null }));
+    const parsed = parseArgv(argv);
+    const validated = createExecutionPlan(parsed.flat, this.validationPlan);
 
-    const names: string[] = [];
-    tasks.forEach((task) => {
-      if (names.includes(task.name)) {
-        throw new DuplicateTaskError(task.name);
-      }
-
-      names.push(task.name);
-
-      if (task.isPrivate) {
+    if (validated.success) {
+      if (validated.plan.length <= 0) {
+        log.info(this.getHelp([]));
+        log.info('\r\n');
         return;
       }
 
-      this.tasksPublic.push(task);
-      this.validationPlan.commands!.push({
-        command: task.name,
-        options: (task.options || []).map((opts) => {
-          return opts.validation;
-        }),
-      });
-    });
+      return validated;
+    }
 
-    log.debug(`Registered ${tasks.length} tasks`);
+    // const vp = this.validationPlan;
+    for (const plan of validated.plan) {
+      if (!plan.unknownOption && !plan.unknownCommand) {
+        // if (plan.command) {
+        //   vp = vp.commands.find((command) => command.command === plan.command)!;
+        // }
+        continue;
+      }
+
+      log.info(this.getHelp([]));
+      log.info('\r\n');
+
+      if (plan.unknownOption) {
+        log.error(`Unknown option: ${plan.unknownOption}`);
+        break;
+      }
+      if (plan.unknownCommand) {
+        log.error(`Unknown command: ${plan.unknownCommand}`);
+        break;
+      }
+    }
+
+    await this.exit(1);
   }
 
   /**
-   * Ask for a task.
+   * Register commands into Konveyor.
    */
-  async askForTask(): Promise<void> {
-    const { tasks, log, task } = this;
-
-    if (task) {
-      log.info(
-        `${kolorist.green('?')} ${kolorist.bold(
-          'What do you want to do?'
-        )} ${kolorist.cyan(task.name)}`
-      );
-      return;
+  registerCommands(): void {
+    const { log, commands } = this;
+    if (commands.length <= 0) {
+      throw new NoCommandsError();
     }
 
-    const list = this.tasksPublic.map((t) => {
+    const names = new Set<string[]>();
+
+    for (const ll of commands) {
+      for (const { cmd, paths } of ll.cmds) {
+        const command = cmd;
+        if (names.has(paths)) {
+          throw new DuplicateCommandError(command.name);
+        }
+        console.log(paths);
+
+        names.add(paths);
+
+        if (command.isPrivate) {
+          continue;
+        }
+
+        // this.commandsPublic.push(command);
+        this.validationPlan.commands!.push({
+          command: command.name,
+          options: (command.options || []).map((opts) => {
+            return opts.toJSON();
+          }),
+        });
+      }
+    }
+
+    log.debug(`Registered ${commands.length} commands`);
+  }
+
+  logCommand(name: string): void {
+    this.log.info(
+      `${kolorist.green('?')} ${kolorist.bold(
+        'What do you want to do?'
+      )} ${kolorist.cyan(name)}`
+    );
+  }
+
+  /**
+   * Ask for a command.
+   */
+  async askForCommand(): Promise<void> {
+    const list = this.commands[0].cmds.map(({ cmd }) => {
       return {
-        name: t.name,
-        hint: t.description,
+        name: cmd.name,
+        hint: cmd.description,
       };
     });
 
-    const answer = await this.program.choices('What do you want to do?', list);
-    this.task = tasks.find((t) => t.name === answer);
+    const answer = await this.program.choices<string>(
+      'What do you want to do?',
+      list
+    );
+    this.validationPlan.commands.push({
+      command: answer,
+      options: [],
+    });
   }
 
   /**
@@ -245,10 +291,11 @@ export class Konveyor<
     // Display final message
     if (code > 0) {
       log.info('');
+      const debug = `${this.path}/debug.log`;
       log.info(
-        `${kolorist.red(figures.squareSmallFilled)} Failed. Check "${
-          this.path
-        }/debug.log" to know more`
+        `${kolorist.red(
+          figures.squareSmallFilled
+        )} Failed. Check "${kolorist.underline(debug)}" to know more`
       );
     } else {
       log.info(`${kolorist.magenta(figures.heart)} ${this.name} done.`);
@@ -262,12 +309,14 @@ export class Konveyor<
     exit(code);
   }
 
-  private getHelp(): string {
+  private getHelp(commandsPath: string[]): string {
     return help({
       name: this.name,
       description: this.description,
       version: this.version,
-      plan: this.validationPlan,
+      rootCommand: this.rootCommand,
+      commands: this.commands,
+      commandsPath,
     });
   }
 }

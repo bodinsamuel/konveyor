@@ -1,14 +1,14 @@
+import type { CallbackBefore, Callback } from './@types/command';
 import type { ConfigDefault } from './@types/config';
-import type { CallbackBefore, Callback } from './@types/task';
 import { Option } from './Option';
-import { TaskUndefinedError } from './errors';
+import { CommandUndefinedError } from './errors';
 
-export interface TaskArgs<TConf extends ConfigDefault> {
+export interface CommandArgs<TConf extends ConfigDefault> {
   name: string;
   description: string;
   isPrivate?: boolean;
   options?: Option[];
-  dependencies?: Task<TConf>[] | (() => Task<TConf>[]);
+  dependencies?: Command<TConf>[] | (() => Command<TConf>[]);
 
   before?: CallbackBefore;
   exec?: Callback<TConf>;
@@ -16,8 +16,8 @@ export interface TaskArgs<TConf extends ConfigDefault> {
   afterAll?: Callback<TConf>;
 }
 
-export class Task<TConf extends ConfigDefault> {
-  // task description
+export class Command<TConf extends ConfigDefault> {
+  // command description
   readonly name: string;
   readonly description: string;
   readonly isPrivate: boolean = false;
@@ -25,16 +25,16 @@ export class Task<TConf extends ConfigDefault> {
 
   // state
   protected _executed: boolean = false;
-  protected _dependencies: Set<Task<TConf>> = new Set();
-  protected _dependenciesPlan?: () => Task<TConf>[];
+  protected _dependencies: Set<Command<TConf>> = new Set();
+  protected _dependenciesPlan?: () => Command<TConf>[];
 
-  // actual tasks
+  // actual commands
   protected _before?: CallbackBefore;
   protected _exec?: Callback<TConf>;
   protected _after?: Callback<TConf>;
   protected _afterAll?: Callback<TConf>;
 
-  constructor(args: TaskArgs<TConf>) {
+  constructor(args: CommandArgs<TConf>) {
     this.name = args.name;
     this.description = args.description;
     this.isPrivate = args.isPrivate === true;
@@ -50,7 +50,7 @@ export class Task<TConf extends ConfigDefault> {
       this._dependencies = new Set(args.dependencies);
       this._dependencies.forEach((dep) => {
         if (typeof dep === 'undefined') {
-          throw new TaskUndefinedError(this.name);
+          throw new CommandUndefinedError(this.name);
         }
       });
     } else if (args.dependencies) {
@@ -62,11 +62,11 @@ export class Task<TConf extends ConfigDefault> {
     return new Option(long, short);
   }
 
-  get dependencies(): Set<Task<TConf>> {
+  get dependencies(): Set<Command<TConf>> {
     return this._dependencies;
   }
 
-  get dependenciesPlan(): (() => Task<TConf>[]) | undefined {
+  get dependenciesPlan(): (() => Command<TConf>[]) | undefined {
     return this._dependenciesPlan;
   }
 

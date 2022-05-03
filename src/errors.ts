@@ -2,13 +2,13 @@
 
 export class InvalidDirectory extends Error {
   constructor(path: string) {
-    super(`Can't autoload tasks, "${path}" does not exists`);
+    super(`Can't autoload commands, "${path}" does not exists`);
   }
 }
 
 export class NotADirectory extends Error {
   constructor(path: string) {
-    super(`Can't autoload tasks, "${path}" is not a directory`);
+    super(`Can't autoload commands, "${path}" is not a directory`);
   }
 }
 
@@ -19,24 +19,24 @@ export class ExitError extends Error {
   }
 }
 
-export class NoTasksError extends Error {
+export class NoCommandsError extends Error {
   constructor() {
     super(
-      `No tasks registered, use "program.tasks()" or "tasksPath" to register some tasks`
+      `No commands registered, use "program.commands()" or "commandsPath" to register some commands`
     );
   }
 }
 
-export class DuplicateTaskError extends Error {
+export class DuplicateCommandError extends Error {
   constructor(name: string) {
-    super(`Task: "${name}" is already registered`);
+    super(`Command: "${name}" is already registered`);
   }
 }
 
-export class TaskUndefinedError extends Error {
+export class CommandUndefinedError extends Error {
   constructor(name: string) {
     super(
-      `Task: one dependency of "${name}" is "undefined". This can be due to circular dependency`
+      `Command: one dependency of "${name}" is "undefined". This can be due to circular dependency`
     );
   }
 }

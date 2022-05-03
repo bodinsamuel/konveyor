@@ -1,13 +1,12 @@
-// import { Task } from 'konveyor';
-import { Task } from '../../../src';
-import type { Conf } from '../config';
+// import { Command } from 'konveyor';
+import { Command } from '../../../../src';
+import type { Conf } from '../../config';
 
 // Create a simple task
 // This task will check if the repo is clean from any changes
-export default new Task<Conf>({
-  name: 'connect_env',
+export default new Command<Conf>({
+  name: 'connect',
   description: 'Connect to the working environement.',
-  isPrivate: true,
   async exec({ exec, spinner }, config): Promise<void> {
     const conf = config!.get('gcp');
 

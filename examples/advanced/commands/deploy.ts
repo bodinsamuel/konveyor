@@ -1,22 +1,22 @@
 import alt from 'altheia-async-data-validator';
 
-import { Task } from '../../../src';
+import { Command } from '../../../src';
 import localConfig from '../config';
 
 import checkRepoState from './checkRepoState';
 import chooseEnv from './chooseEnv';
-import connectEnv from './connectEnv';
+import connectEnv from './prod/connectEnv';
 
-export default new Task({
+export default new Command({
   name: 'deploy',
   description: 'Deploy your project',
   isPrivate: false,
-  dependencies(): Task<any>[] {
+  dependencies(): Command<any>[] {
     return [/* checkRepoState,*/ chooseEnv, connectEnv];
   },
   options: [
-    Task.option('--no-dirty').msg('Ignore dirty repo'),
-    Task.option('--env')
+    Command.option('--no-dirty').msg('Ignore dirty repo'),
+    Command.option('--env')
       .alias('-e')
       .msg('Environment')
       .valueValidation(alt.string().in(...localConfig.envs)),

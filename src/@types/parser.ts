@@ -17,17 +17,18 @@ export interface ArgValue {
 
 export type ValidationPlan = {
   options: ValidationOption[];
-  commands: ValidationTask[];
+  commands: ValidationCommand[];
 };
 
-export type ValidationTask = {
+export type ValidationCommand = {
   command: string;
   options: ValidationOption[];
-  commands?: ValidationTask[];
+  commands?: ValidationCommand[];
 };
 
 export interface ValidationOption {
   name: string;
   withValue?: boolean;
   aliases?: string[];
+  msg?: string;
 }

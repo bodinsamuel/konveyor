@@ -1,10 +1,10 @@
-import { validateParsedArgv, parseArgv } from './parseArgv';
+import { createExecutionPlan, parseArgv } from './parseArgv';
 
 describe('parseArgv', () => {
   it('should not modify source', () => {
     const source = ['/foo', '/bar'];
     const parsed = parseArgv(source);
-    const grouped = validateParsedArgv(parsed.flat, {
+    const grouped = createExecutionPlan(parsed.flat, {
       options: [],
       commands: [],
     });
@@ -20,7 +20,7 @@ describe('parseArgv', () => {
   it('should produce appropriate plan with one command and a boolean option', () => {
     const source = ['/foo', '/bar', 'deploy', '--foo'];
     const parsed = parseArgv(source);
-    const grouped = validateParsedArgv(parsed.flat, {
+    const grouped = createExecutionPlan(parsed.flat, {
       options: [],
       commands: [{ command: 'deploy', options: [{ name: '--foo' }] }],
     });
@@ -40,7 +40,7 @@ describe('parseArgv', () => {
   it('should produce appropriate plan with global option and one value that looks like a value', () => {
     const source = ['/foo', '/bar', '--foo', 'deploy'];
     const parsed = parseArgv(source);
-    const grouped = validateParsedArgv(parsed.flat, {
+    const grouped = createExecutionPlan(parsed.flat, {
       options: [{ name: '--foo', withValue: true }],
       commands: [{ command: 'deploy', options: [] }],
     });
@@ -60,7 +60,7 @@ describe('parseArgv', () => {
   it('should not parse anything after --', () => {
     const source = ['/foo', '/bar', '--', 'everything', '--else'];
     const parsed = parseArgv(source);
-    const grouped = validateParsedArgv(parsed.flat, {
+    const grouped = createExecutionPlan(parsed.flat, {
       options: [],
       commands: [{ command: 'deploy', options: [{ name: 'foo' }] }],
     });
@@ -136,10 +136,10 @@ describe('parseArgv', () => {
   });
 });
 
-describe('validateParsedArgv()', () => {
+describe('createExecutionPlan()', () => {
   describe('unknown', () => {
     it('should handle unknown command', () => {
-      const grouped = validateParsedArgv([{ type: 'value', value: 'foo' }], {
+      const grouped = createExecutionPlan([{ type: 'value', value: 'foo' }], {
         options: [],
         commands: [{ command: 'bar', options: [] }],
       });
@@ -155,7 +155,7 @@ describe('validateParsedArgv()', () => {
     });
 
     it('should handle unknown option', () => {
-      const grouped = validateParsedArgv(
+      const grouped = createExecutionPlan(
         [
           { type: 'value', value: 'foo' },
           { type: 'option', name: '--bar' },
@@ -176,7 +176,7 @@ describe('validateParsedArgv()', () => {
   });
 
   it('should handle nested commands', () => {
-    const grouped = validateParsedArgv(
+    const grouped = createExecutionPlan(
       [
         { type: 'value', value: 'foo' },
         { type: 'value', value: 'bar' },
@@ -220,7 +220,7 @@ describe('validateParsedArgv()', () => {
 
   describe('options', () => {
     it('should append value to previous option', () => {
-      const grouped = validateParsedArgv(
+      const grouped = createExecutionPlan(
         [
           { type: 'option', name: '--foo-bar' },
           { type: 'value', value: 'hello' },
@@ -243,7 +243,7 @@ describe('validateParsedArgv()', () => {
     });
 
     it('should not append value to previous option', () => {
-      const grouped = validateParsedArgv(
+      const grouped = createExecutionPlan(
         [
           { type: 'option', name: '--foo-bar' },
           { type: 'value', value: 'hello' },
@@ -261,7 +261,7 @@ describe('validateParsedArgv()', () => {
     });
 
     it('should parse handle double value in a row', () => {
-      const grouped = validateParsedArgv(
+      const grouped = createExecutionPlan(
         [
           { type: 'option', name: '--foo' },
           { type: 'value', value: 'hello' },
@@ -283,7 +283,7 @@ describe('validateParsedArgv()', () => {
     });
 
     it('should handle single dash options and group them', () => {
-      const grouped = validateParsedArgv(
+      const grouped = createExecutionPlan(
         [
           { type: 'value', value: 'deploy' },
           { type: 'option', name: '-x' },
@@ -319,7 +319,7 @@ describe('validateParsedArgv()', () => {
     });
 
     it('should understand alias', () => {
-      const grouped = validateParsedArgv([{ type: 'option', name: '-f' }], {
+      const grouped = createExecutionPlan([{ type: 'option', name: '-f' }], {
         options: [
           { name: '--foo', withValue: true, aliases: ['-f', '-foobar'] },
         ],
@@ -333,7 +333,7 @@ describe('validateParsedArgv()', () => {
     });
 
     it('should group alias', () => {
-      const grouped = validateParsedArgv(
+      const grouped = createExecutionPlan(
         [
           { type: 'option', name: '--foo' },
           { type: 'option', name: '-f' },
@@ -354,7 +354,7 @@ describe('validateParsedArgv()', () => {
     });
 
     it('should overwrite same option', () => {
-      const grouped = validateParsedArgv(
+      const grouped = createExecutionPlan(
         [
           { type: 'option', name: '--foo' },
           { type: 'value', value: 'bar' },
