@@ -54,5 +54,8 @@ See [documentation folder](./docs/).
   - Test with mock
 - Documentation
 - Release script
-- Option inheritance
-- Nested help
+- Options
+  - Global options
+  - Nested help
+- Commands
+  - Command name dedup

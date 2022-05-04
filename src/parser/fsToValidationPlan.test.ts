@@ -6,6 +6,12 @@ import type { DirMapping } from './loadCommandsFromFs';
 
 describe('fsToValidationPlan', () => {
   it('should', () => {
+    const cmdCheck = new Command({ name: 'check' });
+    const cmdUi = new Command({ name: 'ui' });
+    const cmdTest = new Command({ name: 'test' });
+    const cmdIndex1 = new Command({ name: 'index' });
+    const cmdIndex2 = new Command({ name: 'index' });
+
     const dirs: DirMapping = {
       dirPath: '/commands',
       paths: [],
@@ -25,7 +31,7 @@ describe('fsToValidationPlan', () => {
                 {
                   basename: 'index',
                   paths: ['sub', 'double', 'index'],
-                  cmd: new Command({ name: 'index', description: '' }),
+                  cmd: cmdIndex2,
                 },
               ],
             },
@@ -34,7 +40,7 @@ describe('fsToValidationPlan', () => {
             {
               basename: 'index',
               paths: ['sub', 'index'],
-              cmd: new Command({ name: 'index', description: '' }),
+              cmd: cmdIndex1,
             },
           ],
         },
@@ -47,12 +53,12 @@ describe('fsToValidationPlan', () => {
             {
               basename: 'test',
               paths: ['topic', 'test'],
-              cmd: new Command({ name: 'test', description: '' }),
+              cmd: cmdTest,
             },
             {
               basename: 'ui',
               paths: ['topic', 'ui'],
-              cmd: new Command({ name: 'ui', description: '' }),
+              cmd: cmdUi,
             },
           ],
         },
@@ -61,39 +67,45 @@ describe('fsToValidationPlan', () => {
         {
           basename: 'check',
           paths: ['check'],
-          cmd: new Command({ name: 'check', description: '' }),
+          cmd: cmdCheck,
         },
       ],
     };
 
     expect(fsToValidationPlan(dirs)).toStrictEqual<ValidationPlan>({
       commands: [
-        { command: 'check', isTopic: false, options: [] },
+        { command: cmdCheck, isTopic: false },
         {
-          command: 'sub',
+          command: cmdIndex1,
           isTopic: false,
-          options: [],
-          commands: [
-            { command: 'double', isTopic: false, options: [], commands: [] },
-          ],
+          commands: [{ command: cmdIndex2, isTopic: false, commands: [] }],
         },
         {
-          command: 'topic',
-          options: [],
+          command: undefined,
           isTopic: true,
           commands: [
-            { command: 'test', isTopic: false, options: [] },
-            { command: 'ui', isTopic: false, options: [] },
+            { command: cmdTest, isTopic: false },
+            { command: cmdUi, isTopic: false },
           ],
         },
       ],
-      options: [],
+      globalOptions: [],
     });
   });
 
   it('should output option in non-topic command', () => {
     const options = [Command.option('--foobar')];
-    const optionsJson = options[0].toJSON();
+    const optionGlobal = Command.option('--global').global();
+
+    const cmdCheck = new Command({ name: 'check', description: '', options });
+    const cmdTest = new Command({ name: 'test', description: '', options });
+    const cmdIndex1 = new Command({ name: 'index', description: '', options });
+    const cmdIndex2 = new Command({
+      name: 'index',
+      description: '',
+      options: [...options, optionGlobal],
+    });
+
     const dirs: DirMapping = {
       dirPath: '/commands',
       paths: [],
@@ -113,7 +125,7 @@ describe('fsToValidationPlan', () => {
                 {
                   basename: 'index',
                   paths: ['sub', 'double', 'index'],
-                  cmd: new Command({ name: 'index', description: '', options }),
+                  cmd: cmdIndex2,
                 },
               ],
             },
@@ -122,7 +134,7 @@ describe('fsToValidationPlan', () => {
             {
               basename: 'index',
               paths: ['sub', 'index'],
-              cmd: new Command({ name: 'index', description: '', options }),
+              cmd: cmdIndex1,
             },
           ],
         },
@@ -135,7 +147,7 @@ describe('fsToValidationPlan', () => {
             {
               basename: 'test',
               paths: ['topic', 'test'],
-              cmd: new Command({ name: 'test', description: '', options }),
+              cmd: cmdTest,
             },
           ],
         },
@@ -144,37 +156,35 @@ describe('fsToValidationPlan', () => {
         {
           basename: 'check',
           paths: ['check'],
-          cmd: new Command({ name: 'check', description: '', options }),
+          cmd: cmdCheck,
         },
       ],
     };
 
-    expect(fsToValidationPlan(dirs)).toStrictEqual<ValidationPlan>({
-      commands: [
-        { command: 'check', isTopic: false, options: [optionsJson] },
-        {
-          command: 'sub',
-          isTopic: false,
-          options: [optionsJson],
-          commands: [
-            {
-              command: 'double',
-              isTopic: false,
-              options: [optionsJson],
-              commands: [],
-            },
-          ],
-        },
-        {
-          command: 'topic',
-          options: [],
-          isTopic: true,
-          commands: [
-            { command: 'test', isTopic: false, options: [optionsJson] },
-          ],
-        },
-      ],
-      options: [],
-    });
+    const plan = fsToValidationPlan(dirs);
+    const commandsRef: ValidationPlan['commands'] = [
+      { command: cmdCheck, isTopic: false },
+      {
+        command: cmdIndex1,
+        isTopic: false,
+        commands: [
+          {
+            command: cmdIndex2,
+            isTopic: false,
+            commands: [],
+          },
+        ],
+      },
+      {
+        command: undefined,
+        isTopic: true,
+        commands: [{ command: cmdTest, isTopic: false }],
+      },
+    ];
+    const optionsRef: ValidationPlan['globalOptions'] = [
+      { cmd: cmdIndex2, option: optionGlobal },
+    ];
+    expect(plan.commands).toStrictEqual(commandsRef);
+    expect(plan.globalOptions).toEqual(optionsRef);
   });
 });

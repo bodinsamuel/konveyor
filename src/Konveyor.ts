@@ -49,14 +49,13 @@ export class Konveyor<
   private name: string;
   private description?: string;
   private dirMapping: DirMapping | undefined;
-  private commands?: Command<TConfig>[];
+  private commands: Command<TConfig>[] = [];
   private commandsPath?: string;
   private clearOnStart: boolean;
   private path: string;
   private rootCommand: RootCommand;
   private validationPlan: ValidationPlan = {
     commands: [],
-    options: [],
   };
 
   // services
@@ -76,7 +75,11 @@ export class Konveyor<
       : undefined;
     this.clearOnStart = args.clearOnStart === true;
 
-    this.commands = args.commands;
+    if (args.commands) {
+      this.commands.push(...args.commands);
+    }
+    this.rootCommand = args.rootCommand || defaultRootCommand;
+    this.commands.push(this.rootCommand);
 
     this.log =
       args.logger ||
@@ -90,8 +93,6 @@ export class Konveyor<
         logger: this.log,
       });
     this.config = args.config;
-
-    this.rootCommand = args.rootCommand || defaultRootCommand;
   }
 
   get version(): string {
@@ -164,7 +165,7 @@ export class Konveyor<
       isTopic: false,
       paths: [],
       subs: [],
-      cmds: (this.commands ?? []).map((cmd) => {
+      cmds: this.commands.map((cmd) => {
         return {
           basename: cmd.name,
           cmd,
@@ -192,10 +193,6 @@ export class Konveyor<
     this.validationPlan = fsToValidationPlan(this.dirMapping);
     log.debug('Validation plan:');
     log.debug(util.inspect(this.validationPlan, { depth: null }));
-
-    this.validationPlan.options = this.rootCommand.options!.map((opts) => {
-      return opts.toJSON();
-    });
   }
 
   /**

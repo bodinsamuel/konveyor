@@ -10,7 +10,7 @@ import { CommandUndefinedError } from './errors';
 
 export interface CommandArgs<TConf extends ConfigDefault> {
   name: string;
-  description: string;
+  description?: string;
   isPrivate?: boolean;
   options?: Option[];
   dependencies?: Command<TConf>[] | DependenciesPlan<TConf>;
@@ -26,7 +26,7 @@ export class Command<TConf extends ConfigDefault> {
   readonly name: string;
   readonly description: string;
   readonly isPrivate: boolean = false;
-  readonly options?: Option[] = [];
+  readonly options: Option[] = [];
 
   // state
   protected _executed: boolean = false;
@@ -41,14 +41,17 @@ export class Command<TConf extends ConfigDefault> {
 
   constructor(args: CommandArgs<TConf>) {
     this.name = args.name;
-    this.description = args.description;
+    this.description = args.description || '';
     this.isPrivate = args.isPrivate === true;
-    this.options = args.options;
 
     this._before = args.before;
     this._exec = args.exec;
     this._after = args.after;
     this._afterAll = args.afterAll;
+
+    if (args.options) {
+      this.options = args.options;
+    }
 
     // Check dependencies
     if (args.dependencies && Array.isArray(args.dependencies)) {

@@ -1,8 +1,7 @@
-// eslint-disable-next-line import/no-commonjs
-module.exports = {
+/* eslint-disable import/no-commonjs */
+const config = {
   testEnvironment: 'node',
 
-  name: 'unit',
   displayName: 'konveyor',
 
   preset: 'ts-jest',
@@ -20,3 +19,4 @@ module.exports = {
   //   "#(.*)": "<rootDir>/node_modules/$1"
   // },
 };
+module.exports = config;

@@ -2,10 +2,10 @@ import type {
   Arg,
   Plan,
   ValidationCommand,
-  ValidationOption,
   ExecutionPlan,
   ValidationPlan,
 } from '../@types/parser';
+import type { Option } from '../Option';
 
 /**
  * Build a plan from flat map.
@@ -17,7 +17,7 @@ export function getExecutionPlan(
   const plan: Plan[] = [];
   let success: boolean = true;
   let context: ValidationCommand | undefined;
-  let prevOptions: ValidationOption | undefined;
+  let prevOptions: Option | undefined;
 
   // We don't push directly to have an empty array in case of no args
   let currGroup: Plan | undefined;
@@ -26,46 +26,46 @@ export function getExecutionPlan(
     const prev = flat[index - 1];
     const arg = flat[index];
 
+    // ---- COMMANDS
     if (arg.type === 'value') {
-      if (prev?.type === 'option' && prevOptions?.withValue) {
+      if (prev?.type === 'option' && prevOptions?.expectValue) {
         // Modify the past option in case we receive a value
         currGroup!.options[prev.name] = arg.value;
         continue;
       }
 
+      // Only add a new group on new command
+      currGroup = { command: '', options: {} };
+      plan.push(currGroup);
+
+      currGroup.command = arg.value;
       const hasCommand = (context || val).commands?.find(
-        ({ command }) => command === arg.value
+        ({ command }) => command?.name === arg.value
       );
       if (hasCommand) {
         context = hasCommand;
-        currGroup = { command: arg.value, options: {} };
-        plan.push(currGroup);
         continue;
       }
 
-      // Create default group
-      if (!currGroup) {
-        currGroup = { options: {} };
-        plan.push(currGroup);
-      }
       // Unknown command
       success = false;
-      currGroup.unknownCommand = arg.value;
+      currGroup.unknownCommand = true;
       break;
     }
 
-    // Create default group
     if (!currGroup) {
-      currGroup = { options: {} };
-      plan.push(currGroup);
+      throw new Error('An option without a command should not be possible');
     }
 
-    // Support only one root level with global flag
-    const hasOption = (context || val).options.find(
-      ({ name, aliases }) =>
-        name === arg.name || aliases?.find((alias) => alias === arg.name)
+    // ----- OPTIONS
+    const isGlobalOption = val.globalOptions.find(({ option }) =>
+      option.is(arg.name)
     );
+    if (isGlobalOption) {
+      continue;
+    }
 
+    const hasOption = context?.command?.options.find((opt) => opt.is(arg.name));
     if (hasOption) {
       currGroup.options[hasOption.name] = true;
       prevOptions = hasOption;

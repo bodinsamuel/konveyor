@@ -1,8 +1,11 @@
+import type { Command } from '../Command';
+import type { Option } from '../Option';
+
 export type Plan = {
-  command?: string;
+  command: string;
   options: Record<string, boolean | number | string>;
-  unknownCommand?: string;
   unknownOption?: string[];
+  unknownCommand?: true;
 };
 
 export type Arg = ArgOption | ArgValue;
@@ -16,23 +19,15 @@ export interface ArgValue {
 }
 
 export type ValidationPlan = {
-  options: ValidationOption[];
+  globalOptions: { cmd: Command<any>; option: Option }[];
   commands: ValidationCommand[];
 };
 
 export type ValidationCommand = {
-  command: string;
+  command: Command<any> | undefined;
   isTopic: boolean;
-  options: ValidationOption[];
   commands?: ValidationCommand[];
 };
-
-export interface ValidationOption {
-  name: string;
-  withValue?: boolean;
-  aliases?: string[];
-  msg?: string;
-}
 
 export interface ExecutionPlan {
   plan: Plan[];
