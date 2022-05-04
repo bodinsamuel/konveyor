@@ -1,6 +1,6 @@
 import type { CallbackAll } from './@types/command';
 import type { ConfigDefault } from './@types/config';
-import type { Plan, ExecutionPlan, ValidationPlan } from './@types/parser';
+import type { ValidationPlan, ValidExecutionItem } from './@types/parser';
 import type { Command } from './Command';
 import { Event } from './Event';
 import type { Program } from './Program';
@@ -21,7 +21,7 @@ export class Runner<TConfig extends ConfigDefault> extends Event<
   constructor(args: {
     program: Program;
     config?: TConfig;
-    validatedPlan: ExecutionPlan['plan'];
+    validatedPlan: ValidExecutionItem[];
     validationPlan: ValidationPlan;
     dirMapping: DirMapping;
     rootCommand: RootCommand;
@@ -41,16 +41,7 @@ export class Runner<TConfig extends ConfigDefault> extends Event<
 
     while (copy.length > 0) {
       const item = copy.shift()!;
-      if (!item.command) {
-        await this.runOne(this.rootCommand, item.options);
-        continue;
-      }
-
-      const command = this.dirMapping.cmds.find((cmd) => {
-        return cmd.basename === item.command;
-      })!;
-
-      await this.runOne(command.cmd, item.options);
+      await this.runOne(item.command, item.options);
     }
   }
 
@@ -59,7 +50,7 @@ export class Runner<TConfig extends ConfigDefault> extends Event<
    */
   async runOne(
     command: Command<TConfig>,
-    options: Plan['options']
+    options: ValidExecutionItem['options']
   ): Promise<void> {
     const { program, config } = this;
 

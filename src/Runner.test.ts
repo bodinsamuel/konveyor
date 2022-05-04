@@ -5,7 +5,10 @@ import { Program } from './Program';
 import { Runner } from './Runner';
 import { defaultRootCommand } from './helpers/RootCommand';
 import { fsToValidationPlan } from './parser/fsToValidationPlan';
-import { getExecutionPlan } from './parser/getExecutionPlan';
+import {
+  getExecutionPlan,
+  isExecutionPlanValid,
+} from './parser/getExecutionPlan';
 import type { DirMapping } from './parser/loadCommandsFromFs';
 import { parseArgv } from './parser/parseArgv';
 
@@ -35,7 +38,9 @@ function getRunner(
   const parsed = parseArgv(['node', 'cli.js', ...argv]).flat;
   const validationPlan = fsToValidationPlan(dirMapping);
   const validatedPlan = getExecutionPlan(parsed, validationPlan);
-  // console.log({ parsed, dirMapping, validatedPlan, validationPlan });
+  if (!isExecutionPlanValid(validatedPlan)) {
+    throw new Error('invalid plan');
+  }
 
   return new Runner({
     program: prgm,

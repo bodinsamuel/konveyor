@@ -1,9 +1,9 @@
-import type { Arg } from '../@types/parser';
+import type { Arg, ParsedArgv } from '../@types/parser';
 
 /**
  * Parse process.argv and return a list of k/v.
  */
-export function parseArgv(argv: string[]): { flat: Arg[] } {
+export function parseArgv(argv: string[]): ParsedArgv {
   if (!Array.isArray(argv)) {
     throw new Error('argv must be an array of string');
   }

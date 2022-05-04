@@ -1,9 +1,11 @@
 import type {
   Arg,
-  Plan,
   ValidationCommand,
   ExecutionPlan,
   ValidationPlan,
+  ValidExecutionPlan,
+  InvalidExecutionItem,
+  ValidExecutionItem,
 } from '../@types/parser';
 import type { Option } from '../Option';
 
@@ -14,61 +16,74 @@ export function getExecutionPlan(
   flat: Arg[],
   val: ValidationPlan
 ): ExecutionPlan {
-  const plan: Plan[] = [];
-  let success: boolean = true;
+  const plan: InvalidExecutionItem | ValidExecutionItem[] = [];
+  const copy = flat.slice();
+  const res: ExecutionPlan = { plan, success: true };
   let context: ValidationCommand | undefined;
   let prevOptions: Option | undefined;
 
   // We don't push directly to have an empty array in case of no args
-  let currGroup: Plan | undefined;
+  let currGroup: InvalidExecutionItem | ValidExecutionItem | undefined;
 
-  for (let index = 0; index < flat.length; index++) {
-    const prev = flat[index - 1];
-    const arg = flat[index];
+  while (copy.length > 0) {
+    const arg = copy.shift()!;
 
     // ---- COMMANDS
     if (arg.type === 'value') {
-      if (prev?.type === 'option' && prevOptions?.expectValue) {
+      if (prevOptions?.expectValue) {
         // Modify the past option in case we receive a value
-        currGroup!.options[prev.name] = arg.value;
+        currGroup!.options[prevOptions.name] = arg.value;
+        prevOptions = undefined;
         continue;
       }
 
-      // Only add a new group on new command
-      currGroup = { command: '', options: {} };
-      plan.push(currGroup);
-
-      currGroup.command = arg.value;
       const hasCommand = (context || val).commands?.find(
         ({ command }) => command?.name === arg.value
       );
-      if (hasCommand) {
-        context = hasCommand;
+      if (!hasCommand) {
+        // Unknown command
+        res.success = false;
+        currGroup = { options: {}, unknownCommand: arg.value };
+        plan.push(currGroup as any);
         continue;
       }
 
-      // Unknown command
-      success = false;
-      currGroup.unknownCommand = true;
-      break;
+      // Context is the previous command so that next command inherit the context
+      // It's useful for nested commands
+      context = hasCommand;
+
+      currGroup = { command: hasCommand.command!, options: {} };
+      plan.push(currGroup);
+      continue;
     }
 
-    if (!currGroup) {
-      throw new Error('An option without a command should not be possible');
-    }
-
-    // ----- OPTIONS
+    // ----- GLOBAL OPTIONS
     const isGlobalOption = val.globalOptions.find(({ option }) =>
       option.is(arg.name)
     );
     if (isGlobalOption) {
+      let hasGroup = plan.find(
+        (item) => 'command' in item && item.command.id === isGlobalOption.cmd.id
+      );
+      if (!hasGroup) {
+        hasGroup = { command: isGlobalOption.cmd, options: {} };
+        plan.push(hasGroup);
+      }
+      hasGroup.options[isGlobalOption.option.name] = true;
       continue;
+    }
+
+    // ----- OPTIONS
+    if (!currGroup) {
+      throw new Error('An option without a command should not be possible');
     }
 
     const hasOption = context?.command?.options.find((opt) => opt.is(arg.name));
     if (hasOption) {
       currGroup.options[hasOption.name] = true;
-      prevOptions = hasOption;
+      if (hasOption.expectValue) {
+        prevOptions = hasOption;
+      }
       continue;
     }
 
@@ -77,8 +92,14 @@ export function getExecutionPlan(
       currGroup.unknownOption = [];
     }
     currGroup.unknownOption.push(arg.name);
-    success = false;
+    res.success = false;
   }
 
-  return { plan, success };
+  return res;
+}
+
+export function isExecutionPlanValid(
+  plan: ExecutionPlan
+): plan is ValidExecutionPlan {
+  return plan.success === true;
 }

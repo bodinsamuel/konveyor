@@ -21,12 +21,14 @@ export interface CommandArgs<TConf extends ConfigDefault> {
   afterAll?: CallbackAll<TConf>;
 }
 
+let i = 0;
+
 export class Command<TConf extends ConfigDefault> {
-  // command description
   readonly name: string;
   readonly description: string;
   readonly isPrivate: boolean = false;
   readonly options: Option[] = [];
+  readonly id: number = i++;
 
   // state
   protected _executed: boolean = false;

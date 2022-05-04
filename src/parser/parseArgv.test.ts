@@ -1,5 +1,3 @@
-import { Command } from '../Command';
-
 import { getExecutionPlan } from './getExecutionPlan';
 import { parseArgv } from './parseArgv';
 
@@ -20,77 +18,35 @@ describe('parseArgv', () => {
     });
   });
 
-  it('should produce appropriate plan with one command and a boolean option', () => {
+  it('should produce appropriate plan with one command', () => {
     const source = ['/foo', '/bar', 'deploy', '--foo'];
     const parsed = parseArgv(source);
-    const grouped = getExecutionPlan(parsed.flat, {
-      globalOptions: [],
-      commands: [
-        {
-          command: new Command({ name: 'deploy' }),
-          isTopic: false,
-          options: [{ name: '--foo', global: false }],
-        },
-      ],
-    });
 
     expect(parsed).toStrictEqual({
       flat: [
         { type: 'value', value: 'deploy' },
         { type: 'option', name: '--foo' },
       ],
-    });
-    expect(grouped).toStrictEqual({
-      plan: [{ command: 'deploy', options: { '--foo': true } }],
-      success: true,
     });
   });
 
-  it('should produce appropriate plan with global option and one value that looks like a value', () => {
+  it('should produce appropriate plan with global option', () => {
     const source = ['/foo', '/bar', '--foo', 'deploy'];
     const parsed = parseArgv(source);
-    const grouped = getExecutionPlan(parsed.flat, {
-      globalOptions: [],
-      commands: [
-        {
-          command: 'deploy',
-          isTopic: false,
-          options: [{ name: '--foo', withValue: true, global: false }],
-        },
-      ],
-    });
 
     expect(parsed).toStrictEqual({
       flat: [
         { type: 'option', name: '--foo' },
         { type: 'value', value: 'deploy' },
       ],
-    });
-    expect(grouped).toStrictEqual({
-      plan: [{ options: { '--foo': 'deploy' } }],
-      success: true,
     });
   });
 
   it('should not parse anything after --', () => {
     const source = ['/foo', '/bar', '--', 'everything', '--else'];
     const parsed = parseArgv(source);
-    const grouped = getExecutionPlan(parsed.flat, {
-      globalOptions: [],
-      commands: [
-        {
-          command: 'deploy',
-          isTopic: false,
-          options: [{ name: 'foo', global: false }],
-        },
-      ],
-    });
 
     expect(parsed).toStrictEqual({ flat: [] });
-    expect(grouped).toStrictEqual({
-      plan: [],
-      success: true,
-    });
   });
 
   describe('options', () => {

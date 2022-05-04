@@ -1,51 +1,48 @@
 import alt from 'altheia-async-data-validator';
 
-import type { ExecutionPlan } from '../@types/parser';
+import type { ExecutionPlan, ParsedArgv } from '../@types/parser';
 import { Command } from '../Command';
 
 import { getExecutionPlan } from './getExecutionPlan';
 import { parseArgv } from './parseArgv';
+
+function argv(args: string[]): ParsedArgv['flat'] {
+  return parseArgv(['node', 'index.js', ...args]).flat;
+}
 
 describe('getExecutionPlan()', () => {
   it('should handle nested commands', () => {
     const cmdDeploy = new Command({ name: 'deploy' });
     const cmdFoo = new Command({ name: 'foo' });
     const cmdHello = new Command({ name: 'hello' });
-    const execution = getExecutionPlan(
-      [
-        { type: 'value', value: 'deploy' },
-        { type: 'value', value: 'foo' },
-        { type: 'value', value: 'hello' },
+    const execution = getExecutionPlan(argv(['deploy', 'foo', 'hello']), {
+      globalOptions: [],
+      commands: [
+        {
+          command: cmdDeploy,
+          isTopic: false,
+          commands: [
+            {
+              command: cmdFoo,
+              isTopic: false,
+              commands: [{ command: cmdHello, isTopic: false }],
+            },
+          ],
+        },
       ],
-      {
-        globalOptions: [],
-        commands: [
-          {
-            command: cmdDeploy,
-            isTopic: false,
-            commands: [
-              {
-                command: cmdFoo,
-                isTopic: false,
-                commands: [{ command: cmdHello, isTopic: false }],
-              },
-            ],
-          },
-        ],
-      }
-    );
+    });
     expect(execution).toStrictEqual<ExecutionPlan>({
       plan: [
         {
-          command: 'deploy',
+          command: cmdDeploy,
           options: {},
         },
         {
-          command: 'foo',
+          command: cmdFoo,
           options: {},
         },
         {
-          command: 'hello',
+          command: cmdHello,
           options: {},
         },
       ],
@@ -56,15 +53,14 @@ describe('getExecutionPlan()', () => {
   describe('unknown', () => {
     it('should handle unknown command', () => {
       const cmdDeploy = new Command({ name: 'deploy' });
-      const execution = getExecutionPlan([{ type: 'value', value: 'foo' }], {
+      const execution = getExecutionPlan(argv(['foo']), {
         globalOptions: [],
         commands: [{ command: cmdDeploy, isTopic: false }],
       });
       expect(execution).toStrictEqual<ExecutionPlan>({
         plan: [
           {
-            command: 'foo',
-            unknownCommand: true,
+            unknownCommand: 'foo',
             options: {},
           },
         ],
@@ -74,20 +70,14 @@ describe('getExecutionPlan()', () => {
 
     it('should handle unknown option', () => {
       const cmdDeploy = new Command({ name: 'deploy' });
-      const execution = getExecutionPlan(
-        [
-          { type: 'value', value: 'deploy' },
-          { type: 'option', name: '--bar' },
-        ],
-        {
-          globalOptions: [],
-          commands: [{ command: cmdDeploy, isTopic: false }],
-        }
-      );
+      const execution = getExecutionPlan(argv(['deploy', '--bar']), {
+        globalOptions: [],
+        commands: [{ command: cmdDeploy, isTopic: false }],
+      });
       expect(execution).toStrictEqual<ExecutionPlan>({
         plan: [
           {
-            command: 'deploy',
+            command: cmdDeploy,
             options: {},
             unknownOption: ['--bar'],
           },
@@ -97,31 +87,24 @@ describe('getExecutionPlan()', () => {
     });
   });
 
-  describe.only('options', () => {
+  describe('options', () => {
     it('should append value to previous option when "withValue:true"', () => {
       const cmdDeploy = new Command({
         name: 'deploy',
         options: [Command.option('--foo').value()],
       });
-      const execution = getExecutionPlan(
-        [
-          { type: 'value', value: 'deploy' },
-          { type: 'option', name: '--foo' },
-          { type: 'value', value: 'hello' },
+      const execution = getExecutionPlan(argv(['deploy', '--foo', 'hello']), {
+        globalOptions: [],
+        commands: [
+          {
+            command: cmdDeploy,
+            isTopic: false,
+          },
         ],
-        {
-          globalOptions: [],
-          commands: [
-            {
-              command: cmdDeploy,
-              isTopic: false,
-            },
-          ],
-        }
-      );
+      });
 
       expect(execution).toStrictEqual<ExecutionPlan>({
-        plan: [{ command: 'deploy', options: { '--foo': 'hello' } }],
+        plan: [{ command: cmdDeploy, options: { '--foo': 'hello' } }],
         success: true,
       });
     });
@@ -131,33 +114,25 @@ describe('getExecutionPlan()', () => {
         name: 'deploy',
         options: [Command.option('--foo')],
       });
-      const execution = getExecutionPlan(
-        [
-          { type: 'value', value: 'deploy' },
-          { type: 'option', name: '--foo' },
-          { type: 'value', value: 'hello' },
+      const execution = getExecutionPlan(argv(['deploy', '--foo', 'hello']), {
+        globalOptions: [],
+        commands: [
+          {
+            command: cmdDeploy,
+            isTopic: false,
+          },
         ],
-        {
-          globalOptions: [],
-          commands: [
-            {
-              command: cmdDeploy,
-              isTopic: false,
-            },
-          ],
-        }
-      );
+      });
 
       expect(execution).toStrictEqual<ExecutionPlan>({
         plan: [
           {
-            command: 'deploy',
+            command: cmdDeploy,
             options: { '--foo': true },
           },
           {
-            command: 'hello',
             options: {},
-            unknownCommand: true,
+            unknownCommand: 'hello',
           },
         ],
         success: false,
@@ -169,28 +144,20 @@ describe('getExecutionPlan()', () => {
         name: 'deploy',
         options: [Command.option('--foo').value()],
       });
-      const execution = getExecutionPlan(
-        [
-          { type: 'value', value: 'deploy' },
-          { type: 'option', name: '--foo' },
-          { type: 'value', value: 'hello' },
-          { type: 'value', value: 'world' },
+      const execution = getExecutionPlan(argv(['deploy', '--foo', 'h', 'w']), {
+        globalOptions: [],
+        commands: [
+          {
+            command: cmdDeploy,
+            isTopic: false,
+          },
         ],
-        {
-          globalOptions: [],
-          commands: [
-            {
-              command: cmdDeploy,
-              isTopic: false,
-            },
-          ],
-        }
-      );
+      });
 
       expect(execution).toStrictEqual<ExecutionPlan>({
         plan: [
-          { command: 'deploy', options: { '--foo': 'hello' } },
-          { command: 'world', options: {}, unknownCommand: true },
+          { command: cmdDeploy, options: { '--foo': 'h' } },
+          { options: {}, unknownCommand: 'w' },
         ],
         success: false,
       });
@@ -206,43 +173,8 @@ describe('getExecutionPlan()', () => {
           Command.option('-a'),
         ],
       });
-      const execution = getExecutionPlan(
-        [
-          { type: 'value', value: 'multi' },
-          { type: 'option', name: '-x' },
-          { type: 'option', name: '-c' },
-          { type: 'option', name: '-b' },
-          { type: 'option', name: '-a' },
-        ],
-        {
-          globalOptions: [],
-          commands: [
-            {
-              command: cmd,
-              isTopic: false,
-            },
-          ],
-        }
-      );
-
-      expect(execution).toStrictEqual<ExecutionPlan>({
-        plan: [
-          {
-            command: 'multi',
-            options: { '-a': true, '-b': true, '-c': true, '-x': true },
-          },
-        ],
-        success: true,
-      });
-    });
-
-    it.only('should understand alias', () => {
-      const cmd = new Command({
-        name: 'root',
-        options: [Command.option('--foo').alias('-f', '--foobar').global()],
-      });
-      const execution = getExecutionPlan(parseArgv(['-f']).flat, {
-        globalOptions: [{ cmd, option: cmd.options[0] }],
+      const execution = getExecutionPlan(argv(['multi', '-xcba']), {
+        globalOptions: [],
         commands: [
           {
             command: cmd,
@@ -252,51 +184,23 @@ describe('getExecutionPlan()', () => {
       });
 
       expect(execution).toStrictEqual<ExecutionPlan>({
-        plan: [{ command: 'root', options: { '--foo': true } }],
-        success: true,
-      });
-    });
-
-    it('should group alias', () => {
-      const cmd = new Command({
-        name: 'root',
-        options: [Command.option('--foo').alias('-f', '--foobar')],
-      });
-      const execution = getExecutionPlan(
-        [
-          { type: 'option', name: '--foo' },
-          { type: 'option', name: '-f' },
-          { type: 'option', name: '--foobar' },
+        plan: [
+          {
+            command: cmd,
+            options: { '-a': true, '-b': true, '-c': true, '-x': true },
+          },
         ],
-        {
-          globalOptions: [],
-          commands: [
-            {
-              command: cmd,
-              isTopic: false,
-            },
-          ],
-        }
-      );
-
-      expect(execution).toStrictEqual<ExecutionPlan>({
-        plan: [{ command: 'root', options: { '--foo': true } }],
         success: true,
       });
     });
 
     it('should overwrite same option', () => {
       const cmd = new Command({
-        name: 'root',
+        name: 'deploy',
         options: [Command.option('--foo').valueValidation(alt.string())],
       });
       const execution = getExecutionPlan(
-        [
-          { type: 'option', name: '--foo' },
-          { type: 'value', value: 'bar' },
-          { type: 'option', name: '--foo' },
-          { type: 'value', value: 'hello' },
-        ],
+        argv(['deploy', '--foo', 'bar', '--foo', 'hello']),
         {
           globalOptions: [],
           commands: [
@@ -309,38 +213,167 @@ describe('getExecutionPlan()', () => {
       );
 
       expect(execution).toStrictEqual<ExecutionPlan>({
-        plan: [{ command: 'root', options: { '--foo': 'hello' } }],
+        plan: [{ command: cmd, options: { '--foo': 'hello' } }],
         success: true,
       });
     });
 
-    it('should spread global option', () => {
-      const cmd = new Command({
-        name: 'deploy',
-        options: [Command.option('--help').global()],
-      });
-      const execution = getExecutionPlan(
-        [
-          { type: 'value', value: 'deploy' },
-          { type: 'option', name: '--help' },
-        ],
-        {
-          globalOptions: [],
+    describe('globalOptions', () => {
+      it('should handle globalOptions', () => {
+        const cmd = new Command({
+          name: 'root',
+          options: [Command.option('--foo').global()],
+        });
+        const execution = getExecutionPlan(argv(['--foo']), {
+          globalOptions: [{ cmd, option: cmd.options[0] }],
           commands: [
             {
               command: cmd,
               isTopic: false,
             },
           ],
-        }
-      );
+        });
 
-      expect(execution).toStrictEqual<ExecutionPlan>({
-        success: true,
-        plan: [
-          { command: 'root', options: { '--help': true } },
-          { command: 'deploy', options: {} },
-        ],
+        expect(execution).toStrictEqual<ExecutionPlan>({
+          plan: [{ command: cmd, options: { '--foo': true } }],
+          success: true,
+        });
+      });
+
+      it('should handle 2 globalOptions with same command', () => {
+        const cmd = new Command({
+          name: 'root',
+          options: [
+            Command.option('--foo').global(),
+            Command.option('--bar').global(),
+          ],
+        });
+        const execution = getExecutionPlan(argv(['--foo', '--bar']), {
+          globalOptions: [
+            { cmd, option: cmd.options[0] },
+            { cmd, option: cmd.options[1] },
+          ],
+          commands: [
+            {
+              command: cmd,
+              isTopic: false,
+            },
+          ],
+        });
+
+        expect(execution).toStrictEqual<ExecutionPlan>({
+          plan: [{ command: cmd, options: { '--foo': true, '--bar': true } }],
+          success: true,
+        });
+      });
+
+      it('should handle 2 globalOptions with different command', () => {
+        const cmd1 = new Command({
+          name: 'root',
+          options: [Command.option('--foo').global()],
+        });
+        const cmd2 = new Command({
+          name: 'deploy',
+          options: [Command.option('--bar').global()],
+        });
+        const execution = getExecutionPlan(argv(['--foo', 'deploy', '--bar']), {
+          globalOptions: [{ cmd: cmd1, option: cmd1.options[0] }],
+          commands: [
+            {
+              command: cmd2,
+              isTopic: false,
+            },
+          ],
+        });
+
+        expect(execution).toStrictEqual<ExecutionPlan>({
+          plan: [
+            { command: cmd1, options: { '--foo': true } },
+            { command: cmd2, options: { '--bar': true } },
+          ],
+          success: true,
+        });
+      });
+
+      it('should handle 2 globalOptions same command not in a row', () => {
+        const cmd1 = new Command({
+          name: 'root',
+          options: [
+            Command.option('--foo').global(),
+            Command.option('--bar').global(),
+          ],
+        });
+        const cmd2 = new Command({
+          name: 'deploy',
+          options: [],
+        });
+        const execution = getExecutionPlan(argv(['--foo', 'deploy', '--bar']), {
+          globalOptions: [
+            { cmd: cmd1, option: cmd1.options[0] },
+            { cmd: cmd1, option: cmd1.options[1] },
+          ],
+          commands: [
+            {
+              command: cmd2,
+              isTopic: false,
+            },
+          ],
+        });
+
+        expect(execution).toStrictEqual<ExecutionPlan>({
+          plan: [
+            { command: cmd1, options: { '--foo': true, '--bar': true } },
+            { command: cmd2, options: {} },
+          ],
+          success: true,
+        });
+      });
+    });
+
+    describe('alias', () => {
+      it('should understand alias', () => {
+        const cmd = new Command({
+          name: 'deploy',
+          options: [Command.option('--foo').alias('-f', '--foobar')],
+        });
+        const execution = getExecutionPlan(argv(['deploy', '-f']), {
+          globalOptions: [{ cmd, option: cmd.options[0] }],
+          commands: [
+            {
+              command: cmd,
+              isTopic: false,
+            },
+          ],
+        });
+
+        expect(execution).toStrictEqual<ExecutionPlan>({
+          plan: [{ command: cmd, options: { '--foo': true } }],
+          success: true,
+        });
+      });
+
+      it('should group alias', () => {
+        const cmd = new Command({
+          name: 'deploy',
+          options: [Command.option('--foo').alias('-f', '--foobar')],
+        });
+        const execution = getExecutionPlan(
+          argv(['deploy', '-f', '--foobar', '--foo']),
+          {
+            globalOptions: [],
+            commands: [
+              {
+                command: cmd,
+                isTopic: false,
+              },
+            ],
+          }
+        );
+
+        expect(execution).toStrictEqual<ExecutionPlan>({
+          plan: [{ command: cmd, options: { '--foo': true } }],
+          success: true,
+        });
       });
     });
   });

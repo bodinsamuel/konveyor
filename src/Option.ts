@@ -5,7 +5,7 @@ import type { Callback } from './@types/command';
 export class Option {
   #long;
   #short;
-  #withValues: boolean;
+  #withValues: boolean = false;
   #aliases: string[] = [];
   #exec: Callback<any> | undefined;
   #msg: string | undefined;
