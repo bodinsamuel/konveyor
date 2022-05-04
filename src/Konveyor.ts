@@ -5,7 +5,7 @@ import figures from 'figures';
 import * as kolorist from 'kolorist';
 
 import type { ConfigDefault } from './@types/config';
-import type { ExecutionPlan, ValidationPlan } from './@types/parser';
+import type { ValidationPlan, ValidExecutionPlan } from './@types/parser';
 import type { Command } from './Command';
 import { Event } from './Event';
 import { Logger } from './Logger';
@@ -17,7 +17,10 @@ import { defaultRootCommand } from './helpers/RootCommand';
 import { toAbsolute } from './helpers/fs';
 import { help } from './helpers/help';
 import { fsToValidationPlan } from './parser/fsToValidationPlan';
-import { getExecutionPlan } from './parser/getExecutionPlan';
+import {
+  getExecutionPlan,
+  isExecutionPlanValid,
+} from './parser/getExecutionPlan';
 import type { DirMapping } from './parser/loadCommandsFromFs';
 import { loadCommandsFromFs } from './parser/loadCommandsFromFs';
 import { parseArgv } from './parser/parseArgv';
@@ -55,6 +58,7 @@ export class Konveyor<
   private path: string;
   private rootCommand: RootCommand;
   private validationPlan: ValidationPlan = {
+    globalOptions: [],
     commands: [],
   };
 
@@ -136,8 +140,6 @@ export class Konveyor<
       this.runner = new Runner({
         program: this.program,
         config: this.config,
-        dirMapping: this.dirMapping!,
-        validationPlan: this.validationPlan,
         validatedPlan: validated.plan,
         rootCommand: this.rootCommand,
       });
@@ -198,7 +200,7 @@ export class Konveyor<
   /**
    * Parse and exit if any error.
    */
-  async parse(argv: string[]): Promise<ExecutionPlan | undefined> {
+  async parse(argv: string[]): Promise<ValidExecutionPlan | undefined> {
     const { log } = this;
     const parsed = parseArgv(argv);
     const execution = getExecutionPlan(parsed.flat, this.validationPlan);
@@ -206,7 +208,8 @@ export class Konveyor<
     log.debug('Execution plan:');
     log.debug(util.inspect(execution, { depth: null }));
 
-    if (execution.success) {
+    // Sucessful parsing no need to go further
+    if (isExecutionPlanValid(execution)) {
       if (execution.plan.length <= 0) {
         return;
       }
@@ -216,13 +219,15 @@ export class Konveyor<
 
     const paths: string[] = [];
     function forCommand(): string {
-      if (paths.length <= 0) return '';
+      if (paths.length <= 0) {
+        return '';
+      }
       return ` for command ${kolorist.lightBlue(paths.join('>'))}`;
     }
 
-    for (const plan of execution.plan) {
-      if (plan.command) paths.push(plan.command);
-      if (!plan.unknownOption && !plan.unknownCommand) {
+    for (const item of execution.plan) {
+      if ('command' in item) paths.push(item.command.name);
+      if (!item.unknownOption && !('unknownCommand' in item)) {
         // if (plan.command) {
         //   vp = vp.commands.find((command) => command.command === plan.command)!;
         // }
@@ -232,18 +237,18 @@ export class Konveyor<
       log.info(this.getHelp([]));
       log.info('\r\n');
 
-      if (plan.unknownOption) {
+      if (item.unknownOption) {
         log.error(
           `Unknown option: ${kolorist.yellow(
-            plan.unknownOption.join(' ')
+            item.unknownOption.join(' ')
           )}${forCommand()}`
         );
         break;
       }
-      if (plan.unknownCommand) {
+      if ('unknownCommand' in item) {
         log.error(
           `Unknown command: ${kolorist.yellow(
-            plan.unknownCommand
+            item.unknownCommand
           )}${forCommand()}`
         );
         break;

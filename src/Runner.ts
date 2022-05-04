@@ -1,11 +1,11 @@
 import type { CallbackAll } from './@types/command';
 import type { ConfigDefault } from './@types/config';
-import type { ValidationPlan, ValidExecutionItem } from './@types/parser';
+import type { ValidExecutionItem } from './@types/parser';
 import type { Command } from './Command';
 import { Event } from './Event';
 import type { Program } from './Program';
 import type { RootCommand } from './helpers/RootCommand';
-import type { DirMapping } from './parser/loadCommandsFromFs';
+// import type { DirMapping } from './parser/loadCommandsFromFs';
 
 export class Runner<TConfig extends ConfigDefault> extends Event<
   'command:run' | 'command:skipped' | 'command:stop'
@@ -14,16 +14,12 @@ export class Runner<TConfig extends ConfigDefault> extends Event<
   private config?: TConfig;
   private afterAlls: CallbackAll<TConfig>[] = [];
   private validatedPlan;
-  private validationPlan;
-  private dirMapping;
   private rootCommand;
 
   constructor(args: {
     program: Program;
     config?: TConfig;
     validatedPlan: ValidExecutionItem[];
-    validationPlan: ValidationPlan;
-    dirMapping: DirMapping;
     rootCommand: RootCommand;
   }) {
     super();
@@ -31,8 +27,6 @@ export class Runner<TConfig extends ConfigDefault> extends Event<
     this.program = args.program;
     this.config = args.config;
     this.validatedPlan = args.validatedPlan;
-    this.validationPlan = args.validationPlan;
-    this.dirMapping = args.dirMapping;
     this.rootCommand = args.rootCommand;
   }
 

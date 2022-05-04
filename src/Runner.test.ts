@@ -46,9 +46,7 @@ function getRunner(
     program: prgm,
     config,
     rootCommand,
-    dirMapping,
     validatedPlan: validatedPlan.plan,
-    validationPlan,
   });
 }
 
