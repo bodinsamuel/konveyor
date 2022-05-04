@@ -34,7 +34,7 @@ export interface ValidationOption {
   msg?: string;
 }
 
-export interface ValidatedPlan {
+export interface ExecutionPlan {
   plan: Plan[];
   success: boolean;
 }

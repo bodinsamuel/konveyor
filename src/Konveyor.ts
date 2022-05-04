@@ -5,7 +5,7 @@ import figures from 'figures';
 import * as kolorist from 'kolorist';
 
 import type { ConfigDefault } from './@types/config';
-import type { ValidatedPlan, ValidationPlan } from './@types/parser';
+import type { ExecutionPlan, ValidationPlan } from './@types/parser';
 import type { Command } from './Command';
 import { Event } from './Event';
 import { Logger } from './Logger';
@@ -201,18 +201,20 @@ export class Konveyor<
   /**
    * Parse and exit if any error.
    */
-  async parse(argv: string[]): Promise<ValidatedPlan | undefined> {
+  async parse(argv: string[]): Promise<ExecutionPlan | undefined> {
     const { log } = this;
     const parsed = parseArgv(argv);
-    const validated = getExecutionPlan(parsed.flat, this.validationPlan);
-    log.debug(util.inspect(validated, { depth: null }));
+    const execution = getExecutionPlan(parsed.flat, this.validationPlan);
 
-    if (validated.success) {
-      if (validated.plan.length <= 0) {
+    log.debug('Execution plan:');
+    log.debug(util.inspect(execution, { depth: null }));
+
+    if (execution.success) {
+      if (execution.plan.length <= 0) {
         return;
       }
 
-      return validated;
+      return execution;
     }
 
     const paths: string[] = [];
@@ -221,7 +223,7 @@ export class Konveyor<
       return ` for command ${kolorist.lightBlue(paths.join('>'))}`;
     }
 
-    for (const plan of validated.plan) {
+    for (const plan of execution.plan) {
       if (plan.command) paths.push(plan.command);
       if (!plan.unknownOption && !plan.unknownCommand) {
         // if (plan.command) {

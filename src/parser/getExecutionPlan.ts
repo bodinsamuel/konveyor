@@ -1,10 +1,10 @@
 import type {
   Arg,
-  ValidationPlan,
   Plan,
   ValidationCommand,
   ValidationOption,
-  ValidatedPlan,
+  ExecutionPlan,
+  ValidationPlan,
 } from '../@types/parser';
 
 /**
@@ -13,7 +13,7 @@ import type {
 export function getExecutionPlan(
   flat: Arg[],
   val: ValidationPlan
-): ValidatedPlan {
+): ExecutionPlan {
   const plan: Plan[] = [];
   let success: boolean = true;
   let context: ValidationCommand | undefined;

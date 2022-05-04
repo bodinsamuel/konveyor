@@ -22,7 +22,7 @@ export default new Config<Keys, Env>({
     dev: {
       gcp: {
         project: 'agolia-crawler',
-        region: 'us',
+        region: 'us-central1',
         cluster: 'crawler-prod-2',
       },
     },

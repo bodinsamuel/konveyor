@@ -20,7 +20,7 @@ export class RootCommand extends Command<any> {
 
 export const defaultRootCommand = new RootCommand({
   options: [
-    Command.option('--version').msg('Show cli version'),
+    Command.option('--version', '-v').msg('Show cli version'),
     Command.option('--help').msg('Show help for command'),
   ],
   prepare(knvyr): Callback<any> {
@@ -30,7 +30,7 @@ export const defaultRootCommand = new RootCommand({
         return;
       }
       if (options['--help']) {
-        knvyr.getHelp([]);
+        log.info(knvyr.getHelp([]));
       }
     };
   },
