@@ -176,18 +176,16 @@ export class Konveyor<
       }),
     };
 
-    if (!commandsPath) {
-      return;
+    if (commandsPath) {
+      const dirMapping = await loadCommandsFromFs({
+        dirPath: commandsPath,
+        log,
+      });
+
+      // Manual merge
+      this.dirMapping.cmds = [...this.dirMapping.cmds, ...dirMapping.cmds];
+      this.dirMapping.subs = dirMapping.subs;
     }
-
-    const dirMapping = await loadCommandsFromFs({
-      dirPath: commandsPath,
-      log,
-    });
-
-    // Manual merge
-    this.dirMapping.cmds = [...this.dirMapping.cmds, ...dirMapping.cmds];
-    this.dirMapping.subs = dirMapping.subs;
 
     log.debug('Loaded from FS:');
     log.debug(util.inspect(this.dirMapping, { depth: null }));

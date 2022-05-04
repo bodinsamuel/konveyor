@@ -24,7 +24,10 @@ export function help({
 
   if (name) {
     msg.push(`${kolorist.white('NAME')}\r\n`);
-    msg.push(`  ${name} ${kolorist.dim(`@ ${version}`)} \r\n  ${description}`);
+    msg.push(`  ${name} ${kolorist.dim(`@ ${version}`)}`);
+    if (description) {
+      msg.push(`\r\n ${description}`);
+    }
   }
 
   if (rootCommand?.options && rootCommand.options.length > 0) {

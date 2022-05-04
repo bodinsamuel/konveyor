@@ -105,6 +105,10 @@ export class Runner<TConfig extends ConfigDefault> extends Event<
    * Run after everything has been executed.
    */
   async afterAll(): Promise<void> {
+    if (this.afterAlls.length <= 0) {
+      return;
+    }
+
     try {
       this.program.log.debug('Running afterAll()');
       await Promise.all(

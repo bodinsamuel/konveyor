@@ -24,102 +24,126 @@ export interface CommandArgs<TConf extends ConfigDefault> {
 let i = 0;
 
 export class Command<TConf extends ConfigDefault> {
-  readonly name: string;
-  readonly description: string;
-  readonly isPrivate: boolean = false;
-  readonly options: Option[] = [];
-  readonly id: number = i++;
+  #name: string;
+  #description: string;
+  #isPrivate: boolean = false;
+  #options: Option[] = [];
+  #id: number = i++;
 
   // state
-  protected _executed: boolean = false;
-  protected _dependencies: Set<Command<TConf>> = new Set();
-  protected _dependenciesPlan?: DependenciesPlan<TConf>;
+  #executed: boolean = false;
+  #dependencies: Set<Command<TConf>> = new Set();
+  #dependenciesPlan?: DependenciesPlan<TConf>;
 
   // actual commands
-  protected _before?: Callback<TConf>;
-  protected _exec?: Callback<TConf>;
-  protected _after?: Callback<TConf>;
-  protected _afterAll?: CallbackAll<TConf>;
+  #before?: Callback<TConf>;
+  #exec?: Callback<TConf>;
+  #after?: Callback<TConf>;
+  #afterAll?: CallbackAll<TConf>;
 
   constructor(args: CommandArgs<TConf>) {
-    this.name = args.name;
-    this.description = args.description || '';
-    this.isPrivate = args.isPrivate === true;
+    this.#name = args.name;
+    this.#description = args.description || '';
+    this.#isPrivate = args.isPrivate === true;
 
-    this._before = args.before;
-    this._exec = args.exec;
-    this._after = args.after;
-    this._afterAll = args.afterAll;
+    this.#before = args.before;
+    this.#exec = args.exec;
+    this.#after = args.after;
+    this.#afterAll = args.afterAll;
 
     if (args.options) {
-      this.options = args.options;
+      this.#options = args.options;
     }
 
     // Check dependencies
     if (args.dependencies && Array.isArray(args.dependencies)) {
-      this._dependencies = new Set(args.dependencies);
-      this._dependencies.forEach((dep) => {
+      this.#dependencies = new Set(args.dependencies);
+      this.#dependencies.forEach((dep) => {
         if (typeof dep === 'undefined') {
-          throw new CommandUndefinedError(this.name);
+          throw new CommandUndefinedError(this.#name);
         }
       });
     } else if (args.dependencies) {
-      this._dependenciesPlan = args.dependencies;
+      this.#dependenciesPlan = args.dependencies;
     }
+  }
+
+  get [Symbol.toStringTag](): string {
+    return `${this.name}`;
+  }
+
+  get name(): string {
+    return this.#name;
+  }
+
+  get description(): string {
+    return this.#description;
+  }
+
+  get id(): number {
+    return this.#id;
+  }
+
+  get isPrivate(): boolean {
+    return this.#isPrivate;
   }
 
   static option(long: string, short?: string): Option {
     return new Option(long, short);
   }
 
+  get options(): Option[] {
+    return this.#options;
+  }
+
   get dependencies(): Set<Command<TConf>> {
-    return this._dependencies;
+    return this.#dependencies;
   }
 
   get dependenciesPlan(): DependenciesPlan<TConf> | undefined {
-    return this._dependenciesPlan;
+    return this.#dependenciesPlan;
   }
 
   executed(is: boolean): void {
-    this._executed = is;
+    this.#executed = is;
   }
 
   get isExecuted(): boolean {
-    return this._executed;
+    return this.#executed;
   }
 
   get before(): CallbackBefore<TConf> | undefined {
-    return this._before;
+    return this.#before;
   }
 
   hasBefore(): boolean {
-    return Boolean(this._before);
+    return Boolean(this.#before);
   }
 
   get exec(): Callback<TConf> | undefined {
-    return this._exec;
+    return this.#exec;
   }
   set exec(e: Callback<TConf> | undefined) {
-    this._exec = e;
+    this.#exec = e;
   }
 
   hasExec(): boolean {
-    return Boolean(this._exec);
+    return Boolean(this.#exec);
   }
 
   get after(): Callback<TConf> | undefined {
-    return this._after;
+    return this.#after;
   }
 
   hasAfter(): boolean {
-    return Boolean(this._after);
+    return Boolean(this.#after);
   }
 
   get afterAll(): CallbackAll<TConf> | undefined {
-    return this._afterAll;
+    return this.#afterAll;
   }
 
   hasAfterAll(): boolean {
-    return Boolean(this._afterAll);
+    return Boolean(this.#afterAll);
   }
 }

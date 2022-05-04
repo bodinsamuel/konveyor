@@ -4,7 +4,7 @@ import type { Konveyor } from '../Konveyor';
 import type { Option } from '../Option';
 
 export class RootCommand extends Command<any> {
-  prepare;
+  #prepare;
 
   constructor({
     options,
@@ -14,7 +14,11 @@ export class RootCommand extends Command<any> {
     prepare: (knvyr: Konveyor<any>) => Callback<any>;
   }) {
     super({ name: 'root', description: '', options });
-    this.prepare = prepare;
+    this.#prepare = prepare;
+  }
+
+  get prepare(): (knvyr: Konveyor<any>) => Callback<any> {
+    return this.#prepare;
   }
 }
 
