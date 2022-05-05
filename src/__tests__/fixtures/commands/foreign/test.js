@@ -1,7 +1,7 @@
 /* eslint-disable import/no-commonjs */
 /* eslint-disable @typescript-eslint/no-var-requires */
 
-const { Command } = require('../../../../../dist/src/Command');
+const { Command } = require('../../../../../dist/Command');
 
 module.exports.default = new Command({
   name: 'js_file',

@@ -94,5 +94,8 @@
     "examples/",
     "**/__mocks__/*",
     "dist/"
+  ],
+  "include": [
+    "src/"
   ]
 }
