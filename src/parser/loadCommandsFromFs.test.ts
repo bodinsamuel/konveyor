@@ -1,107 +1,58 @@
 import path from 'path';
 
+import type { DirMapping } from '../@types/parser';
+import { Logger } from '../Logger';
+
 import { loadCommandsFromFs } from './loadCommandsFromFs';
 
+jest.mock('../Logger');
+
+const dirPath = path.resolve(__dirname, '../', '__tests__/fixtures/commands');
+const logger = new Logger();
+
 describe('loadCommandsFromFs', () => {
-  it('should output correct mapping', async () => {
+  it('should allow correctly', async () => {
     const mapping = await loadCommandsFromFs({
       config: {
-        path: path.resolve(__dirname, '../..', 'examples/advanced/commands'),
+        path: dirPath,
+        allow: /commands\/([A-z]*)\.ts/,
       },
-      log: { debug: () => {} } as any,
+      dirPath,
+      log: logger,
     });
-    expect(mapping).toStrictEqual({
-      cmds: [
-        {
-          basename: 'checkRepoState',
-          cmd: expect.any(Object),
-          paths: ['checkRepoState'],
-        },
-        {
-          basename: 'chooseEnv',
-          cmd: expect.any(Object),
-          paths: ['chooseEnv'],
-        },
-        {
-          basename: 'deploy',
-          cmd: expect.any(Object),
-          paths: ['deploy'],
-        },
-        {
-          basename: 'test',
-          cmd: expect.any(Object),
-          paths: ['test'],
-        },
-      ],
+    expect(mapping).toStrictEqual<DirMapping>({
+      cmds: [{ basename: 'test', paths: ['test'], cmd: expect.any(Object) }],
       dirPath: expect.any(String),
       isTopic: false,
       paths: [],
-      subs: [
-        {
-          cmds: [
-            {
-              basename: 'index',
-              cmd: expect.any(Object),
-              paths: ['db-migrate', 'index'],
-            },
-          ],
-          dirPath: expect.any(String),
-          isTopic: false,
-          paths: ['db-migrate'],
-          subs: [],
-        },
-        {
-          cmds: [
-            {
-              basename: 'connectEnv',
-              cmd: expect.any(Object),
-              paths: ['prod', 'connectEnv'],
-            },
-          ],
-          dirPath: expect.any(String),
-          isTopic: true,
-          paths: ['prod'],
-          subs: [],
-        },
-      ],
+      subs: [],
     });
   });
 
   it('should ignore correctly', async () => {
     const mapping = await loadCommandsFromFs({
       config: {
-        path: path.resolve(__dirname, '../..', 'examples/advanced/commands'),
-        ignore: /(db-migrate|prod)/,
+        path: dirPath,
+        ignore: /(errors|foreign|not_a_topic|name_conflict|topic)/,
       },
-      log: { debug: () => {} } as any,
+      dirPath,
+      log: logger,
     });
-    expect(mapping).toStrictEqual({
-      cmds: [
-        {
-          basename: 'checkRepoState',
-          cmd: expect.any(Object),
-          paths: ['checkRepoState'],
-        },
-        {
-          basename: 'chooseEnv',
-          cmd: expect.any(Object),
-          paths: ['chooseEnv'],
-        },
-        {
-          basename: 'deploy',
-          cmd: expect.any(Object),
-          paths: ['deploy'],
-        },
-        {
-          basename: 'test',
-          cmd: expect.any(Object),
-          paths: ['test'],
-        },
-      ],
+
+    expect(mapping).toStrictEqual<DirMapping>({
+      cmds: [{ basename: 'test', paths: ['test'], cmd: expect.any(Object) }],
       dirPath: expect.any(String),
       isTopic: false,
       paths: [],
-      subs: [],
+      subs: [
+        {
+          dirPath: expect.any(String),
+          paths: ['tests'],
+          isTopic: true,
+          subs: [],
+          cmds: [expect.any(Object)],
+        },
+      ],
     });
   });
 });

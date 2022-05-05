@@ -81,7 +81,7 @@ describe('root', () => {
 });
 
 describe.only('fixtures', () => {
-  it('should load everything correctly', async () => {
+  it.only('should load everything correctly', async () => {
     const { stream, logger } = getLogger();
     const knv = new Konveyor({
       name: 'Test',
@@ -93,6 +93,7 @@ describe.only('fixtures', () => {
     await knv.start(nodeJsArgv(['--help']));
     const joined = stream.join('\r\n');
     expect(joined).toBe('erer');
+    expect(joined).toMatch(/Skipped(.*)\/notgood.csv"/);
   });
 
   it('should throw on noDefault', async () => {

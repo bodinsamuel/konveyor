@@ -52,6 +52,16 @@ export async function loadCommandsFromFs({
 
   for (const file of dir) {
     const load = path.join(dirPath, file.name);
+
+    if (config.allow && !config.allow.test(load)) {
+      log.debug(`Not allowed "${load}"`);
+      continue;
+    }
+    if (config.ignore?.test(load)) {
+      log.debug(`Ignored "${load}"`);
+      continue;
+    }
+
     if (file.isDirectory()) {
       res.subs.push(
         await loadCommandsFromFs({
@@ -67,15 +77,6 @@ export async function loadCommandsFromFs({
     const ext = path.extname(file.name);
     if (!ALLOWED_EXTS.includes(ext)) {
       log.debug(`Skipped "${load}"`);
-      continue;
-    }
-
-    if (!config.allow?.test(load)) {
-      log.debug(`Ignored "${load}"`);
-      continue;
-    }
-    if (config.ignore?.test(load)) {
-      log.debug(`Ignored "${load}"`);
       continue;
     }
 
