@@ -39,7 +39,10 @@ export type InvalidExecutionPlan = {
   success: boolean;
 };
 
-export type ExecutionItems = InvalidExecutionItem | ValidExecutionItem;
+export type ExecutionItems =
+  | InvalidExecutionItem
+  | InvalidRootExecutionItem
+  | ValidExecutionItem;
 
 export interface ValidExecutionItem {
   command: Command<any>;
@@ -50,4 +53,7 @@ export interface InvalidExecutionItem {
   options: Record<string, boolean | number | string>;
   unknownOption?: string[];
   unknownCommand: string;
+}
+export interface InvalidRootExecutionItem {
+  unknownOption: string[];
 }

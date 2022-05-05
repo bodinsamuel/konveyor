@@ -1,6 +1,6 @@
 import figures from 'figures';
 import * as kolorist from 'kolorist';
-import type { Logger as WinstonLogger } from 'winston';
+import type { Logger as WinstonLogger, LoggerOptions } from 'winston';
 import { createLogger as createWinston, transports, format } from 'winston';
 
 const formatConsole = format.printf(({ level, message }) => {
@@ -20,20 +20,40 @@ const formatFile = format.printf(({ level, message }) => {
 export class Logger {
   readonly winston: WinstonLogger;
 
-  constructor({ folder }: { folder: string }) {
-    this.winston = createWinston({
-      transports: [
+  constructor(
+    {
+      logToFolder,
+      logToConsole = true,
+    }: {
+      logToConsole?: boolean;
+      logToFolder?: string;
+    } = {},
+    opts: LoggerOptions = {}
+  ) {
+    if (!Array.isArray(opts.transports)) {
+      // eslint-disable-next-line no-param-reassign
+      opts.transports = opts.transports ? [opts.transports] : [];
+    }
+    if (logToConsole) {
+      opts.transports.push(
         new transports.Console({
           format: format.combine(format.colorize(), formatConsole),
-        }),
+        })
+      );
+    }
+
+    if (logToFolder) {
+      opts.transports.push(
         new transports.File({
-          filename: `${folder}/debug.log`,
+          filename: `${logToFolder}/debug.log`,
           level: 'debug',
           format: format.combine(formatFile, format.uncolorize()),
           options: { flags: 'w' },
-        }),
-      ],
-    });
+        })
+      );
+    }
+
+    this.winston = createWinston(opts);
   }
 
   info(msg: string): void {

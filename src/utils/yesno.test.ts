@@ -6,7 +6,7 @@ jest.mock('enquirer');
 jest.mock('../Logger');
 
 describe('yesno()', () => {
-  const logger = new Logger({ folder: '' });
+  const logger = new Logger();
 
   it('should ask a question and receive an answer', async () => {
     const answer = await createYesNo(logger)('foobar?');

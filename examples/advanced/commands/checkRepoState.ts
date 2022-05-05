@@ -18,7 +18,7 @@ export default new Command({
         'Your repo is not clean, please commit or stash everything',
         'git stash -u'
       );
-      exit();
+      return exit();
     }
 
     spinner.spin('Checking origin...');
@@ -28,7 +28,7 @@ export default new Command({
       spinner.fail();
 
       log.help('Your repo is up to date with origin', 'git pull');
-      exit();
+      return exit();
     }
   },
 });

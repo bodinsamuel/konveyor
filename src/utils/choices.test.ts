@@ -6,7 +6,7 @@ jest.mock('enquirer');
 jest.mock('../Logger');
 
 describe('choices()', () => {
-  const logger = new Logger({ folder: '' });
+  const logger = new Logger();
   it('should ask a question and receive a single answer', async () => {
     const answer = await createChoices(logger)('foobar?', [
       { name: 'foo' },

@@ -14,7 +14,7 @@ import { parseArgv } from './parser/parseArgv';
 
 jest.mock('./Logger');
 
-const prgm = new Program({ logger: new Logger({ folder: './' }) });
+const prgm = new Program({ logger: new Logger() });
 const config = new Config({ configs: { dev: {} }, defaultEnv: 'dev' });
 const rootCommand = defaultRootCommand;
 

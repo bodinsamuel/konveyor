@@ -6,7 +6,7 @@ jest.mock('rimraf');
 jest.mock('../Logger');
 
 describe('folderClear()', () => {
-  const logger = new Logger({ folder: '' });
+  const logger = new Logger();
   it('should clear the folder', async () => {
     await createFolderClear(logger)('/foobar');
 

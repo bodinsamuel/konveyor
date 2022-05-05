@@ -21,7 +21,7 @@ const checkRepo = new Command({
         'Your repo is not clean, please commit or stash everything',
         'git stash -u'
       );
-      exit();
+      return exit();
     }
   },
 });

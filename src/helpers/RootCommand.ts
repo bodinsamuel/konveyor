@@ -24,7 +24,7 @@ export class RootCommand extends Command<any> {
 
 export const defaultRootCommand = new RootCommand({
   options: [
-    Command.option('--version', '-v').msg('Show cli version'),
+    Command.option('--version', '-v').msg('Show cli version').global(),
     Command.option('--help').msg('Show help for command').global(),
   ],
   prepare(knvyr): Callback<any> {

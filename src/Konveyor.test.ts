@@ -48,7 +48,7 @@ describe('askForCommand()', () => {
 
 describe('exit()', () => {
   it('should exit(0)', async () => {
-    const logger = new Logger({ folder: '/' });
+    const logger = new Logger();
     const program = {
       spinner: new Spinner({ logger }),
       log: logger,
@@ -70,7 +70,7 @@ describe('exit()', () => {
   });
 
   it('should exit(1)', async () => {
-    const logger = new Logger({ folder: '/' });
+    const logger = new Logger();
     const program = {
       spinner: new Spinner({ logger }),
       log: logger,

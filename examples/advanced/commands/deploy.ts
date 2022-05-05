@@ -25,7 +25,7 @@ export default new Command({
   async exec({ yesno, exit }, options, config): Promise<void> {
     const answer = await yesno(`Do you want to deploy "${config!.env}"?`);
     if (!answer) {
-      exit();
+      return exit();
     }
   },
 });

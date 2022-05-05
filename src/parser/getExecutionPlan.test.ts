@@ -1,14 +1,10 @@
 import alt from 'altheia-async-data-validator';
 
-import type { ExecutionPlan, ParsedArgv } from '../@types/parser';
+import type { ExecutionPlan } from '../@types/parser';
 import { Command } from '../Command';
+import { argv } from '../__tests__/helpers';
 
 import { getExecutionPlan } from './getExecutionPlan';
-import { parseArgv } from './parseArgv';
-
-function argv(args: string[]): ParsedArgv['flat'] {
-  return parseArgv(['node', 'index.js', ...args]).flat;
-}
 
 describe('getExecutionPlan()', () => {
   it('should handle nested commands', () => {
@@ -214,6 +210,26 @@ describe('getExecutionPlan()', () => {
 
       expect(execution).toStrictEqual<ExecutionPlan>({
         plan: [{ command: cmd, options: { '--foo': 'hello' } }],
+        success: true,
+      });
+    });
+
+    it('should handle undefined option at root level', () => {
+      const cmd = new Command({
+        name: 'deploy',
+      });
+      const execution = getExecutionPlan(argv(['--foobar']), {
+        globalOptions: [],
+        commands: [
+          {
+            command: cmd,
+            isTopic: false,
+          },
+        ],
+      });
+
+      expect(execution).toStrictEqual<ExecutionPlan>({
+        plan: [{ unknownOption: ['--foobar'] }],
         success: true,
       });
     });

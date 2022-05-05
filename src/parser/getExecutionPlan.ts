@@ -6,6 +6,7 @@ import type {
   ValidExecutionPlan,
   InvalidExecutionItem,
   ValidExecutionItem,
+  InvalidRootExecutionItem,
 } from '../@types/parser';
 import type { Option } from '../Option';
 
@@ -16,9 +17,14 @@ export function getExecutionPlan(
   flat: Arg[],
   val: ValidationPlan
 ): ExecutionPlan {
-  const plan: InvalidExecutionItem | ValidExecutionItem[] = [];
+  const plan: (
+    | InvalidExecutionItem
+    | InvalidRootExecutionItem
+    | ValidExecutionItem
+  )[] = [];
   const copy = flat.slice();
   const res: ExecutionPlan = { plan, success: true };
+  const invalidRootOptions: InvalidRootExecutionItem = { unknownOption: [] };
   let context: ValidationCommand | undefined;
   let prevOptions: Option | undefined;
 
@@ -44,7 +50,7 @@ export function getExecutionPlan(
         // Unknown command
         res.success = false;
         currGroup = { options: {}, unknownCommand: arg.value };
-        plan.push(currGroup as any);
+        plan.push(currGroup);
         continue;
       }
 
@@ -62,8 +68,9 @@ export function getExecutionPlan(
       option.is(arg.name)
     );
     if (isGlobalOption) {
-      let hasGroup = plan.find(
-        (item) => 'command' in item && item.command.id === isGlobalOption.cmd.id
+      let hasGroup = plan.find<ValidExecutionItem>(
+        (item): item is ValidExecutionItem =>
+          'command' in item && item.command.id === isGlobalOption.cmd.id
       );
       if (!hasGroup) {
         hasGroup = { command: isGlobalOption.cmd, options: {} };
@@ -75,7 +82,11 @@ export function getExecutionPlan(
 
     // ----- OPTIONS
     if (!currGroup) {
-      throw new Error('An option without a command should not be possible');
+      invalidRootOptions.unknownOption.push(arg.name);
+      continue;
+      // throw new Error(
+      //   `An option ${arg.name} without a command should not be possible`
+      // );
     }
 
     const hasOption = context?.command?.options.find((opt) => opt.is(arg.name));
@@ -93,6 +104,10 @@ export function getExecutionPlan(
     }
     currGroup.unknownOption.push(arg.name);
     res.success = false;
+  }
+
+  if (invalidRootOptions.unknownOption.length > 0) {
+    res.plan.unshift(invalidRootOptions);
   }
 
   return res;

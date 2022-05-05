@@ -24,7 +24,7 @@ import {
 import type { DirMapping } from './parser/loadCommandsFromFs';
 import { loadCommandsFromFs } from './parser/loadCommandsFromFs';
 import { parseArgv } from './parser/parseArgv';
-import type { Choice, Spinner } from './utils';
+import type { Choice, Spinner, SymbolExit } from './utils';
 import { clearConsole, exit } from './utils';
 
 interface Args<TConfig extends ConfigDefault> {
@@ -88,7 +88,8 @@ export class Konveyor<
     this.log =
       args.logger ||
       new Logger({
-        folder: this.path,
+        logToFolder: this.path,
+        logToConsole: true,
       });
 
     this.program =
@@ -150,6 +151,7 @@ export class Konveyor<
         log.error(err);
       }
       await this.exit(1);
+      return;
     }
 
     await this.exit(0);
@@ -281,7 +283,7 @@ export class Konveyor<
   /**
    * Terminate cli.
    */
-  async exit(code: number): Promise<void> {
+  async exit(code: 0 | 1): Promise<SymbolExit> {
     const { log, program } = this;
     program.spinner.fail();
 
@@ -305,6 +307,6 @@ export class Konveyor<
     // Write final log to file
     await log.close();
 
-    exit(code);
+    return exit(code);
   }
 }

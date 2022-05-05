@@ -1,20 +1,21 @@
 import { Konveyor } from '../Konveyor';
-import { Logger } from '../Logger';
+
+import { getLogger, nodeJsArgv } from './helpers';
 
 jest.mock('../utils/exit');
-jest.mock('../Logger');
+jest.setTimeout(10000);
 
 describe('root', () => {
   it('should output --help', async () => {
-    const logger = new Logger({ folder: __dirname });
+    const { stream, logger } = getLogger();
     const knv = new Konveyor({
       name: 'Test',
       version: '0.0.1',
       logger,
     });
 
-    await knv.start(['node', 'index.js', '--help']);
-    const joined = (logger.content as string[]).join('\r\n');
+    await knv.start(nodeJsArgv(['--help']));
+    const joined = stream.join('\r\n');
 
     const msgs = [
       '---- Konveyor Start',
@@ -47,6 +48,7 @@ describe('root', () => {
       const msg = msgs.shift()!;
       const index = copy.indexOf(msg);
       if (index === -1) {
+        // eslint-disable-next-line no-console
         console.error(msg);
         break;
       }
@@ -62,15 +64,15 @@ describe('root', () => {
   });
 
   it.only('should output --version', async () => {
-    const logger = new Logger({ folder: __dirname });
+    const { stream, logger } = getLogger();
     const knv = new Konveyor({
       name: 'Test',
       version: '0.0.1',
       logger,
     });
 
-    await knv.start(['node', 'index.js', '--version']);
-    const joined = (logger.content as string[]).join('\r\n');
+    await knv.start(nodeJsArgv(['--version']));
+    const joined = stream.join('\r\n');
     expect(joined).toMatch('0.0.1');
   });
 });

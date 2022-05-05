@@ -5,7 +5,7 @@ import { createRetryUntil } from './retryUntil';
 jest.mock('../Logger');
 
 describe('retryUntil()', () => {
-  const logger = new Logger({ folder: '' });
+  const logger = new Logger();
 
   it('should retry until the callback is finally ok', async () => {
     let iter = 0;

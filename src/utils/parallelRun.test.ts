@@ -5,7 +5,7 @@ import { createParallelRun } from './parallelRun';
 jest.mock('../Logger');
 
 describe('parallelRun()', () => {
-  const logger = new Logger({ folder: '' });
+  const logger = new Logger();
 
   it('should retry until the promises are finally ok', async () => {
     const res = await createParallelRun(logger)([
