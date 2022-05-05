@@ -1,7 +1,8 @@
-import type { ValidationCommand, ValidationPlan } from '../@types/parser';
-// import { DuplicateCommandError } from '../errors';
-
-import type { DirMapping } from './loadCommandsFromFs';
+import type {
+  DirMapping,
+  ValidationCommand,
+  ValidationPlan,
+} from '../@types/parser';
 
 export function fsToValidationPlan(dir: DirMapping): ValidationPlan {
   const globalOptions: ValidationPlan['globalOptions'] = [];

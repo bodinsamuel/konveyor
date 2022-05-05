@@ -24,6 +24,8 @@ export interface CommandArgs<TConf extends ConfigDefault> {
 let i = 0;
 
 export class Command<TConf extends ConfigDefault> {
+  readonly __Command = true;
+
   #name: string;
   #description: string;
   #isPrivate: boolean = false;

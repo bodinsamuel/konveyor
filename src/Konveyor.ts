@@ -5,7 +5,12 @@ import figures from 'figures';
 import * as kolorist from 'kolorist';
 
 import type { ConfigDefault } from './@types/config';
-import type { ValidationPlan, ValidExecutionPlan } from './@types/parser';
+import type {
+  AutoloadConfig,
+  DirMapping,
+  ValidationPlan,
+  ValidExecutionPlan,
+} from './@types/parser';
 import type { Command } from './Command';
 import { Event } from './Event';
 import { Logger } from './Logger';
@@ -21,7 +26,6 @@ import {
   getExecutionPlan,
   isExecutionPlanValid,
 } from './parser/getExecutionPlan';
-import type { DirMapping } from './parser/loadCommandsFromFs';
 import { loadCommandsFromFs } from './parser/loadCommandsFromFs';
 import { parseArgv } from './parser/parseArgv';
 import type { Choice, Spinner, SymbolExit } from './utils';
@@ -32,7 +36,7 @@ interface Args<TConfig extends ConfigDefault> {
   description?: string;
   version: string;
   commands?: Command<TConfig>[];
-  commandsPath?: string;
+  autoload?: AutoloadConfig;
   logger?: Logger;
   spinner?: Spinner;
   program?: Program;
@@ -53,7 +57,7 @@ export class Konveyor<
   private description?: string;
   private dirMapping: DirMapping | undefined;
   private commands: Command<TConfig>[] = [];
-  private commandsPath?: string;
+  private autoload?: Args<any>['autoload'];
   private clearOnStart: boolean;
   private path: string;
   private rootCommand: RootCommand;
@@ -74,11 +78,12 @@ export class Konveyor<
     this.description = args.description;
     this.#version = args.version;
     this.path = path.dirname(require!.main!.filename);
-    this.commandsPath = args.commandsPath
-      ? toAbsolute(args.commandsPath, this.path)
-      : undefined;
     this.clearOnStart = args.clearOnStart === true;
 
+    this.autoload = args.autoload;
+    if (this.autoload?.path) {
+      this.autoload.path = toAbsolute(this.autoload.path, this.path);
+    }
     if (args.commands) {
       this.commands.push(...args.commands);
     }
@@ -161,7 +166,7 @@ export class Konveyor<
    * Load commands from file system and register validation plan.
    */
   async loadCommands(): Promise<void> {
-    const { log, commandsPath } = this;
+    const { log, autoload } = this;
 
     // Create a fake dir mapping if we specify raw commands
     this.dirMapping = {
@@ -178,9 +183,10 @@ export class Konveyor<
       }),
     };
 
-    if (commandsPath) {
+    if (autoload) {
       const dirMapping = await loadCommandsFromFs({
-        dirPath: commandsPath,
+        config: autoload,
+        dirPath: autoload.path,
         log,
       });
 

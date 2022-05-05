@@ -34,11 +34,11 @@ export default new Command({
 });
 
 async function isRepoClean(exec: Exec): Promise<boolean> {
-  const { stdout } = await exec(`git status --porcelain`);
-  return stdout.length <= 0;
+  const { output } = await exec(`git status --porcelain`).promise;
+  return output.length <= 0;
 }
 
 async function isUptodateWithOrigin(exec: Exec): Promise<boolean> {
-  const { stdout } = await exec(`git fetch --dry-run`);
-  return stdout.length <= 0;
+  const { output } = await exec(`git fetch --dry-run`).promise;
+  return output.length <= 0;
 }

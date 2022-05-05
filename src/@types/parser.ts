@@ -2,6 +2,11 @@ import type { Command } from '../Command';
 import type { Option } from '../Option';
 
 // --- Step 1: Parsing
+export interface AutoloadConfig {
+  path: string;
+  ignore?: RegExp;
+  allow?: RegExp;
+}
 export interface ParsedArgv {
   flat: Arg[];
 }
@@ -13,6 +18,17 @@ export interface ArgOption {
 export interface ArgValue {
   type: 'value';
   value: string;
+}
+export interface DirMapping {
+  dirPath: string;
+  paths: string[];
+  isTopic: boolean;
+  subs: DirMapping[];
+  cmds: {
+    paths: string[];
+    basename: string;
+    cmd: Command<any>;
+  }[];
 }
 
 // --- Step 2: Validation plan
@@ -28,7 +44,6 @@ export type ValidationCommand = {
 };
 
 // --- Step 3: Execution plan.
-
 export type ExecutionPlan = InvalidExecutionPlan | ValidExecutionPlan;
 export type ValidExecutionPlan = {
   plan: ValidExecutionItem[];

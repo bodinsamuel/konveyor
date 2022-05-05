@@ -1,7 +1,6 @@
 !> Very alpha
 
 [![Build Status](https://travis-ci.org/bodinsamuel/konveyor.svg?branch=master)](https://travis-ci.org/bodinsamuel/konveyor)
-[![codecov](https://codecov.io/gh/bodinsamuel/konveyor/branch/master/graph/badge.svg)](https://codecov.io/gh/bodinsamuel/konveyor)
 
 # Konveyor
 
@@ -57,5 +56,9 @@ See [documentation folder](./docs/).
 - Options
   - Global options
   - Nested help
+  - Default help if nothing is specified
 - Commands
   - Command name dedup
+- Execution
+  - Stream Interactive?
+  - Autoload .sh + exec in child

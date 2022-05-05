@@ -1,7 +1,7 @@
 import * as kolorist from 'kolorist';
 
+import type { DirMapping } from '../@types/parser';
 import type { Option } from '../Option';
-import type { DirMapping } from '../parser/loadCommandsFromFs';
 
 import type { RootCommand } from './RootCommand';
 

@@ -63,6 +63,12 @@ export class Program {
     return createExec(this._logger);
   }
 
+  get execInteractive(): ReturnType<typeof createExec> {
+    return createExec(this._logger, {
+      stdio: 'inherit',
+    });
+  }
+
   get retryUntil(): ReturnType<typeof createRetryUntil> {
     return createRetryUntil(this._logger);
   }

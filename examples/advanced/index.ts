@@ -14,7 +14,7 @@ const knv = new Konveyor({
   description:
     'An advanced CLI that contains dependents commands, options, nested commands, etc...',
   version: '0.0.1',
-  commandsPath: './commands',
+  autoload: { path: './commands' },
   config,
 });
 

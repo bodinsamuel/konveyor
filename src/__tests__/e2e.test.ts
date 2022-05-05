@@ -24,9 +24,11 @@ describe('root', () => {
       'paths: [],',
       'subs: [],',
       "cmds: [ { basename: 'root', cmd: RootCommand [root] {}, paths: [] } ]",
-      'Validation plan',
+      'Validation plan:',
       'commands: [ { command: RootCommand [root] {}, isTopic: false } ],',
-      'globalOptions: [ { cmd: RootCommand [root] {}, option: Option {} } ]',
+      'globalOptions:',
+      'cmd: RootCommand [root] {}, option: Option [--version] {}',
+      'cmd: RootCommand [root] {}, option: Option [--help] {}',
       'Execution plan:',
       "plan: [ { command: RootCommand [root] {}, options: { '--help': true } } ],",
       'success: true',
@@ -52,6 +54,7 @@ describe('root', () => {
         console.error(msg);
         break;
       }
+
       const slice = copy.substring(index, index + msg.length);
       expect(slice).toEqual(msg);
       copy = copy.substring(index + msg.length);
@@ -74,5 +77,56 @@ describe('root', () => {
     await knv.start(nodeJsArgv(['--version']));
     const joined = stream.join('\r\n');
     expect(joined).toMatch('0.0.1');
+  });
+});
+
+describe.only('fixtures', () => {
+  it('should load everything correctly', async () => {
+    const { stream, logger } = getLogger();
+    const knv = new Konveyor({
+      name: 'Test',
+      version: '0.0.1',
+      logger,
+      autoload: { path: './fixtures/commands', ignore: /errors/ },
+    });
+
+    await knv.start(nodeJsArgv(['--help']));
+    const joined = stream.join('\r\n');
+    expect(joined).toBe('erer');
+  });
+
+  it('should throw on noDefault', async () => {
+    const { stream, logger } = getLogger();
+    const knv = new Konveyor({
+      name: 'Test',
+      version: '0.0.1',
+      logger,
+      autoload: { path: './fixtures/commands', allow: /errors\/noDefault.ts/ },
+    });
+
+    await knv.start(nodeJsArgv(['--help']));
+    const joined = stream.join('\r\n');
+    expect(joined).toMatch(
+      /Error(.*)\/noDefault.ts" does not export a 'default' prop/
+    );
+  });
+
+  it('should throw on notACommand', async () => {
+    const { stream, logger } = getLogger();
+    const knv = new Konveyor({
+      name: 'Test',
+      version: '0.0.1',
+      logger,
+      autoload: {
+        path: './fixtures/commands',
+        allow: /errors\/notACommand.ts/,
+      },
+    });
+
+    await knv.start(nodeJsArgv(['--help']));
+    const joined = stream.join('\r\n');
+    expect(joined).toMatch(
+      /Error(.*)\/notACommand.ts" does not export a valid Command \[Object\]/
+    );
   });
 });

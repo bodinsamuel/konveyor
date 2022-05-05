@@ -1,8 +1,7 @@
-import type { ValidationPlan } from '../@types/parser';
+import type { DirMapping, ValidationPlan } from '../@types/parser';
 import { Command } from '../Command';
 
 import { fsToValidationPlan } from './fsToValidationPlan';
-import type { DirMapping } from './loadCommandsFromFs';
 
 describe('fsToValidationPlan', () => {
   it('should', () => {

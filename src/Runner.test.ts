@@ -1,3 +1,4 @@
+import type { DirMapping } from './@types/parser';
 import { Command } from './Command';
 import { Config } from './Config';
 import { Logger } from './Logger';
@@ -9,7 +10,6 @@ import {
   getExecutionPlan,
   isExecutionPlanValid,
 } from './parser/getExecutionPlan';
-import type { DirMapping } from './parser/loadCommandsFromFs';
 import { parseArgv } from './parser/parseArgv';
 
 jest.mock('./Logger');

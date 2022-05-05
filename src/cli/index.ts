@@ -4,7 +4,7 @@ import { Konveyor } from '../Konveyor';
 const knv = new Konveyor({
   name: 'Deploy script',
   version: '0.0.1',
-  commandsPath: './commands',
+  autoload: { path: './commands' },
 });
 
 knv.start(process.argv);

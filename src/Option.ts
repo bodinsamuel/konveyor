@@ -22,9 +22,9 @@ export class Option {
     }
   }
 
-  // get [Symbol.toStringTag](): string {
-  //   return `${this.#long}`;
-  // }
+  get [Symbol.toStringTag](): string {
+    return `${this.#long}`;
+  }
 
   get isGlobal(): boolean {
     return this.#global;

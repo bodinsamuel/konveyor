@@ -8,12 +8,12 @@ export default new Command<Conf>({
     const conf = config!.get('gcp');
 
     spinner.spin('Switching in gcloud');
-    await exec(`gcloud config set project ${conf.project}`);
+    await exec(`gcloud config set project ${conf.project}`).promise;
 
     spinner.spin('Getting context');
     await exec(
       `gcloud container clusters get-credentials ${conf.cluster} --region ${conf.region} --project ${conf.project}`
-    );
+    ).promise;
 
     spinner.succeed(`Connected to ${config!.env}`);
   },
