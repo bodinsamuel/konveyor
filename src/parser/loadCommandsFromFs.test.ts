@@ -31,7 +31,7 @@ describe('loadCommandsFromFs', () => {
           paths: ['test'],
         },
       ],
-      dirPath: '/Users/samuel.bodin/code/konveyor/examples/advanced/commands',
+      dirPath: expect.any(String),
       isTopic: false,
       paths: [],
       subs: [
@@ -43,8 +43,7 @@ describe('loadCommandsFromFs', () => {
               paths: ['db-migrate', 'index'],
             },
           ],
-          dirPath:
-            '/Users/samuel.bodin/code/konveyor/examples/advanced/commands/db-migrate',
+          dirPath: expect.any(String),
           isTopic: false,
           paths: ['db-migrate'],
           subs: [],
@@ -57,8 +56,7 @@ describe('loadCommandsFromFs', () => {
               paths: ['prod', 'connectEnv'],
             },
           ],
-          dirPath:
-            '/Users/samuel.bodin/code/konveyor/examples/advanced/commands/prod',
+          dirPath: expect.any(String),
           isTopic: true,
           paths: ['prod'],
           subs: [],
