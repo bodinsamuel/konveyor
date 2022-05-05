@@ -23,14 +23,17 @@ describe('root', () => {
       'isTopic: false,',
       'paths: [],',
       'subs: [],',
-      "cmds: [ { basename: 'root', cmd: RootCommand [root] {}, paths: [] } ]",
+      "cmds: [ { basename: 'root', cmd: RootCommand [root] {",
       'Validation plan:',
-      'commands: [ { command: RootCommand [root] {}, isTopic: false } ],',
+      'commands:',
+      '[ { command: RootCommand [root] {',
+      ', isTopic: false } ],',
       'globalOptions:',
-      'cmd: RootCommand [root] {}, option: Option [--version] {}',
-      'cmd: RootCommand [root] {}, option: Option [--help] {}',
+      'option: Option [--version] {}',
+      'option: Option [--help] {}',
       'Execution plan:',
-      "plan: [ { command: RootCommand [root] {}, options: { '--help': true } } ],",
+      '[ { command: RootCommand [root] {',
+      ", options: { '--help': true } } ],",
       'success: true',
       'Executing command: root',
       'NAME',
@@ -41,7 +44,6 @@ describe('root', () => {
       'Show cli version',
       '--help',
       'Show help for command',
-      'COMMANDS',
       '---- Konveyor Exit (0)',
     ];
 
@@ -64,6 +66,7 @@ describe('root', () => {
     expect(copy).toHaveLength(0);
 
     expect(joined).not.toMatch('Autoload commands from path');
+    expect(joined).not.toMatch('COMMANDS');
   });
 
   it('should output --version', async () => {
@@ -93,7 +96,9 @@ describe('fixtures', () => {
     await knv.start(nodeJsArgv(['--help']));
     const joined = stream.join('\r\n');
     expect(joined).toMatch(/Skipped(.*)\/notgood.csv"/);
-    expect(joined).toMatch(/TOPICS\s+foreign\s+name_conflict\s+tests\s+topic/);
+    expect(joined).toMatch(
+      /TOPICS\s+bash\s+foreign\s+name_conflict\s+tests\s+topic/
+    );
     expect(joined).toMatch(/COMMANDS\s+test\s+test the project\s+not_a_topic/);
   });
 
@@ -103,7 +108,10 @@ describe('fixtures', () => {
       name: 'Test',
       version: '0.0.1',
       logger,
-      autoload: { path: './fixtures/commands', allow: /errors\/noDefault.ts/ },
+      autoload: {
+        path: './fixtures/commands',
+        allow: /errors$|(\/noDefault\.ts)$/,
+      },
     });
 
     await knv.start(nodeJsArgv(['--help']));
@@ -121,7 +129,7 @@ describe('fixtures', () => {
       logger,
       autoload: {
         path: './fixtures/commands',
-        allow: /errors\/notACommand.ts/,
+        allow: /errors$|(\/notACommand\.ts)$/,
       },
     });
 

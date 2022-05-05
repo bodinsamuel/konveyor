@@ -195,11 +195,13 @@ export class Konveyor<
     }
 
     log.debug('Loaded from FS:');
-    log.debug(util.inspect(this.dirMapping, { depth: null }));
+    log.debug(util.inspect(this.dirMapping, { depth: null, compact: true }));
 
     this.validationPlan = fsToValidationPlan(this.dirMapping);
     log.debug('Validation plan:');
-    log.debug(util.inspect(this.validationPlan, { depth: null }));
+    log.debug(
+      util.inspect(this.validationPlan, { depth: null, compact: true })
+    );
   }
 
   /**
@@ -211,7 +213,7 @@ export class Konveyor<
     const execution = getExecutionPlan(parsed.flat, this.validationPlan);
 
     log.debug('Execution plan:');
-    log.debug(util.inspect(execution, { depth: null }));
+    log.debug(util.inspect(execution, { depth: null, compact: true }));
 
     // Sucessful parsing no need to go further
     if (isExecutionPlanValid(execution)) {

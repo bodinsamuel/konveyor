@@ -33,7 +33,7 @@ describe('loadCommandsFromFs', () => {
     const mapping = await loadCommandsFromFs({
       config: {
         path: dirPath,
-        ignore: /(errors|foreign|not_a_topic|name_conflict|topic)/,
+        ignore: /(bash|errors|foreign|not_a_topic|name_conflict|topic)/,
       },
       dirPath,
       log: logger,

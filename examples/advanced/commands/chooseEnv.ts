@@ -1,5 +1,3 @@
-import path from 'path';
-
 import { Command } from '../../../src';
 import type { Env, Conf } from '../config';
 
