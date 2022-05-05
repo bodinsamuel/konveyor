@@ -63,7 +63,7 @@ describe('root', () => {
     expect(joined).not.toMatch('Autoload commands from path');
   });
 
-  it.only('should output --version', async () => {
+  it('should output --version', async () => {
     const { stream, logger } = getLogger();
     const knv = new Konveyor({
       name: 'Test',
