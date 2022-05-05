@@ -4,12 +4,12 @@ import { Command } from '../Command';
 import { fsToValidationPlan } from './fsToValidationPlan';
 
 describe('fsToValidationPlan', () => {
-  it('should', () => {
+  it('should validate complex nested mapping', () => {
     const cmdCheck = new Command({ name: 'check' });
     const cmdUi = new Command({ name: 'ui' });
     const cmdTest = new Command({ name: 'test' });
-    const cmdIndex1 = new Command({ name: 'index' });
-    const cmdIndex2 = new Command({ name: 'index' });
+    const cmdIndex1 = new Command({ name: 'index1' });
+    const cmdIndex2 = new Command({ name: 'index2' });
 
     const dirs: DirMapping = {
       dirPath: '/commands',
@@ -71,20 +71,30 @@ describe('fsToValidationPlan', () => {
       ],
     };
 
-    expect(fsToValidationPlan(dirs)).toStrictEqual<ValidationPlan>({
+    const validation = fsToValidationPlan(dirs);
+    expect(validation).toStrictEqual<ValidationPlan>({
       commands: [
-        { command: cmdCheck, isTopic: false },
+        { command: cmdCheck, isTopic: false, paths: ['check'] },
         {
           command: cmdIndex1,
           isTopic: false,
-          commands: [{ command: cmdIndex2, isTopic: false, commands: [] }],
+          paths: ['sub'],
+          commands: [
+            {
+              command: cmdIndex2,
+              isTopic: false,
+              commands: [],
+              paths: ['sub', 'double'],
+            },
+          ],
         },
         {
           command: undefined,
           isTopic: true,
+          paths: ['topic'],
           commands: [
-            { command: cmdTest, isTopic: false },
-            { command: cmdUi, isTopic: false },
+            { command: cmdTest, isTopic: false, paths: ['topic', 'test'] },
+            { command: cmdUi, isTopic: false, paths: ['topic', 'ui'] },
           ],
         },
       ],
@@ -98,9 +108,9 @@ describe('fsToValidationPlan', () => {
 
     const cmdCheck = new Command({ name: 'check', description: '', options });
     const cmdTest = new Command({ name: 'test', description: '', options });
-    const cmdIndex1 = new Command({ name: 'index', description: '', options });
+    const cmdIndex1 = new Command({ name: 'index1', description: '', options });
     const cmdIndex2 = new Command({
-      name: 'index',
+      name: 'index2',
       description: '',
       options: [...options, optionGlobal],
     });
@@ -162,14 +172,16 @@ describe('fsToValidationPlan', () => {
 
     const plan = fsToValidationPlan(dirs);
     const commandsRef: ValidationPlan['commands'] = [
-      { command: cmdCheck, isTopic: false },
+      { command: cmdCheck, isTopic: false, paths: ['check'] },
       {
         command: cmdIndex1,
+        paths: ['sub'],
         isTopic: false,
         commands: [
           {
             command: cmdIndex2,
             isTopic: false,
+            paths: ['sub', 'double'],
             commands: [],
           },
         ],
@@ -177,12 +189,16 @@ describe('fsToValidationPlan', () => {
       {
         command: undefined,
         isTopic: true,
-        commands: [{ command: cmdTest, isTopic: false }],
+        paths: ['topic'],
+        commands: [
+          { command: cmdTest, isTopic: false, paths: ['topic', 'test'] },
+        ],
       },
     ];
     const optionsRef: ValidationPlan['globalOptions'] = [
       { cmd: cmdIndex2, option: optionGlobal },
     ];
+
     expect(plan.commands).toStrictEqual(commandsRef);
     expect(plan.globalOptions).toEqual(optionsRef);
   });

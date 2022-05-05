@@ -1,23 +1,18 @@
 import * as kolorist from 'kolorist';
 
-import type { DirMapping } from '../@types/parser';
-import type { Option } from '../Option';
-
-import type { RootCommand } from './RootCommand';
+import type { ValidationPlan } from '../@types/parser';
 
 export function help({
   name,
   description,
   version,
-  rootCommand,
-  dirMapping,
+  plan,
 }: // commandsPath,
 {
   name: string;
   description?: string;
   version: string;
-  rootCommand?: RootCommand;
-  dirMapping: DirMapping;
+  plan: ValidationPlan;
   commandsPath: string[];
 }): string {
   const msg: string[] = [];
@@ -30,76 +25,52 @@ export function help({
     }
   }
 
-  if (rootCommand?.options && rootCommand.options.length > 0) {
+  if (plan.globalOptions.length > 0) {
     msg.push('\r\n'.repeat(2));
     msg.push(`${kolorist.white('GLOBAL OPTIONS')}\r\n`);
-    msg.push(getOptions(rootCommand.options).join('\r\n'));
+    msg.push(getOptions(plan.globalOptions).join('\r\n'));
   }
 
-  if (dirMapping.subs.length > 0) {
-    const res = getTopics(dirMapping.subs);
-    msg.push(`\r\n\r\n${kolorist.white('TOPICS')}\r\n`);
-    msg.push(res.join('\r\n'));
-  }
+  if (plan.commands.length > 0) {
+    const topics = [];
+    const cmds = [];
 
-  if (dirMapping.cmds.length > 0) {
-    const res = getCommands(dirMapping.cmds);
-    msg.push(`\r\n\r\n${kolorist.white('COMMANDS')}\r\n`);
-    msg.push(res.join('\r\n'));
+    for (const { isTopic, paths, command } of plan.commands) {
+      if (isTopic) {
+        topics.push(`  ${paths[paths.length - 1]}`);
+        continue;
+      }
 
-    // const pp = commandsPath.join('//');
-    // console.log(pp, commandsPath);
-    // const list = dirMapping.cmds.find(({ paths }) => paths.join('//') === pp);
-    // if (list) {
-    //   const res = getCommands(list);
-    //   if (res.length > 0) {
-    //     msg.push(`\r\n\r\n${kolorist.white('COMMANDS')}\r\n`);
-    //     msg.push(res.join('\r\n'));
-    //   }
-    // }
+      if (command?.isPrivate) {
+        continue;
+      }
+      cmds.push(`  ${command!.name}     ${kolorist.dim(command!.description)}`);
+    }
+
+    if (topics.length > 0) {
+      msg.push(`\r\n\r\n${kolorist.white('TOPICS')}\r\n`);
+      msg.push(topics.join('\r\n'));
+    }
+
+    if (cmds.length > 0) {
+      msg.push(`\r\n\r\n${kolorist.white('COMMANDS')}\r\n`);
+      msg.push(cmds.join('\r\n'));
+    }
   }
 
   return msg.join('');
 }
 
-function getOptions(options: Option[]): string[] {
+function getOptions(options: ValidationPlan['globalOptions']): string[] {
   const msg: string[] = [];
 
-  for (const opt of options) {
-    const p = opt.toJSON();
+  for (const { option } of options) {
+    const p = option.toJSON();
     msg.push(
       `  ${p.name}${
         p.aliases && p.aliases.length > 0 ? `, ${p.aliases?.join(',')}` : ''
       }${p.msg ? `    ${kolorist.dim(p.msg)}` : ''}`
     );
-  }
-
-  return msg;
-}
-
-function getCommands(commands: DirMapping['cmds']): string[] {
-  const msg: string[] = [];
-
-  for (const { cmd, basename } of commands) {
-    if (cmd.isPrivate) {
-      continue;
-    }
-
-    msg.push(`  ${basename}     ${kolorist.dim(cmd.description)}`);
-  }
-
-  return msg;
-}
-
-function getTopics(subs: DirMapping['subs']): string[] {
-  const msg: string[] = [];
-
-  for (const { isTopic, paths } of subs) {
-    if (!isTopic) {
-      continue;
-    }
-
-    msg.push(`  ${paths[paths.length - 1]}`);
   }
 
   return msg;

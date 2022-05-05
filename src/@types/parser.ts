@@ -40,6 +40,7 @@ export type ValidationPlan = {
 export type ValidationCommand = {
   command: Command<any> | undefined;
   isTopic: boolean;
+  paths: string[];
   commands?: ValidationCommand[];
 };
 

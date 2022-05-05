@@ -5,5 +5,7 @@ export default new Command({
   description: 'test the project',
   isPrivate: false,
   options: [],
-  async exec(): Promise<void> {},
+  exec({ log }): void {
+    log.info('hello from test.ts');
+  },
 });

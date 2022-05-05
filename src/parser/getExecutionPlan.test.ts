@@ -17,11 +17,13 @@ describe('getExecutionPlan()', () => {
         {
           command: cmdDeploy,
           isTopic: false,
+          paths: [],
           commands: [
             {
               command: cmdFoo,
               isTopic: false,
-              commands: [{ command: cmdHello, isTopic: false }],
+              paths: [],
+              commands: [{ command: cmdHello, isTopic: false, paths: [] }],
             },
           ],
         },
@@ -51,7 +53,7 @@ describe('getExecutionPlan()', () => {
       const cmdDeploy = new Command({ name: 'deploy' });
       const execution = getExecutionPlan(argv(['foo']), {
         globalOptions: [],
-        commands: [{ command: cmdDeploy, isTopic: false }],
+        commands: [{ command: cmdDeploy, isTopic: false, paths: [] }],
       });
       expect(execution).toStrictEqual<ExecutionPlan>({
         plan: [
@@ -68,7 +70,7 @@ describe('getExecutionPlan()', () => {
       const cmdDeploy = new Command({ name: 'deploy' });
       const execution = getExecutionPlan(argv(['deploy', '--bar']), {
         globalOptions: [],
-        commands: [{ command: cmdDeploy, isTopic: false }],
+        commands: [{ command: cmdDeploy, isTopic: false, paths: [] }],
       });
       expect(execution).toStrictEqual<ExecutionPlan>({
         plan: [
@@ -95,6 +97,7 @@ describe('getExecutionPlan()', () => {
           {
             command: cmdDeploy,
             isTopic: false,
+            paths: [],
           },
         ],
       });
@@ -116,6 +119,7 @@ describe('getExecutionPlan()', () => {
           {
             command: cmdDeploy,
             isTopic: false,
+            paths: [],
           },
         ],
       });
@@ -146,6 +150,7 @@ describe('getExecutionPlan()', () => {
           {
             command: cmdDeploy,
             isTopic: false,
+            paths: [],
           },
         ],
       });
@@ -175,6 +180,7 @@ describe('getExecutionPlan()', () => {
           {
             command: cmd,
             isTopic: false,
+            paths: [],
           },
         ],
       });
@@ -203,6 +209,7 @@ describe('getExecutionPlan()', () => {
             {
               command: cmd,
               isTopic: false,
+              paths: [],
             },
           ],
         }
@@ -224,6 +231,7 @@ describe('getExecutionPlan()', () => {
           {
             command: cmd,
             isTopic: false,
+            paths: [],
           },
         ],
       });
@@ -246,6 +254,7 @@ describe('getExecutionPlan()', () => {
             {
               command: cmd,
               isTopic: false,
+              paths: [],
             },
           ],
         });
@@ -273,6 +282,7 @@ describe('getExecutionPlan()', () => {
             {
               command: cmd,
               isTopic: false,
+              paths: [],
             },
           ],
         });
@@ -298,6 +308,7 @@ describe('getExecutionPlan()', () => {
             {
               command: cmd2,
               isTopic: false,
+              paths: [],
             },
           ],
         });
@@ -332,6 +343,7 @@ describe('getExecutionPlan()', () => {
             {
               command: cmd2,
               isTopic: false,
+              paths: [],
             },
           ],
         });
@@ -358,6 +370,7 @@ describe('getExecutionPlan()', () => {
             {
               command: cmd,
               isTopic: false,
+              paths: [],
             },
           ],
         });
@@ -381,6 +394,7 @@ describe('getExecutionPlan()', () => {
               {
                 command: cmd,
                 isTopic: false,
+                paths: [],
               },
             ],
           }

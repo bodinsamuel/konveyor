@@ -114,8 +114,7 @@ export class Konveyor<
       name: this.name,
       description: this.description,
       version: this.#version,
-      rootCommand: this.rootCommand,
-      dirMapping: this.dirMapping!,
+      plan: this.validationPlan,
       commandsPath,
     });
   }

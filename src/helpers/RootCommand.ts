@@ -13,7 +13,7 @@ export class RootCommand extends Command<any> {
     options: Option[];
     prepare: (knvyr: Konveyor<any>) => Callback<any>;
   }) {
-    super({ name: 'root', description: '', options });
+    super({ name: 'root', description: '', options, isPrivate: true });
     this.#prepare = prepare;
   }
 

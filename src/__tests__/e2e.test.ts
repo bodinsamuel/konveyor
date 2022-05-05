@@ -80,8 +80,8 @@ describe('root', () => {
   });
 });
 
-describe.only('fixtures', () => {
-  it.only('should load everything correctly', async () => {
+describe('fixtures', () => {
+  it('should load everything correctly', async () => {
     const { stream, logger } = getLogger();
     const knv = new Konveyor({
       name: 'Test',
@@ -92,8 +92,9 @@ describe.only('fixtures', () => {
 
     await knv.start(nodeJsArgv(['--help']));
     const joined = stream.join('\r\n');
-    expect(joined).toBe('erer');
     expect(joined).toMatch(/Skipped(.*)\/notgood.csv"/);
+    expect(joined).toMatch(/TOPICS\s+foreign\s+name_conflict\s+tests\s+topic/);
+    expect(joined).toMatch(/COMMANDS\s+test\s+test the project\s+not_a_topic/);
   });
 
   it('should throw on noDefault', async () => {

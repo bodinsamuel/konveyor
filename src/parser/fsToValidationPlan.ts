@@ -7,29 +7,36 @@ import type {
 export function fsToValidationPlan(dir: DirMapping): ValidationPlan {
   const globalOptions: ValidationPlan['globalOptions'] = [];
   const plan: ValidationPlan = {
-    commands: handleCmds(dir, globalOptions),
+    commands: handleCmds({ dir, globalOptions }),
     globalOptions,
   };
 
   return plan;
 }
 
-function handleCmds(
-  dir: DirMapping,
-  globalOptions: ValidationPlan['globalOptions'],
-  ignoreIndex?: boolean
-): ValidationCommand[] {
+function handleCmds({
+  dir,
+  globalOptions,
+  ignoreIndex,
+}: {
+  dir: DirMapping;
+  globalOptions: ValidationPlan['globalOptions'];
+  ignoreIndex?: boolean;
+}): ValidationCommand[] {
   const commands: ValidationCommand[] = [];
-  for (const { cmd } of dir.cmds) {
-    if (ignoreIndex && cmd.name === 'index') {
+  for (const { cmd, paths } of dir.cmds) {
+    if (ignoreIndex && paths[paths.length - 1] === 'index') {
       continue;
     }
 
     cmd.options.forEach((option) => {
-      if (option.isGlobal) globalOptions.push({ cmd, option });
+      if (option.isGlobal) {
+        globalOptions.push({ cmd, option });
+      }
     });
     commands.push({
       command: cmd,
+      paths,
       isTopic: false,
     });
   }
@@ -44,8 +51,13 @@ function handleCmds(
 
     commands.push({
       command: root?.cmd,
+      paths: dir2.paths,
       isTopic: dir2.isTopic,
-      commands: handleCmds(dir2, globalOptions, !dir2.isTopic),
+      commands: handleCmds({
+        dir: dir2,
+        globalOptions,
+        ignoreIndex: !dir2.isTopic,
+      }),
     });
   }
 
