@@ -21,7 +21,7 @@ export function help({
     msg.push(`${kolorist.white('NAME')}\r\n`);
     msg.push(`  ${name} ${kolorist.dim(`@ ${version}`)}`);
     if (description) {
-      msg.push(`\r\n ${description}`);
+      msg.push(`\r\n  ${description}`);
     }
   }
 

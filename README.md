@@ -52,11 +52,10 @@ See [documentation folder](./docs/).
 - Documentation
 - Release script
 - Options
-  - Global options
   - Nested help
-  - Default help if nothing is specified
 - Commands
   - Command name dedup
+  - Exit should not call process.exit but still cancel any remaining execution
 - Execution
   - Stream Interactive?
   - Autoload .sh + exec in child

@@ -43,6 +43,7 @@ interface Args<TConfig extends ConfigDefault> {
   clearOnStart?: boolean;
   config?: TConfig;
   rootCommand?: RootCommand;
+  helpOnEmpty?: boolean;
 }
 
 export class Konveyor<
@@ -60,6 +61,7 @@ export class Konveyor<
   private autoload?: Args<any>['autoload'];
   private clearOnStart: boolean;
   private path: string;
+  private helpOnEmpty: boolean = true;
   private rootCommand: RootCommand;
   private validationPlan: ValidationPlan = {
     globalOptions: [],
@@ -79,6 +81,9 @@ export class Konveyor<
     this.#version = args.version;
     this.path = path.dirname(require!.main!.filename);
     this.clearOnStart = args.clearOnStart === true;
+    if (typeof args.helpOnEmpty !== 'undefined') {
+      this.helpOnEmpty = args.helpOnEmpty;
+    }
 
     // Commands
     this.autoload = args.autoload;
@@ -212,6 +217,9 @@ export class Konveyor<
   async parse(argv: string[]): Promise<ValidExecutionPlan | undefined> {
     const { log } = this;
     const parsed = parseArgv(argv);
+    if (parsed.flat.length === 0 && this.helpOnEmpty) {
+      parsed.flat.push({ type: 'option', value: '--help' });
+    }
     const execution = getExecutionPlan(parsed.flat, this.validationPlan);
 
     log.debug('Execution plan:');
