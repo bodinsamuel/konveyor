@@ -23,7 +23,6 @@ describe('root', () => {
       'isTopic: false,',
       'paths: [],',
       'subs: [],',
-      "[ { basename: '_root_',",
       "cmd: RootCommand { __Command: true, name: '_root_'",
       'Validation plan:',
       'commands:',
@@ -91,15 +90,16 @@ describe('fixtures', () => {
       name: 'Test',
       version: '0.0.1',
       logger,
-      autoload: { path: './fixtures/commands', ignore: /errors/ },
+      autoload: {
+        path: './fixtures/commands',
+        ignore: /(errors|name_conflict)/,
+      },
     });
 
     await knv.start(nodeJsArgv(['--help']));
     const joined = stream.join('\r\n');
     expect(joined).toMatch(/Skipped(.*)\/notgood.csv"/);
-    expect(joined).toMatch(
-      /TOPICS\s+bash\s+foreign\s+name_conflict\s+tests\s+topic/
-    );
+    expect(joined).toMatch(/TOPICS\s+bash\s+foreign\s+tests\s+topic/);
     expect(joined).toMatch(/COMMANDS\s+test\s+test the project\s+not_a_topic/);
   });
 

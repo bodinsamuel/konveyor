@@ -108,7 +108,6 @@ export async function loadCommandsFromFs({
     }
 
     res.cmds.push({
-      basename: name,
       paths: [...res.paths, name],
       cmd,
     });

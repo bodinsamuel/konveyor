@@ -21,7 +21,7 @@ describe('loadCommandsFromFs', () => {
       log: logger,
     });
     expect(mapping).toStrictEqual<DirMapping>({
-      cmds: [{ basename: 'test', paths: ['test'], cmd: expect.any(Object) }],
+      cmds: [{ paths: ['test'], cmd: expect.any(Object) }],
       dirPath: expect.any(String),
       isTopic: false,
       paths: [],
@@ -40,7 +40,7 @@ describe('loadCommandsFromFs', () => {
     });
 
     expect(mapping).toStrictEqual<DirMapping>({
-      cmds: [{ basename: 'test', paths: ['test'], cmd: expect.any(Object) }],
+      cmds: [{ paths: ['test'], cmd: expect.any(Object) }],
       dirPath: expect.any(String),
       isTopic: false,
       paths: [],

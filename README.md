@@ -54,7 +54,6 @@ See [documentation folder](./docs/).
 - Options
   - Nested help
 - Commands
-  - Command name dedup
   - Exit should not call process.exit but still cancel any remaining execution
 - Execution
   - Stream Interactive?

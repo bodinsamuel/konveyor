@@ -23,11 +23,20 @@ function handleCmds({
   globalOptions: ValidationPlan['globalOptions'];
   ignoreIndex?: boolean;
 }): ValidationCommand[] {
+  const name = new Set<string>();
   const commands: ValidationCommand[] = [];
   for (const { cmd, paths } of dir.cmds) {
     if (ignoreIndex && paths[paths.length - 1] === 'index') {
       continue;
     }
+
+    // Name deduplication
+    if (name.has(cmd.name)) {
+      throw new Error(
+        `Command's name should be unique. "${cmd.name}" has already been defined in path "${dir.dirPath}"`
+      );
+    }
+    name.add(cmd.name);
 
     cmd.options.forEach((option) => {
       if (option.isGlobal) {
@@ -42,7 +51,9 @@ function handleCmds({
   }
 
   for (const dir2 of dir.subs) {
-    const root = dir2.cmds.find((cmd) => cmd.basename === 'index');
+    const root = dir2.cmds.find(
+      (cmd) => cmd.paths[cmd.paths.length - 1] === 'index'
+    );
     if (root) {
       root.cmd.options.forEach((option) => {
         if (option.isGlobal) globalOptions.push({ cmd: root.cmd, option });

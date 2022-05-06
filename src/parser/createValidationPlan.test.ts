@@ -26,22 +26,10 @@ describe('fsToValidationPlan', () => {
               paths: ['sub', 'double'],
               isTopic: false,
               subs: [],
-              cmds: [
-                {
-                  basename: 'index',
-                  paths: ['sub', 'double', 'index'],
-                  cmd: cmdIndex2,
-                },
-              ],
+              cmds: [{ paths: ['sub', 'double', 'index'], cmd: cmdIndex2 }],
             },
           ],
-          cmds: [
-            {
-              basename: 'index',
-              paths: ['sub', 'index'],
-              cmd: cmdIndex1,
-            },
-          ],
+          cmds: [{ paths: ['sub', 'index'], cmd: cmdIndex1 }],
         },
         {
           dirPath: '/commands/topic',
@@ -49,26 +37,12 @@ describe('fsToValidationPlan', () => {
           isTopic: true,
           subs: [],
           cmds: [
-            {
-              basename: 'test',
-              paths: ['topic', 'test'],
-              cmd: cmdTest,
-            },
-            {
-              basename: 'ui',
-              paths: ['topic', 'ui'],
-              cmd: cmdUi,
-            },
+            { paths: ['topic', 'test'], cmd: cmdTest },
+            { paths: ['topic', 'ui'], cmd: cmdUi },
           ],
         },
       ],
-      cmds: [
-        {
-          basename: 'check',
-          paths: ['check'],
-          cmd: cmdCheck,
-        },
-      ],
+      cmds: [{ paths: ['check'], cmd: cmdCheck }],
     };
 
     const validation = createValidationPlan(dirs);
@@ -106,9 +80,9 @@ describe('fsToValidationPlan', () => {
     const options = [Command.option('--foobar')];
     const optionGlobal = Command.option('--global').global();
 
-    const cmdCheck = new Command({ name: 'check', description: '', options });
-    const cmdTest = new Command({ name: 'test', description: '', options });
-    const cmdIndex1 = new Command({ name: 'index1', description: '', options });
+    const cmdCheck = new Command({ name: 'check', options });
+    const cmdTest = new Command({ name: 'test', options });
+    const cmdIndex1 = new Command({ name: 'index1', options });
     const cmdIndex2 = new Command({
       name: 'index2',
       description: '',
@@ -130,44 +104,20 @@ describe('fsToValidationPlan', () => {
               paths: ['sub', 'double'],
               isTopic: false,
               subs: [],
-              cmds: [
-                {
-                  basename: 'index',
-                  paths: ['sub', 'double', 'index'],
-                  cmd: cmdIndex2,
-                },
-              ],
+              cmds: [{ paths: ['sub', 'double', 'index'], cmd: cmdIndex2 }],
             },
           ],
-          cmds: [
-            {
-              basename: 'index',
-              paths: ['sub', 'index'],
-              cmd: cmdIndex1,
-            },
-          ],
+          cmds: [{ paths: ['sub', 'index'], cmd: cmdIndex1 }],
         },
         {
           dirPath: '/commands/topic',
           paths: ['topic'],
           isTopic: true,
           subs: [],
-          cmds: [
-            {
-              basename: 'test',
-              paths: ['topic', 'test'],
-              cmd: cmdTest,
-            },
-          ],
+          cmds: [{ paths: ['topic', 'test'], cmd: cmdTest }],
         },
       ],
-      cmds: [
-        {
-          basename: 'check',
-          paths: ['check'],
-          cmd: cmdCheck,
-        },
-      ],
+      cmds: [{ paths: ['check'], cmd: cmdCheck }],
     };
 
     const plan = createValidationPlan(dirs);
@@ -201,5 +151,25 @@ describe('fsToValidationPlan', () => {
 
     expect(plan.commands).toStrictEqual(commandsRef);
     expect(plan.globalOptions).toEqual(optionsRef);
+  });
+
+  it('should error on name conflict at the same level', () => {
+    const cmdTest1 = new Command({ name: 'test' });
+    const cmdTest2 = new Command({ name: 'test' });
+    const dirs: DirMapping = {
+      dirPath: '/commands',
+      paths: [],
+      isTopic: false,
+      subs: [],
+      cmds: [
+        { cmd: cmdTest1, paths: ['test1'] },
+        { cmd: cmdTest2, paths: ['test2'] },
+      ],
+    };
+    expect(() => {
+      createValidationPlan(dirs);
+    }).toThrow(
+      'Command\'s name should be unique. "test" has already been defined in path "/commands"'
+    );
   });
 });

@@ -26,7 +26,6 @@ export interface DirMapping {
   subs: DirMapping[];
   cmds: {
     paths: string[];
-    basename: string;
     cmd: Command<any>;
   }[];
 }
