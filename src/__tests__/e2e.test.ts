@@ -2,7 +2,7 @@ import { Konveyor } from '../Konveyor';
 
 import { getLogger, nodeJsArgv } from './helpers';
 
-jest.mock('../utils/exit');
+jest.mock('../program/exit');
 jest.setTimeout(10000);
 
 describe('root', () => {
@@ -92,7 +92,7 @@ describe('fixtures', () => {
       logger,
       autoload: {
         path: './fixtures/commands',
-        ignore: /(errors|name_conflict)/,
+        ignore: /errors/,
       },
     });
 
@@ -139,5 +139,51 @@ describe('fixtures', () => {
     expect(joined).toMatch(
       /Error(.*)\/notACommand.ts" does not export a valid Command \[Object\]/
     );
+  });
+
+  describe('Unknown', () => {
+    let knv: Konveyor<any>;
+    let stream: string[];
+    beforeEach(() => {
+      const l = getLogger();
+      knv = new Konveyor({
+        name: 'Test',
+        version: '0.0.1',
+        logger: l.logger,
+        autoload: {
+          path: './fixtures/commands',
+          ignore: /errors/,
+        },
+      });
+      stream = l.stream;
+    });
+
+    it('should display unknown command', async () => {
+      await knv.start(nodeJsArgv(['doesnotexists']));
+      const joined = stream.join('\r\n');
+      expect(joined).toMatch(/^Unknown command: doesnotexists$/gm);
+    });
+
+    it('should display unknown command nested', async () => {
+      await knv.start(nodeJsArgv(['test', 'doesnotexists']));
+      const joined = stream.join('\r\n');
+      expect(joined).toMatch(
+        /^Unknown command: doesnotexists for command test$/gm
+      );
+    });
+
+    it('should display unknown options', async () => {
+      await knv.start(nodeJsArgv(['--doesnotexists']));
+      const joined = stream.join('\r\n');
+      expect(joined).toMatch(/^Unknown option: --doesnotexists$/gm);
+    });
+
+    it('should display unknown options nested', async () => {
+      await knv.start(nodeJsArgv(['test', '--doesnotexists']));
+      const joined = stream.join('\r\n');
+      expect(joined).toMatch(
+        /^Unknown option: --doesnotexists for command test$/gm
+      );
+    });
   });
 });

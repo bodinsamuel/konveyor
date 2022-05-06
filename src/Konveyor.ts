@@ -16,8 +16,7 @@ import { Event } from './Event';
 import { Logger } from './Logger';
 import { Runner } from './Runner';
 import { ExitError } from './errors';
-import type { RootCommand } from './helpers/RootCommand';
-import { defaultRootCommand } from './helpers/RootCommand';
+import { RootCommand, defaultRootCommand } from './helpers/RootCommand';
 import { toAbsolute } from './helpers/fs';
 import { help } from './helpers/help';
 import { createValidationPlan } from './parser/createValidationPlan';
@@ -242,8 +241,11 @@ export class Konveyor<
     }
 
     for (const item of execution.plan) {
-      if ('command' in item) {
+      if ('command' in item && !(item.command instanceof RootCommand)) {
         paths.push(item.command.name);
+      }
+      if (!item.unknownOption && !('unknownCommand' in item)) {
+        continue;
       }
 
       log.info(this.getHelp([]));
@@ -286,10 +288,6 @@ export class Konveyor<
     }
 
     return await this.program.choices<string>('What do you want to do?', list);
-    // this.validationPlan.commands.push({
-    //   command: answer,
-    //   options: [],
-    // });
   }
 
   /**

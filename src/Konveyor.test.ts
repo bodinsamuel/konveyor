@@ -6,10 +6,10 @@ import { Spinner, exit } from './program';
 
 jest.mock('commander');
 jest.mock('./Logger');
-jest.mock('./utils/exit');
-jest.mock('./utils/clearConsole');
-jest.mock('./utils/exit');
-jest.mock('./utils/spinner');
+jest.mock('./program/exit');
+jest.mock('./program/clearConsole');
+jest.mock('./program/exit');
+jest.mock('./program/spinner');
 
 describe('constructor', () => {
   it('should create a new instance correctly', () => {
@@ -42,7 +42,6 @@ describe('askForCommand()', () => {
     await knv.loadCommands();
     await knv.askForCommand();
     expect(program.choices).toHaveBeenCalled();
-    // expect(knv.pickedCommand).toBe(command1);
   });
 });
 
