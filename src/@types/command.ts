@@ -1,5 +1,5 @@
 import type { Command } from '../Command';
-import type { Program } from '../Program';
+import type { Program } from '../program';
 
 import type { ConfigDefault } from './config';
 import type { ValidExecutionItem } from './parser';

@@ -55,6 +55,11 @@ See [documentation folder](./docs/).
   - Nested help
 - Commands
   - Exit should not call process.exit but still cancel any remaining execution
+- Topic
+  - Handle no value or options + --help
+  - Find a way to add description
 - Execution
   - Stream Interactive?
   - Autoload .sh + exec in child
+- Interface
+  - Align descs

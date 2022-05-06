@@ -1,8 +1,8 @@
 import { Command } from './Command';
 import { Konveyor } from './Konveyor';
 import { Logger } from './Logger';
-import type { Program } from './Program';
-import { Spinner, exit } from './utils';
+import type { Program } from './program';
+import { Spinner, exit } from './program';
 
 jest.mock('commander');
 jest.mock('./Logger');

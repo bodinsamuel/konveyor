@@ -14,7 +14,6 @@ import type {
 import type { Command } from './Command';
 import { Event } from './Event';
 import { Logger } from './Logger';
-import { Program } from './Program';
 import { Runner } from './Runner';
 import { ExitError } from './errors';
 import type { RootCommand } from './helpers/RootCommand';
@@ -28,8 +27,8 @@ import {
 } from './parser/getExecutionPlan';
 import { loadCommandsFromFs } from './parser/loadCommandsFromFs';
 import { parseArgv } from './parser/parseArgv';
-import type { Choice, Spinner, SymbolExit } from './utils';
-import { clearConsole, exit } from './utils';
+import type { Choice, Spinner, SymbolExit } from './program';
+import { Program, clearConsole, exit } from './program';
 
 interface Args<TConfig extends ConfigDefault> {
   name: string;
@@ -243,12 +242,8 @@ export class Konveyor<
     }
 
     for (const item of execution.plan) {
-      if ('command' in item) paths.push(item.command.name);
-      if (!item.unknownOption && !('unknownCommand' in item)) {
-        // if (plan.command) {
-        //   vp = vp.commands.find((command) => command.command === plan.command)!;
-        // }
-        continue;
+      if ('command' in item) {
+        paths.push(item.command.name);
       }
 
       log.info(this.getHelp([]));

@@ -3,8 +3,8 @@ import type { ConfigDefault } from './@types/config';
 import type { ValidExecutionItem } from './@types/parser';
 import type { Command } from './Command';
 import { Event } from './Event';
-import type { Program } from './Program';
 import type { RootCommand } from './helpers/RootCommand';
+import type { Program } from './program';
 // import type { DirMapping } from './parser/loadCommandsFromFs';
 
 export class Runner<TConfig extends ConfigDefault> extends Event<

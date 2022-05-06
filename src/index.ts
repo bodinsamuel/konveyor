@@ -1,9 +1,8 @@
 export * from './Konveyor';
 export * from './Command';
-export * from './Program';
 export * from './Config';
 
-export * from './utils/index';
+export * from './program';
 export * from './@types/config';
 export * from './@types/parser';
 export * from './@types/command';
