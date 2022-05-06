@@ -23,19 +23,20 @@ describe('root', () => {
       'isTopic: false,',
       'paths: [],',
       'subs: [],',
-      "cmds: [ { basename: 'root', cmd: RootCommand [root] {",
+      "[ { basename: '_root_',",
+      "cmd: RootCommand { __Command: true, name: '_root_'",
       'Validation plan:',
       'commands:',
-      '[ { command: RootCommand [root] {',
-      ', isTopic: false } ],',
+      '[ { command: RootCommand {',
+      'isTopic: false } ],',
       'globalOptions:',
-      'option: Option [--version] {}',
-      'option: Option [--help] {}',
+      "option: Option { name: '--version'",
+      "option: Option { name: '--help'",
       'Execution plan:',
-      '[ { command: RootCommand [root] {',
-      ", options: { '--help': true } } ],",
+      "[ { command: RootCommand { __Command: true, name: '_root_'",
+      "options: { '--help': true } } ],",
       'success: true',
-      'Executing command: root',
+      'Executing command: _root_',
       'NAME',
       'Test',
       '@ 0.0.1',
@@ -53,7 +54,7 @@ describe('root', () => {
       const index = copy.indexOf(msg);
       if (index === -1) {
         // eslint-disable-next-line no-console
-        console.error(msg);
+        console.error({ expected: msg, in: copy });
         break;
       }
 

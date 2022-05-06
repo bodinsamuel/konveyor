@@ -21,7 +21,7 @@ import type { RootCommand } from './helpers/RootCommand';
 import { defaultRootCommand } from './helpers/RootCommand';
 import { toAbsolute } from './helpers/fs';
 import { help } from './helpers/help';
-import { fsToValidationPlan } from './parser/fsToValidationPlan';
+import { createValidationPlan } from './parser/createValidationPlan';
 import {
   getExecutionPlan,
   isExecutionPlanValid,
@@ -80,16 +80,18 @@ export class Konveyor<
     this.path = path.dirname(require!.main!.filename);
     this.clearOnStart = args.clearOnStart === true;
 
+    // Commands
     this.autoload = args.autoload;
     if (this.autoload?.path) {
       this.autoload.path = toAbsolute(this.autoload.path, this.path);
     }
+    this.rootCommand = args.rootCommand || defaultRootCommand;
+    this.commands.push(this.rootCommand);
     if (args.commands) {
       this.commands.push(...args.commands);
     }
-    this.rootCommand = args.rootCommand || defaultRootCommand;
-    this.commands.push(this.rootCommand);
 
+    // Services
     this.log =
       args.logger ||
       new Logger({
@@ -197,7 +199,7 @@ export class Konveyor<
     log.debug('Loaded from FS:');
     log.debug(util.inspect(this.dirMapping, { depth: null, compact: true }));
 
-    this.validationPlan = fsToValidationPlan(this.dirMapping);
+    this.validationPlan = createValidationPlan(this.dirMapping);
     log.debug('Validation plan:');
     log.debug(
       util.inspect(this.validationPlan, { depth: null, compact: true })

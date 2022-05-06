@@ -4,7 +4,7 @@ import type {
   ValidationPlan,
 } from '../@types/parser';
 
-export function fsToValidationPlan(dir: DirMapping): ValidationPlan {
+export function createValidationPlan(dir: DirMapping): ValidationPlan {
   const globalOptions: ValidationPlan['globalOptions'] = [];
   const plan: ValidationPlan = {
     commands: handleCmds({ dir, globalOptions }),

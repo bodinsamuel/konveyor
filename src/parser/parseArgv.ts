@@ -37,12 +37,12 @@ export function parseArgv(argv: string[]): ParsedArgv {
     if (double) {
       if (arg.includes('=')) {
         const [_name, value] = arg.split('=', 2);
-        flat.push({ type: 'option', name: _name });
+        flat.push({ type: 'option', value: _name });
         flat.push({ type: 'value', value });
         continue;
       }
 
-      flat.push({ type: 'option', name: arg });
+      flat.push({ type: 'option', value: arg });
       continue;
     }
 
@@ -51,7 +51,7 @@ export function parseArgv(argv: string[]): ParsedArgv {
       .replace('-', '')
       .split('')
       .forEach((letter) => {
-        flat.push({ type: 'option', name: `-${letter}` });
+        flat.push({ type: 'option', value: `-${letter}` });
       });
   }
 

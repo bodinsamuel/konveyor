@@ -26,7 +26,7 @@ let i = 0;
 export class Command<TConf extends ConfigDefault> {
   readonly __Command = true;
 
-  #name: string;
+  readonly name: string;
   #description: string;
   #isPrivate: boolean = false;
   #options: Option[] = [];
@@ -44,7 +44,7 @@ export class Command<TConf extends ConfigDefault> {
   #afterAll?: CallbackAll<TConf>;
 
   constructor(args: CommandArgs<TConf>) {
-    this.#name = args.name;
+    this.name = args.name;
     this.#description = args.description || '';
     this.#isPrivate = args.isPrivate === true;
 
@@ -62,20 +62,12 @@ export class Command<TConf extends ConfigDefault> {
       this.#dependencies = new Set(args.dependencies);
       this.#dependencies.forEach((dep) => {
         if (typeof dep === 'undefined') {
-          throw new CommandUndefinedError(this.#name);
+          throw new CommandUndefinedError(this.name);
         }
       });
     } else if (args.dependencies) {
       this.#dependenciesPlan = args.dependencies;
     }
-  }
-
-  get [Symbol.toStringTag](): string {
-    return `${this.name}`;
-  }
-
-  get name(): string {
-    return this.#name;
   }
 
   get description(): string {

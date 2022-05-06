@@ -9,6 +9,8 @@ import type {
   InvalidRootExecutionItem,
 } from '../@types/parser';
 import type { Option } from '../Option';
+import { ROOT_NAME } from '../constants';
+import { RootCommand } from '../helpers/RootCommand';
 
 /**
  * Build a plan from flat map.
@@ -25,11 +27,22 @@ export function getExecutionPlan(
   const copy = flat.slice();
   const res: ExecutionPlan = { plan, success: true };
   const invalidRootOptions: InvalidRootExecutionItem = { unknownOption: [] };
-  let context: ValidationCommand | undefined;
-  let prevOptions: Option | undefined;
 
-  // We don't push directly to have an empty array in case of no args
-  let currGroup: InvalidExecutionItem | ValidExecutionItem | undefined;
+  // Always add root at the beginning of the plan
+  const rootCmd = val.commands.find(
+    ({ command }) => command instanceof RootCommand
+  );
+  if (!rootCmd) {
+    throw new Error('No RootCommand registered');
+  }
+
+  let currGroup: InvalidExecutionItem | ValidExecutionItem | undefined = {
+    command: rootCmd.command!,
+    options: {},
+  };
+  plan.push(currGroup);
+  let context: ValidationCommand | undefined; // Current command context
+  let prevOptions: Option | undefined; // Previous option to append value
 
   while (copy.length > 0) {
     const arg = copy.shift()!;
@@ -46,7 +59,7 @@ export function getExecutionPlan(
       const hasCommand = (context || val).commands?.find(
         ({ command }) => command?.name === arg.value
       );
-      if (!hasCommand) {
+      if (!hasCommand || arg.value === ROOT_NAME) {
         // Unknown command
         res.success = false;
         currGroup = { options: {}, unknownCommand: arg.value };
@@ -65,7 +78,7 @@ export function getExecutionPlan(
 
     // ----- GLOBAL OPTIONS
     const isGlobalOption = val.globalOptions.find(({ option }) =>
-      option.is(arg.name)
+      option.is(arg.value)
     );
     if (isGlobalOption) {
       let hasGroup = plan.find<ValidExecutionItem>(
@@ -82,14 +95,16 @@ export function getExecutionPlan(
 
     // ----- OPTIONS
     if (!currGroup) {
-      invalidRootOptions.unknownOption.push(arg.name);
+      invalidRootOptions.unknownOption.push(arg.value);
       continue;
       // throw new Error(
       //   `An option ${arg.name} without a command should not be possible`
       // );
     }
 
-    const hasOption = context?.command?.options.find((opt) => opt.is(arg.name));
+    const hasOption = context?.command?.options.find((opt) =>
+      opt.is(arg.value)
+    );
     if (hasOption) {
       currGroup.options[hasOption.name] = true;
       if (hasOption.expectValue) {
@@ -102,12 +117,8 @@ export function getExecutionPlan(
     if (!currGroup.unknownOption) {
       currGroup.unknownOption = [];
     }
-    currGroup.unknownOption.push(arg.name);
+    currGroup.unknownOption.push(arg.value);
     res.success = false;
-  }
-
-  if (invalidRootOptions.unknownOption.length > 0) {
-    res.plan.unshift(invalidRootOptions);
   }
 
   return res;

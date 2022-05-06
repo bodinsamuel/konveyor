@@ -5,7 +5,7 @@ import { Logger } from './Logger';
 import { Program } from './Program';
 import { Runner } from './Runner';
 import { defaultRootCommand } from './helpers/RootCommand';
-import { fsToValidationPlan } from './parser/fsToValidationPlan';
+import { createValidationPlan } from './parser/createValidationPlan';
 import {
   getExecutionPlan,
   isExecutionPlanValid,
@@ -22,6 +22,7 @@ function getRunner(
   commands: Command<any>[],
   argv: string[] = ['command']
 ): Runner<any> {
+  commands.push(defaultRootCommand);
   const dirMapping: DirMapping = {
     dirPath: '/',
     isTopic: false,
@@ -36,7 +37,7 @@ function getRunner(
     }),
   };
   const parsed = parseArgv(['node', 'cli.js', ...argv]).flat;
-  const validationPlan = fsToValidationPlan(dirMapping);
+  const validationPlan = createValidationPlan(dirMapping);
   const validatedPlan = getExecutionPlan(parsed, validationPlan);
   if (!isExecutionPlanValid(validatedPlan)) {
     throw new Error('invalid plan');
@@ -115,9 +116,9 @@ describe('start()', () => {
     runner.once('command:stop', stop);
     await runner.start();
 
-    expect(exec).not.toHaveBeenCalled();
+    expect(exec).toHaveBeenCalledTimes(0);
     expect(skipped).toHaveBeenCalled();
-    expect(stop).not.toHaveBeenCalled();
+    expect(stop).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -185,10 +186,11 @@ describe('dependencies', () => {
     runner.on('command:stop', stop);
     await runner.start();
 
-    expect(start).toHaveBeenCalledTimes(2);
-    expect(stop).toHaveBeenCalledTimes(2);
-    expect(start).toHaveBeenNthCalledWith(1, [{ command: command1 }]);
-    expect(start).toHaveBeenNthCalledWith(2, [{ command: command2 }]);
+    expect(start).toHaveBeenCalledTimes(3);
+    expect(stop).toHaveBeenCalledTimes(3);
+    expect(start).toHaveBeenNthCalledWith(1, [{ command: defaultRootCommand }]);
+    expect(start).toHaveBeenNthCalledWith(2, [{ command: command1 }]);
+    expect(start).toHaveBeenNthCalledWith(3, [{ command: command2 }]);
   });
 
   it('should run 1 deps correctly and ignore it the second time', async () => {
@@ -215,7 +217,7 @@ describe('dependencies', () => {
     runner.on('command:stop', stop);
     await runner.start();
 
-    expect(start).toHaveBeenCalledTimes(3);
-    expect(stop).toHaveBeenCalledTimes(3);
+    expect(start).toHaveBeenCalledTimes(4);
+    expect(stop).toHaveBeenCalledTimes(4);
   });
 });

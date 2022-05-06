@@ -1,7 +1,7 @@
 import type { DirMapping, ValidationPlan } from '../@types/parser';
 import { Command } from '../Command';
 
-import { fsToValidationPlan } from './fsToValidationPlan';
+import { createValidationPlan } from './createValidationPlan';
 
 describe('fsToValidationPlan', () => {
   it('should validate complex nested mapping', () => {
@@ -71,7 +71,7 @@ describe('fsToValidationPlan', () => {
       ],
     };
 
-    const validation = fsToValidationPlan(dirs);
+    const validation = createValidationPlan(dirs);
     expect(validation).toStrictEqual<ValidationPlan>({
       commands: [
         { command: cmdCheck, isTopic: false, paths: ['check'] },
@@ -170,7 +170,7 @@ describe('fsToValidationPlan', () => {
       ],
     };
 
-    const plan = fsToValidationPlan(dirs);
+    const plan = createValidationPlan(dirs);
     const commandsRef: ValidationPlan['commands'] = [
       { command: cmdCheck, isTopic: false, paths: ['check'] },
       {

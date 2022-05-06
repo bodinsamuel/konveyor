@@ -13,7 +13,7 @@ export interface ParsedArgv {
 export type Arg = ArgOption | ArgValue;
 export interface ArgOption {
   type: 'option';
-  name: string;
+  value: string;
 }
 export interface ArgValue {
   type: 'value';

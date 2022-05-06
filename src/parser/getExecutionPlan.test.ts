@@ -3,6 +3,7 @@ import alt from 'altheia-async-data-validator';
 import type { ExecutionPlan } from '../@types/parser';
 import { Command } from '../Command';
 import { argv } from '../__tests__/helpers';
+import { defaultRootCommand } from '../helpers/RootCommand';
 
 import { getExecutionPlan } from './getExecutionPlan';
 
@@ -14,6 +15,7 @@ describe('getExecutionPlan()', () => {
     const execution = getExecutionPlan(argv(['deploy', 'foo', 'hello']), {
       globalOptions: [],
       commands: [
+        { command: defaultRootCommand, isTopic: false, paths: [] },
         {
           command: cmdDeploy,
           isTopic: false,
@@ -31,18 +33,10 @@ describe('getExecutionPlan()', () => {
     });
     expect(execution).toStrictEqual<ExecutionPlan>({
       plan: [
-        {
-          command: cmdDeploy,
-          options: {},
-        },
-        {
-          command: cmdFoo,
-          options: {},
-        },
-        {
-          command: cmdHello,
-          options: {},
-        },
+        { command: defaultRootCommand, options: {} },
+        { command: cmdDeploy, options: {} },
+        { command: cmdFoo, options: {} },
+        { command: cmdHello, options: {} },
       ],
       success: true,
     });
@@ -53,14 +47,15 @@ describe('getExecutionPlan()', () => {
       const cmdDeploy = new Command({ name: 'deploy' });
       const execution = getExecutionPlan(argv(['foo']), {
         globalOptions: [],
-        commands: [{ command: cmdDeploy, isTopic: false, paths: [] }],
+        commands: [
+          { command: defaultRootCommand, isTopic: false, paths: [] },
+          { command: cmdDeploy, isTopic: false, paths: [] },
+        ],
       });
       expect(execution).toStrictEqual<ExecutionPlan>({
         plan: [
-          {
-            unknownCommand: 'foo',
-            options: {},
-          },
+          { command: defaultRootCommand, options: {} },
+          { unknownCommand: 'foo', options: {} },
         ],
         success: false,
       });
@@ -70,17 +65,58 @@ describe('getExecutionPlan()', () => {
       const cmdDeploy = new Command({ name: 'deploy' });
       const execution = getExecutionPlan(argv(['deploy', '--bar']), {
         globalOptions: [],
-        commands: [{ command: cmdDeploy, isTopic: false, paths: [] }],
+        commands: [
+          { command: defaultRootCommand, isTopic: false, paths: [] },
+          { command: cmdDeploy, isTopic: false, paths: [] },
+        ],
       });
       expect(execution).toStrictEqual<ExecutionPlan>({
         plan: [
-          {
-            command: cmdDeploy,
-            options: {},
-            unknownOption: ['--bar'],
-          },
+          { command: defaultRootCommand, options: {} },
+          { command: cmdDeploy, options: {}, unknownOption: ['--bar'] },
         ],
         success: false,
+      });
+    });
+  });
+
+  describe('ROOT_NAME', () => {
+    it('should disallow use of ROOT_NAME', () => {
+      const execution = getExecutionPlan(argv(['_root_']), {
+        globalOptions: [],
+        commands: [{ command: defaultRootCommand, isTopic: false, paths: [] }],
+      });
+
+      expect(execution).toStrictEqual<ExecutionPlan>({
+        plan: [
+          { command: defaultRootCommand, options: {} },
+          { unknownCommand: '_root_', options: {} },
+        ],
+        success: false,
+      });
+    });
+
+    it('should magically add ROOT_NAME at first', () => {
+      const execution = getExecutionPlan(argv([]), {
+        globalOptions: [],
+        commands: [{ command: defaultRootCommand, isTopic: false, paths: [] }],
+      });
+      expect(execution).toStrictEqual<ExecutionPlan>({
+        plan: [{ command: defaultRootCommand, options: {} }],
+        success: true,
+      });
+    });
+
+    it('should not add ROOT if already present', () => {
+      const execution = getExecutionPlan(argv(['--help']), {
+        globalOptions: [
+          { cmd: defaultRootCommand, option: defaultRootCommand.options[1] },
+        ],
+        commands: [{ command: defaultRootCommand, isTopic: false, paths: [] }],
+      });
+      expect(execution).toStrictEqual<ExecutionPlan>({
+        plan: [{ command: defaultRootCommand, options: { '--help': true } }],
+        success: true,
       });
     });
   });
@@ -94,16 +130,16 @@ describe('getExecutionPlan()', () => {
       const execution = getExecutionPlan(argv(['deploy', '--foo', 'hello']), {
         globalOptions: [],
         commands: [
-          {
-            command: cmdDeploy,
-            isTopic: false,
-            paths: [],
-          },
+          { command: defaultRootCommand, isTopic: false, paths: [] },
+          { command: cmdDeploy, isTopic: false, paths: [] },
         ],
       });
 
       expect(execution).toStrictEqual<ExecutionPlan>({
-        plan: [{ command: cmdDeploy, options: { '--foo': 'hello' } }],
+        plan: [
+          { command: defaultRootCommand, options: {} },
+          { command: cmdDeploy, options: { '--foo': 'hello' } },
+        ],
         success: true,
       });
     });
@@ -116,24 +152,16 @@ describe('getExecutionPlan()', () => {
       const execution = getExecutionPlan(argv(['deploy', '--foo', 'hello']), {
         globalOptions: [],
         commands: [
-          {
-            command: cmdDeploy,
-            isTopic: false,
-            paths: [],
-          },
+          { command: defaultRootCommand, isTopic: false, paths: [] },
+          { command: cmdDeploy, isTopic: false, paths: [] },
         ],
       });
 
       expect(execution).toStrictEqual<ExecutionPlan>({
         plan: [
-          {
-            command: cmdDeploy,
-            options: { '--foo': true },
-          },
-          {
-            options: {},
-            unknownCommand: 'hello',
-          },
+          { command: defaultRootCommand, options: {} },
+          { command: cmdDeploy, options: { '--foo': true } },
+          { options: {}, unknownCommand: 'hello' },
         ],
         success: false,
       });
@@ -147,16 +175,14 @@ describe('getExecutionPlan()', () => {
       const execution = getExecutionPlan(argv(['deploy', '--foo', 'h', 'w']), {
         globalOptions: [],
         commands: [
-          {
-            command: cmdDeploy,
-            isTopic: false,
-            paths: [],
-          },
+          { command: defaultRootCommand, isTopic: false, paths: [] },
+          { command: cmdDeploy, isTopic: false, paths: [] },
         ],
       });
 
       expect(execution).toStrictEqual<ExecutionPlan>({
         plan: [
+          { command: defaultRootCommand, options: {} },
           { command: cmdDeploy, options: { '--foo': 'h' } },
           { options: {}, unknownCommand: 'w' },
         ],
@@ -177,16 +203,14 @@ describe('getExecutionPlan()', () => {
       const execution = getExecutionPlan(argv(['multi', '-xcba']), {
         globalOptions: [],
         commands: [
-          {
-            command: cmd,
-            isTopic: false,
-            paths: [],
-          },
+          { command: defaultRootCommand, isTopic: false, paths: [] },
+          { command: cmd, isTopic: false, paths: [] },
         ],
       });
 
       expect(execution).toStrictEqual<ExecutionPlan>({
         plan: [
+          { command: defaultRootCommand, options: {} },
           {
             command: cmd,
             options: { '-a': true, '-b': true, '-c': true, '-x': true },
@@ -206,17 +230,17 @@ describe('getExecutionPlan()', () => {
         {
           globalOptions: [],
           commands: [
-            {
-              command: cmd,
-              isTopic: false,
-              paths: [],
-            },
+            { command: defaultRootCommand, isTopic: false, paths: [] },
+            { command: cmd, isTopic: false, paths: [] },
           ],
         }
       );
 
       expect(execution).toStrictEqual<ExecutionPlan>({
-        plan: [{ command: cmd, options: { '--foo': 'hello' } }],
+        plan: [
+          { command: defaultRootCommand, options: {} },
+          { command: cmd, options: { '--foo': 'hello' } },
+        ],
         success: true,
       });
     });
@@ -228,39 +252,42 @@ describe('getExecutionPlan()', () => {
       const execution = getExecutionPlan(argv(['--foobar']), {
         globalOptions: [],
         commands: [
-          {
-            command: cmd,
-            isTopic: false,
-            paths: [],
-          },
+          { command: defaultRootCommand, isTopic: false, paths: [] },
+          { command: cmd, isTopic: false, paths: [] },
         ],
       });
 
       expect(execution).toStrictEqual<ExecutionPlan>({
-        plan: [{ unknownOption: ['--foobar'] }],
-        success: true,
+        plan: [
+          {
+            command: defaultRootCommand,
+            options: {},
+            unknownOption: ['--foobar'],
+          },
+        ],
+        success: false,
       });
     });
 
     describe('globalOptions', () => {
       it('should handle globalOptions', () => {
         const cmd = new Command({
-          name: 'root',
+          name: 'deploy',
           options: [Command.option('--foo').global()],
         });
         const execution = getExecutionPlan(argv(['--foo']), {
           globalOptions: [{ cmd, option: cmd.options[0] }],
           commands: [
-            {
-              command: cmd,
-              isTopic: false,
-              paths: [],
-            },
+            { command: defaultRootCommand, isTopic: false, paths: [] },
+            { command: cmd, isTopic: false, paths: [] },
           ],
         });
 
         expect(execution).toStrictEqual<ExecutionPlan>({
-          plan: [{ command: cmd, options: { '--foo': true } }],
+          plan: [
+            { command: defaultRootCommand, options: {} },
+            { command: cmd, options: { '--foo': true } },
+          ],
           success: true,
         });
       });
@@ -279,16 +306,16 @@ describe('getExecutionPlan()', () => {
             { cmd, option: cmd.options[1] },
           ],
           commands: [
-            {
-              command: cmd,
-              isTopic: false,
-              paths: [],
-            },
+            { command: defaultRootCommand, isTopic: false, paths: [] },
+            { command: cmd, isTopic: false, paths: [] },
           ],
         });
 
         expect(execution).toStrictEqual<ExecutionPlan>({
-          plan: [{ command: cmd, options: { '--foo': true, '--bar': true } }],
+          plan: [
+            { command: defaultRootCommand, options: {} },
+            { command: cmd, options: { '--foo': true, '--bar': true } },
+          ],
           success: true,
         });
       });
@@ -305,16 +332,14 @@ describe('getExecutionPlan()', () => {
         const execution = getExecutionPlan(argv(['--foo', 'deploy', '--bar']), {
           globalOptions: [{ cmd: cmd1, option: cmd1.options[0] }],
           commands: [
-            {
-              command: cmd2,
-              isTopic: false,
-              paths: [],
-            },
+            { command: defaultRootCommand, isTopic: false, paths: [] },
+            { command: cmd2, isTopic: false, paths: [] },
           ],
         });
 
         expect(execution).toStrictEqual<ExecutionPlan>({
           plan: [
+            { command: defaultRootCommand, options: {} },
             { command: cmd1, options: { '--foo': true } },
             { command: cmd2, options: { '--bar': true } },
           ],
@@ -340,16 +365,14 @@ describe('getExecutionPlan()', () => {
             { cmd: cmd1, option: cmd1.options[1] },
           ],
           commands: [
-            {
-              command: cmd2,
-              isTopic: false,
-              paths: [],
-            },
+            { command: defaultRootCommand, isTopic: false, paths: [] },
+            { command: cmd2, isTopic: false, paths: [] },
           ],
         });
 
         expect(execution).toStrictEqual<ExecutionPlan>({
           plan: [
+            { command: defaultRootCommand, options: {} },
             { command: cmd1, options: { '--foo': true, '--bar': true } },
             { command: cmd2, options: {} },
           ],
@@ -367,16 +390,16 @@ describe('getExecutionPlan()', () => {
         const execution = getExecutionPlan(argv(['deploy', '-f']), {
           globalOptions: [{ cmd, option: cmd.options[0] }],
           commands: [
-            {
-              command: cmd,
-              isTopic: false,
-              paths: [],
-            },
+            { command: defaultRootCommand, isTopic: false, paths: [] },
+            { command: cmd, isTopic: false, paths: [] },
           ],
         });
 
         expect(execution).toStrictEqual<ExecutionPlan>({
-          plan: [{ command: cmd, options: { '--foo': true } }],
+          plan: [
+            { command: defaultRootCommand, options: {} },
+            { command: cmd, options: { '--foo': true } },
+          ],
           success: true,
         });
       });
@@ -391,17 +414,17 @@ describe('getExecutionPlan()', () => {
           {
             globalOptions: [],
             commands: [
-              {
-                command: cmd,
-                isTopic: false,
-                paths: [],
-              },
+              { command: defaultRootCommand, isTopic: false, paths: [] },
+              { command: cmd, isTopic: false, paths: [] },
             ],
           }
         );
 
         expect(execution).toStrictEqual<ExecutionPlan>({
-          plan: [{ command: cmd, options: { '--foo': true } }],
+          plan: [
+            { command: defaultRootCommand, options: {} },
+            { command: cmd, options: { '--foo': true } },
+          ],
           success: true,
         });
       });

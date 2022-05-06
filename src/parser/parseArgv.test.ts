@@ -1,31 +1,24 @@
-import { getExecutionPlan } from './getExecutionPlan';
+import type { ParsedArgv } from '../@types/parser';
+
 import { parseArgv } from './parseArgv';
 
 describe('parseArgv', () => {
   it('should not modify source', () => {
     const source = ['/foo', '/bar'];
     const parsed = parseArgv(source);
-    const grouped = getExecutionPlan(parsed.flat, {
-      globalOptions: [],
-      commands: [],
-    });
 
     expect(source).toHaveLength(2);
     expect(parsed).toStrictEqual({ flat: [] });
-    expect(grouped).toStrictEqual({
-      plan: [],
-      success: true,
-    });
   });
 
   it('should produce appropriate plan with one command', () => {
     const source = ['/foo', '/bar', 'deploy', '--foo'];
     const parsed = parseArgv(source);
 
-    expect(parsed).toStrictEqual({
+    expect(parsed).toStrictEqual<ParsedArgv>({
       flat: [
         { type: 'value', value: 'deploy' },
-        { type: 'option', name: '--foo' },
+        { type: 'option', value: '--foo' },
       ],
     });
   });
@@ -34,9 +27,9 @@ describe('parseArgv', () => {
     const source = ['/foo', '/bar', '--foo', 'deploy'];
     const parsed = parseArgv(source);
 
-    expect(parsed).toStrictEqual({
+    expect(parsed).toStrictEqual<ParsedArgv>({
       flat: [
-        { type: 'option', name: '--foo' },
+        { type: 'option', value: '--foo' },
         { type: 'value', value: 'deploy' },
       ],
     });
@@ -46,7 +39,7 @@ describe('parseArgv', () => {
     const source = ['/foo', '/bar', '--', 'everything', '--else'];
     const parsed = parseArgv(source);
 
-    expect(parsed).toStrictEqual({ flat: [] });
+    expect(parsed).toStrictEqual<ParsedArgv>({ flat: [] });
   });
 
   describe('options', () => {
@@ -54,9 +47,9 @@ describe('parseArgv', () => {
       const source = ['/foo', '/bar', '--foo-bar', 'hello'];
       const parsed = parseArgv(source);
 
-      expect(parsed).toStrictEqual({
+      expect(parsed).toStrictEqual<ParsedArgv>({
         flat: [
-          { type: 'option', name: '--foo-bar' },
+          { type: 'option', value: '--foo-bar' },
           { type: 'value', value: 'hello' },
         ],
       });
@@ -66,8 +59,8 @@ describe('parseArgv', () => {
       const source = ['/foo', '/bar', '--foo-bar'];
       const parsed = parseArgv(source);
 
-      expect(parsed).toStrictEqual({
-        flat: [{ type: 'option', name: '--foo-bar' }],
+      expect(parsed).toStrictEqual<ParsedArgv>({
+        flat: [{ type: 'option', value: '--foo-bar' }],
       });
     });
 
@@ -75,9 +68,9 @@ describe('parseArgv', () => {
       const source = ['/foo', '/bar', '--foo-bar=hello'];
       const parsed = parseArgv(source);
 
-      expect(parsed).toStrictEqual({
+      expect(parsed).toStrictEqual<ParsedArgv>({
         flat: [
-          { type: 'option', name: '--foo-bar' },
+          { type: 'option', value: '--foo-bar' },
           { type: 'value', value: 'hello' },
         ],
       });
@@ -87,9 +80,9 @@ describe('parseArgv', () => {
       const source = ['/foo', '/bar', '--foo=hello', 'deploy'];
       const parsed = parseArgv(source);
 
-      expect(parsed).toStrictEqual({
+      expect(parsed).toStrictEqual<ParsedArgv>({
         flat: [
-          { type: 'option', name: '--foo' },
+          { type: 'option', value: '--foo' },
           { type: 'value', value: 'hello' },
           { type: 'value', value: 'deploy' },
         ],
@@ -100,13 +93,13 @@ describe('parseArgv', () => {
       const source = ['/foo', '/bar', 'deploy', '-xcb', '-a'];
       const parsed = parseArgv(source);
 
-      expect(parsed).toStrictEqual({
+      expect(parsed).toStrictEqual<ParsedArgv>({
         flat: [
           { type: 'value', value: 'deploy' },
-          { type: 'option', name: '-x' },
-          { type: 'option', name: '-c' },
-          { type: 'option', name: '-b' },
-          { type: 'option', name: '-a' },
+          { type: 'option', value: '-x' },
+          { type: 'option', value: '-c' },
+          { type: 'option', value: '-b' },
+          { type: 'option', value: '-a' },
         ],
       });
     });

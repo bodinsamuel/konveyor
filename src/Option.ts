@@ -3,7 +3,7 @@ import type { TypeBase } from 'altheia-async-data-validator';
 import type { Callback } from './@types/command';
 
 export class Option {
-  #long;
+  readonly name;
   #short;
   #withValues: boolean = false;
   #aliases: string[] = [];
@@ -13,7 +13,7 @@ export class Option {
   #global: boolean = false;
 
   constructor(long: string, short?: string) {
-    this.#long = long;
+    this.name = long;
     this.#short = short;
     this.#withValues = false;
 
@@ -22,16 +22,12 @@ export class Option {
     }
   }
 
-  get [Symbol.toStringTag](): string {
-    return `${this.#long}`;
-  }
+  // get [Symbol.toStringTag](): string {
+  //   return `${this.#long}`;
+  // }
 
   get isGlobal(): boolean {
     return this.#global;
-  }
-
-  get name(): string {
-    return this.#long;
   }
 
   get expectValue(): boolean {
@@ -46,7 +42,7 @@ export class Option {
     msg?: string;
   } {
     return {
-      name: this.#long,
+      name: this.name,
       aliases: this.#aliases,
       withValue: this.#withValues,
       msg: this.#msg,
@@ -87,7 +83,7 @@ export class Option {
 
   is(name: string): boolean {
     return (
-      this.#long === name ||
+      this.name === name ||
       this.#aliases.find((alias) => alias === name) !== undefined
     );
   }

@@ -1,7 +1,5 @@
 !> Very alpha
 
-[![Build Status](https://travis-ci.org/bodinsamuel/konveyor.svg?branch=master)](https://travis-ci.org/bodinsamuel/konveyor)
-
 # Konveyor
 
 Create and manage scripts that scale.

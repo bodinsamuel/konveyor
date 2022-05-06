@@ -2,6 +2,7 @@ import type { Callback } from '../@types/command';
 import { Command } from '../Command';
 import type { Konveyor } from '../Konveyor';
 import type { Option } from '../Option';
+import { ROOT_NAME } from '../constants';
 
 export class RootCommand extends Command<any> {
   #prepare;
@@ -13,7 +14,7 @@ export class RootCommand extends Command<any> {
     options: Option[];
     prepare: (knvyr: Konveyor<any>) => Callback<any>;
   }) {
-    super({ name: 'root', description: '', options, isPrivate: true });
+    super({ name: ROOT_NAME, description: '', options, isPrivate: true });
     this.#prepare = prepare;
   }
 
